@@ -47,7 +47,7 @@ defineModule(sim, list(
         sourceURL = NA
       )
     ),
-  ),
+  
     #createsOutput("objectName", "objectClass", "output object description", ...),
   outputObjects = bindrows(
     createsOutput(
