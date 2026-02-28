@@ -39,11 +39,23 @@ Init <- function(sim) {
     na.rm = TRUE
   )
   
+  colnames(eligibleArea_by_AU)[1] <- "zone"
+  colnames(eligibleArea_by_AU)[2] <- "eligibleCells"
+  
   harvestableArea_by_AU <- terra::zonal(
     harvestable,
     analysisUnitMap,
     fun = "sum",
     na.rm = TRUE
+  )
+  
+  colnames(harvestableArea_by_AU)[1] <- "zone"
+  colnames(harvestableArea_by_AU)[2] <- "harvestableFraction"
+  
+  AU_summaries <- merge(
+    eligibleArea_by_AU,
+    harvestableArea_by_AU,
+    by = "zone"
   )
   
   # SAFETY CHECK
