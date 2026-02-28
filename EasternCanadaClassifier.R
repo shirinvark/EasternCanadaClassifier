@@ -7,8 +7,7 @@
 defineModule(sim, list(
   name = "EasternCanadaClassifier",
   description = "Classifies harvestable landbase into analysis units and computes area summaries.",
-  keywords = c("analysis units", "classification", "harvestable landbase", "AAC")
-  ,
+  keywords = c("analysis units", "classification", "harvestable landbase", "AAC"),
   authors = structure(list(list(given = c("Shirin"), family = "Varkouhi", role = c("aut", "cre"), email = "shirin.varkuhi@gmail.com", comment = NULL)), class = "person"),
   childModules = character(0),
   version = list(EasternCanadaClassifier = "0.0.0.9000"),
@@ -18,10 +17,9 @@ defineModule(sim, list(
   documentation = list("NEWS.md", "README.md", "EasternCanadaClassifier.Rmd"),
   reqdPkgs = list("SpaDES.core (>= 3.0.4)", "terra"),
   parameters = bindrows(
-    #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter(".plots", "character", "screen", NA, NA,
                     "Used by Plots function, which can be optionally used here"),
-    defineParameter(".plotInitialTime", "numeric", start(sim), NA, NA,
+    defineParameter(".plotInitialTime", "numeric",NA, NA, NA,
                     "Describes the simulation time at which the first plot event should occur."),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
                     "Describes the simulation time interval between plot events."),
@@ -29,16 +27,11 @@ defineModule(sim, list(
                     "Describes the simulation time at which the first save event should occur."),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events."),
-    defineParameter(".studyAreaName", "character", NA, NA, NA,
-                    "Human-readable name for the study area used - e.g., a hash of the study",
-                          "area obtained using `reproducible::studyAreaName()`"),
-    ## .seed is optional: `list('init' = 123)` will `set.seed(123)` for the `init` event only.
     defineParameter(".seed", "list", list(), NA, NA,
                     "Named list of seeds to use for each event (names)."),
     defineParameter(".useCache", "logical", FALSE, NA, NA,
                     "Should caching of events or module be used?")
   ),
-    #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
     inputObjects = bindrows(
       expectsInput(
         "Landbase",
@@ -48,7 +41,6 @@ defineModule(sim, list(
       )
     ),
   
-    #createsOutput("objectName", "objectClass", "output object description", ...),
   outputObjects = bindrows(
     createsOutput(
       "analysisUnitMap",
@@ -73,9 +65,9 @@ defineModule(sim, list(
     createsOutput(
       "totalHarvestableArea_ha",
       "numeric",
-      "Total harvestable area (ha)."
-    )
+      "Total harvestable area (ha)." )
   ))
+   )
 doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   switch(
     eventType,
