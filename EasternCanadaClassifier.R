@@ -15,7 +15,11 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("NEWS.md", "README.md", "EasternCanadaClassifier.Rmd"),
-  reqdPkgs = list("SpaDES.core (>= 3.0.4)", "terra"),
+  reqdPkgs = c(
+    "SpaDES.core (>= 3.0.4)",
+    "terra",
+    "data.table"
+  ),
   parameters = bindrows(
     defineParameter(".plots", "character", "screen", NA, NA,
                     "Used by Plots function, which can be optionally used here"),
@@ -32,40 +36,25 @@ defineModule(sim, list(
     defineParameter(".useCache", "logical", FALSE, NA, NA,
                     "Should caching of events or module be used?")
   ),
-    inputObjects = bindrows(
-      expectsInput(
-        "Landbase",
-        objectClass = "list",
-        desc = "Harvestable landbase from EasternCanadaLandbase",
-        sourceURL = NA
-      )
+  inputObjects = bindrows(
+    expectsInput(
+      "cohortData",
+      objectClass = "data.frame",
+      desc = "LandR cohort data containing species biomass"
     ),
+    expectsInput(
+      "pixelGroupMap",
+      objectClass = "SpatRaster",
+      desc = "Raster identifying pixelGroup IDs"
+    )
+  ),
   
   outputObjects = bindrows(
     createsOutput(
       "analysisUnitMap",
       "SpatRaster",
       "Raster assigning harvestable pixels to analysis units."
-    ),
-    createsOutput(
-      "AU_summaries",
-      "data.frame",
-      "Area summaries per analysis unit."
-    ),
-    createsOutput(
-      "ageAreaTable",
-      "data.frame",
-      "Harvestable area by analysis unit and age class."
-    ),
-    createsOutput(
-      "totalEligibleArea_ha",
-      "numeric",
-      "Total eligible area (ha)."
-    ),
-    createsOutput(
-      "totalHarvestableArea_ha",
-      "numeric",
-      "Total harvestable area (ha)." )
+    )
   ))
    )
 doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
