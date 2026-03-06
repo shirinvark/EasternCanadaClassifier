@@ -153,7 +153,11 @@ Init <- function(sim) {
   
   terra::values(analysisUnitMap) <- mappedValues
   
-  
+  analysisUnitMap <- terra::ifel(
+    sim$harvestableFraction > 0,
+    analysisUnitMap,
+    NA
+  )
   ## ------------------------------------------------
   ## 9. Save outputs
   ## ------------------------------------------------
