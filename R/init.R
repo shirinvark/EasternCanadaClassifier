@@ -1,28 +1,41 @@
 Init <- function(sim) {
   
   message("Building analysisUnitMap from LandR state")
+  
+  ## ------------------------------------------------
+  ## 1. Read yield tables
+  ## ------------------------------------------------
+  
   file <- "D:/GrowthSurves_STEVE/yieldTables/data/AB/AlPac AME Mixedwood VolTabs.vol"
   
   lines <- readLines(file)
   
   header <- strsplit(lines[1], " ")[[1]]
   
-  nCurves <- as.numeric(gsub("#","",header[1]))
-  nAges <- as.numeric(header[2])
+  nCurves <- as.numeric(gsub("#", "", header[1]))
+  nAges   <- as.numeric(header[2])
   
   yieldTables <- do.call(
     rbind,
-    lapply(lines[2:(nCurves+1)], function(x)
+    lapply(lines[2:(nCurves + 1)], function(x)
       as.numeric(strsplit(trimws(x), "\\s+")[[1]])
     )
   )
-  ## convert cohortData
+  
+  sim$yieldTables <- yieldTables
+  sim$yieldAges   <- seq(0, by = 10, length.out = nAges)
+  
+  
+  ## ------------------------------------------------
+  ## 2. Convert cohortData
+  ## ------------------------------------------------
   
   dt <- data.table::as.data.table(sim$cohortData)
   
-  # ----------------------------
-  # species grouping
-  # ----------------------------
+  
+  ## ------------------------------------------------
+  ## 3. Species grouping
+  ## ------------------------------------------------
   
   conifer <- c(
     "Abie_bal",
@@ -38,13 +51,15 @@ Init <- function(sim) {
     "broadleaf"
   )]
   
-  # ----------------------------
-  # biomass per pixelGroup
-  # ----------------------------
+  
+  ## ------------------------------------------------
+  ## 4. Biomass aggregation per pixelGroup
+  ## ------------------------------------------------
   
   summaryTable <- dt[, .(
     volume = sum(B)
   ), by = .(pixelGroup, age, type)]
+  
   
   summaryWide <- data.table::dcast(
     summaryTable,
@@ -53,19 +68,23 @@ Init <- function(sim) {
     fill = 0
   )
   
-  # ----------------------------
-  # proportions
-  # ----------------------------
+  
+  ## ------------------------------------------------
+  ## 5. Compute proportions
+  ## ------------------------------------------------
   
   summaryWide[, total := conifer + broadleaf]
   
-  summaryWide[, prop_conifer := conifer / total]
+  summaryWide[, prop_conifer :=
+                ifelse(total > 0, conifer / total, 0)]
   
-  summaryWide[, prop_broadleaf := broadleaf / total]
+  summaryWide[, prop_broadleaf :=
+                ifelse(total > 0, broadleaf / total, 0)]
   
-  # ----------------------------
-  # simple classifier
-  # ----------------------------
+  
+  ## ------------------------------------------------
+  ## 6. Simple classifier (prototype)
+  ## ------------------------------------------------
   
   summaryWide[, AU := "Mixed"]
   
@@ -75,26 +94,35 @@ Init <- function(sim) {
   
   summaryWide[, AU_id := as.numeric(as.factor(AU))]
   
-  # ----------------------------
-  # lookup table
-  # ----------------------------
+  
+  ## ------------------------------------------------
+  ## 7. Lookup table
+  ## ------------------------------------------------
   
   lookup <- summaryWide[, .(pixelGroup, AU_id)]
   
-  # ----------------------------
-  # build raster
-  # ----------------------------
+  
+  ## ------------------------------------------------
+  ## 8. Build analysisUnitMap
+  ## ------------------------------------------------
   
   analysisUnitMap <- sim$pixelGroupMap
   
-  terra::values(analysisUnitMap) <- lookup$AU_id[
-    match(
-      terra::values(sim$pixelGroupMap),
-      lookup$pixelGroup
-    )
+  pixelValues <- terra::values(sim$pixelGroupMap)
+  
+  mappedValues <- lookup$AU_id[
+    match(pixelValues, lookup$pixelGroup)
   ]
   
+  terra::values(analysisUnitMap) <- mappedValues
+  
+  
+  ## ------------------------------------------------
+  ## 9. Save outputs
+  ## ------------------------------------------------
+  
   sim$analysisUnitMap <- analysisUnitMap
+  
   
   message("analysisUnitMap created")
   
