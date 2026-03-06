@@ -46,6 +46,11 @@ defineModule(sim, list(
       "pixelGroupMap",
       objectClass = "SpatRaster",
       desc = "Raster identifying pixelGroup IDs"
+    ),
+    expectsInput(
+      "harvestableFraction",
+      objectClass = "SpatRaster",
+      desc = "Fraction of each pixel that is harvestable (from Landbase module)"
     )
   ),
   
@@ -72,32 +77,40 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
 
 
 .inputObjects <- function(sim) {
-  # Any code written here will be run during the simInit for the purpose of creating
-  # any objects required by this module and identified in the inputObjects element of defineModule.
-  # This is useful if there is something required before simulation to produce the module
-  # object dependencies, including such things as downloading default datasets, e.g.,
-  # downloadData("LCC2005", modulePath(sim)).
-  # Nothing should be created here that does not create a named object in inputObjects.
-  # Any other initiation procedures should be put in "init" eventType of the doEvent function.
-  # Note: the module developer can check if an object is 'suppliedElsewhere' to
-  # selectively skip unnecessary steps because the user has provided those inputObjects in the
-  # simInit call, or another module will supply or has supplied it. e.g.,
-  # if (!suppliedElsewhere('defaultColor', sim)) {
-  #   sim$map <- Cache(prepInputs, extractURL('map')) # download, extract, load file from url in sourceURL
-  # }
+  
+  if (!("pixelGroupMap" %in% names(sim))) {
+    
+    message("Creating fake pixelGroupMap")
+    
+    r <- terra::rast(nrows=10, ncols=10,
+                     xmin=0, xmax=1000,
+                     ymin=0, ymax=1000)
+    
+    terra::values(r) <- sample(1:20, 100, replace = TRUE)
+    
+    sim$pixelGroupMap <- r
+  }
+  
+  
+  if (!("cohortData" %in% names(sim))) {
+    
+    message("Creating fake cohortData")
+    
+    sim$cohortData <- data.table::data.table(
+      pixelGroup = sample(1:20, 200, replace = TRUE),
+      speciesCode = sample(
+        c("Abie_bal","Pice_mar","Pinu_ban","Pinu_res","Pinu_str","Acer_sah"),
+        200,
+        replace = TRUE
+      ),
+      age = sample(1:120, 200, replace = TRUE),
+      B = runif(200, 1, 50)
+    )
+    
+  }
+  
+  return(sim)
+}  # ! ----- STOP EDITING ----- ! #
+  
 
-  #cacheTags <- c(currentModule(sim), "function:.inputObjects") ## uncomment this if Cache is being used
-  dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
-  message(currentModule(sim), ": using dataPath '", dPath, "'.")
-
-  # ! ----- EDIT BELOW ----- ! #
-
-  # ! ----- STOP EDITING ----- ! #
-  return(invisible(sim))
-}
-
-ggplotFn <- function(data, ...) {
-  ggplot2::ggplot(data, ggplot2::aes(TheSample)) +
-    ggplot2::geom_histogram(...)
-}
 
