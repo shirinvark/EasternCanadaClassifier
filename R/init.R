@@ -1,6 +1,22 @@
 Init <- function(sim) {
   
   message("Building analysisUnitMap from LandR state")
+  file <- "D:/GrowthSurves_STEVE/yieldTables/data/AB/AlPac AME Mixedwood VolTabs.vol"
+  
+  lines <- readLines(file)
+  
+  header <- strsplit(lines[1], " ")[[1]]
+  
+  nCurves <- as.numeric(gsub("#","",header[1]))
+  nAges <- as.numeric(header[2])
+  
+  yieldTables <- do.call(
+    rbind,
+    lapply(lines[2:(nCurves+1)], function(x)
+      as.numeric(strsplit(trimws(x), "\\s+")[[1]])
+    )
+  )
+  ## convert cohortData
   
   dt <- data.table::as.data.table(sim$cohortData)
   
