@@ -59,9 +59,20 @@ defineModule(sim, list(
       "analysisUnitMap",
       "SpatRaster",
       "Raster assigning harvestable pixels to analysis units."
-    )
+    ),
+    createsOutput(
+      "yieldTables",
+      "matrix",
+      "Matrix containing yield curves used for classification."
+    ),
+    createsOutput(
+      "yieldAges",
+      "numeric",
+      "Age classes corresponding to yield tables."
+      )
   ))
    )
+
 doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   switch(
     eventType,
@@ -78,19 +89,29 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
 
 .inputObjects <- function(sim) {
   
+  ## ------------------------------------------------
+  ## pixelGroupMap (fake if missing)
+  ## ------------------------------------------------
+  
   if (!("pixelGroupMap" %in% names(sim))) {
     
     message("Creating fake pixelGroupMap")
     
-    r <- terra::rast(nrows=10, ncols=10,
-                     xmin=0, xmax=1000,
-                     ymin=0, ymax=1000)
+    r <- terra::rast(
+      nrows = 10, ncols = 10,
+      xmin = 0, xmax = 1000,
+      ymin = 0, ymax = 1000
+    )
     
     terra::values(r) <- sample(1:20, 100, replace = TRUE)
     
     sim$pixelGroupMap <- r
   }
   
+  
+  ## ------------------------------------------------
+  ## cohortData (fake if missing)
+  ## ------------------------------------------------
   
   if (!("cohortData" %in% names(sim))) {
     
@@ -109,8 +130,30 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
   }
   
+  
+  ## ------------------------------------------------
+  ## harvestableFraction (fake if missing)
+  ## ------------------------------------------------
+  
+  if (!("harvestableFraction" %in% names(sim))) {
+    
+    message("Creating fake harvestableFraction")
+    
+    r <- sim$pixelGroupMap
+    
+    terra::values(r) <- sample(
+      c(0, 1),
+      terra::ncell(r),
+      replace = TRUE,
+      prob = c(0.3, 0.7)
+    )
+    
+    sim$harvestableFraction <- r
+  }
+  
+  
   return(sim)
-}  # ! ----- STOP EDITING ----- ! #
+}
   
 
 
