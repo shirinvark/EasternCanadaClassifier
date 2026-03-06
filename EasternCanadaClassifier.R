@@ -1,4 +1,4 @@
-## Everything in this file and any files in the R directory are sourced during `simInit()`;
+## Everything in this file and any files in the R directory are sourced during `simInit()`
 ## all functions and objects are put into the `simList`.
 ## To use objects, use `sim$xxx` (they are globally available to all modules).
 ## Functions can be used inside any function that was sourced in this module;
