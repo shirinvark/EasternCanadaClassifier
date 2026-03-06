@@ -120,7 +120,7 @@ Init <- function(sim) {
   
   summaryWide[, AU_id :=
                 sapply(1:nrow(summaryWide), function(i) {
-                #sapply(seq_len(.N), function(i){   
+                  #sapply(seq_len(.N), function(i){   
                   a <- summaryWide$ageClass[i]
                   
                   vols <- yieldTables[, a]
