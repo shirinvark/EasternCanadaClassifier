@@ -82,7 +82,15 @@ system.time({
 ## =========================================================
 ## 6) CHECK OUTPUT
 ## =========================================================
+library(terra)
 
+cellArea <- prod(res(sim$analysisUnitMap)) / 10000
+
+areaTable <- as.data.frame(freq(sim$analysisUnitMap))
+
+areaTable$area_ha <- areaTable$count * cellArea
+
+areaTable
 cat("\nObjects in sim:\n")
 print(names(sim))
 

@@ -101,6 +101,10 @@ Init <- function(sim) {
   ## 6. Yield-table classifier
   ## ------------------------------------------------
   
+  ## ------------------------------------------------
+  ## Yield-table classifier
+  ## ------------------------------------------------
+  
   yieldTables <- sim$yieldTables
   
   nCurves <- nrow(yieldTables)
@@ -115,11 +119,13 @@ Init <- function(sim) {
   summaryWide[, standVolume := conifer + broadleaf]
   
   summaryWide[, AU_id :=
-                sapply(1:nrow(summaryWide), function(i) {
-                  
+                #sapply(1:nrow(summaryWide), function(i) {
+                sapply(seq_len(.N), function(i){   
                   a <- summaryWide$ageClass[i]
                   
                   vols <- yieldTables[, a]
+                  
+                  if (all(is.na(vols))) return(NA)
                   
                   which.min(abs(vols - summaryWide$standVolume[i]))
                   
