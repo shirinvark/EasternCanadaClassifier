@@ -68,6 +68,9 @@ Init <- function(sim) {
     fill = 0
   )
   
+  if (!"conifer" %in% names(summaryWide)) summaryWide[, conifer := 0]
+  if (!"broadleaf" %in% names(summaryWide)) summaryWide[, broadleaf := 0]
+  
   
   ## ------------------------------------------------
   ## 5. Compute proportions
@@ -86,15 +89,41 @@ Init <- function(sim) {
   ## 6. Simple classifier (prototype)
   ## ------------------------------------------------
   
-  summaryWide[, AU := "Mixed"]
+  #summaryWide[, AU := "Mixed"]
   
-  summaryWide[prop_conifer >= 0.7, AU := "Conifer"]
+  #summaryWide[prop_conifer >= 0.7, AU := "Conifer"]
   
-  summaryWide[prop_broadleaf >= 0.7, AU := "Broadleaf"]
+  ##summaryWide[prop_broadleaf >= 0.7, AU := "Broadleaf"]
   
-  summaryWide[, AU_id := as.numeric(as.factor(AU))]
+  #summaryWide[, AU_id := as.numeric(as.factor(AU))]
   
+  ## ------------------------------------------------
+  ## 6. Yield-table classifier
+  ## ------------------------------------------------
   
+  yieldTables <- sim$yieldTables
+  
+  nCurves <- nrow(yieldTables)
+  nAges   <- ncol(yieldTables)
+  
+  summaryWide[, ageClass :=
+                pmin(
+                  floor(age / 10) + 1,
+                  nAges
+                )]
+  
+  summaryWide[, standVolume := conifer + broadleaf]
+  
+  summaryWide[, AU_id :=
+                sapply(1:nrow(summaryWide), function(i) {
+                  
+                  a <- summaryWide$ageClass[i]
+                  
+                  vols <- yieldTables[, a]
+                  
+                  which.min(abs(vols - summaryWide$standVolume[i]))
+                  
+                })]
   ## ------------------------------------------------
   ## 7. Lookup table
   ## ------------------------------------------------
@@ -113,6 +142,8 @@ Init <- function(sim) {
   mappedValues <- lookup$AU_id[
     match(pixelValues, lookup$pixelGroup)
   ]
+  
+  mappedValues[is.na(mappedValues)] <- NA
   
   terra::values(analysisUnitMap) <- mappedValues
   
