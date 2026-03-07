@@ -120,7 +120,7 @@ Init <- function(sim) {
   
   summaryWide[, AU_id :=
                 sapply(1:nrow(summaryWide), function(i) {
-                  #sapply(seq_len(.N), function(i){   
+                #sapply(seq_len(.N), function(i){   
                   a <- summaryWide$ageClass[i]
                   
                   vols <- yieldTables[, a]
@@ -153,11 +153,7 @@ Init <- function(sim) {
   
   terra::values(analysisUnitMap) <- mappedValues
   
-  analysisUnitMap <- terra::ifel(
-    sim$harvestableFraction > 0,
-    analysisUnitMap,
-    NA
-  )
+  
   ## ------------------------------------------------
   ## 9. Save outputs
   ## ------------------------------------------------
