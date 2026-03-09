@@ -7,8 +7,9 @@ Init <- function(sim) {
   ## ------------------------------------------------
   
   file <- file.path(
-    sim@paths$inputPath,
-    "yieldTables",
+    "modules",
+    "EasternCanadaClassifier",
+    "data",
     "yieldTables.csv"
   )
   
