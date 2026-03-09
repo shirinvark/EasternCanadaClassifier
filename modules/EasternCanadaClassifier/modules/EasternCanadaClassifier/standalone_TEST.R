@@ -1,15 +1,19 @@
 rm(list = ls())
 gc()
 
+# =========================================================
+# LOAD LIBRARIES
+# =========================================================
+
 library(SpaDES.core)
 library(SpaDES.project)
 library(terra)
 library(sf)
 library(data.table)
 
-## =========================================================
-## 1) SET PATHS
-## =========================================================
+# =========================================================
+# SET PATHS
+# =========================================================
 
 setPaths(
   cachePath   = "E:/EasternCanadaClassifier/cache",
@@ -21,9 +25,9 @@ setPaths(
 
 print(getPaths())
 
-## =========================================================
-## 2) DOWNLOAD MODULE
-## =========================================================
+# =========================================================
+# DOWNLOAD MODULE
+# =========================================================
 
 SpaDES.project::getModule(
   modules    = "shirinvark/EasternCanadaClassifier",
@@ -31,16 +35,24 @@ SpaDES.project::getModule(
   overwrite  = TRUE
 )
 
-## =========================================================
-## 3) CREATE TEST DATA FOR NEW CLASSIFIER
-## =========================================================
+# =========================================================
+# CREATE TEST DATA (FAKE LANDR STATE)
+# =========================================================
 
 # pixelGroup raster
 
-pixelGroupMap <- rast(nrows=10, ncols=10, xmin=0, xmax=1000, ymin=0, ymax=1000)
-values(pixelGroupMap) <- sample(1:20, 100, replace=TRUE)
+pixelGroupMap <- rast(
+  nrows = 10,
+  ncols = 10,
+  xmin  = 0,
+  xmax  = 1000,
+  ymin  = 0,
+  ymax  = 1000
+)
 
-# cohortData (LandR style)
+values(pixelGroupMap) <- sample(1:20, 100, replace = TRUE)
+
+# cohortData (LandR-like structure)
 
 cohortData <- data.table(
   pixelGroup = sample(1:20, 200, replace = TRUE),
@@ -50,20 +62,23 @@ cohortData <- data.table(
     replace = TRUE
   ),
   age = sample(1:120, 200, replace = TRUE),
-  B = runif(200, 1, 50)
+  B   = runif(200, 1, 50)
 )
 
-## =========================================================
-## 4) INIT SIMULATION
-## =========================================================
+# =========================================================
+# INITIALIZE SIMULATION
+# =========================================================
 
 sim <- simInit(
-  times = list(start = 0, end = 1),
+  times   = list(start = 0, end = 1),
   modules = "EasternCanadaClassifier",
-  objects = list(
-    cohortData = cohortData,
-    pixelGroupMap = pixelGroupMap
-  ),
+  
+  # uncomment if you want to pass objects directly
+  # objects = list(
+  #   cohortData = cohortData,
+  #   pixelGroupMap = pixelGroupMap
+  # ),
+  
   options = list(
     spades.checkpoint = FALSE,
     spades.save       = FALSE,
@@ -71,28 +86,27 @@ sim <- simInit(
   )
 )
 
-## =========================================================
-## RUN MODEL
-## =========================================================
+# =========================================================
+# RUN MODEL
+# =========================================================
 
 system.time({
   sim <- spades(sim)
 })
 
+# =========================================================
+# PLOT ANALYSIS UNIT MAP
+# =========================================================
 
-## =========================================================
-## CHECK ANALYSIS UNIT MAP
-## =========================================================
+plot(
+  sim$analysisUnitMap,
+  col  = terrain.colors(8),
+  main = "Analysis Unit Map"
+)
 
-plot(sim$analysisUnitMap,
-     main = "Analysis Unit Map")
-
-
-## =========================================================
-## AREA PER ANALYSIS UNIT
-## =========================================================
-
-library(terra)
+# =========================================================
+# AREA PER ANALYSIS UNIT
+# =========================================================
 
 cellArea <- prod(res(sim$analysisUnitMap)) / 10000
 
@@ -102,17 +116,11 @@ areaTable$area_ha <- areaTable$count * cellArea
 
 print(areaTable)
 
-
-## =========================================================
-## AGE STRUCTURE PER ANALYSIS UNIT
-## =========================================================
-
-library(data.table)
+# =========================================================
+# AGE STRUCTURE PER ANALYSIS UNIT
+# =========================================================
 
 dt <- as.data.table(sim$cohortData)
-
-
-## create age classes
 
 ageBreaks <- c(0,20,40,60,80,100,150,Inf)
 
@@ -123,71 +131,22 @@ dt[, ageClass := cut(
   labels = FALSE
 )]
 
-
-## join analysis unit from raster
-
-auValues <- terra::values(sim$analysisUnitMap)
-
-pixelGroups <- unique(dt$pixelGroup)
-
-lookupAU <- data.table(
-  pixelGroup = pixelGroups,
-  analysisUnit = auValues[pixelGroups]
-)
-
-dt <- merge(
-  dt,
-  lookupAU,
-  by = "pixelGroup",
-  all.x = TRUE
-)
-
-
-## age distribution table
-
-ageStructure <- dt[, .N, by = .(analysisUnit, ageClass)]
-
-print(ageStructure)
-
-
-## =========================================================
-## CLEAN ANALYSIS UNIT MAP
-## =========================================================
-
-library(terra)
-
-auMap <- sim$analysisUnitMap
-
-auValues <- sort(unique(values(auMap), na.rm = TRUE))
-
-
-plot(
-  sim$analysisUnitMap,
-  col = terrain.colors(8),
-  main = "Analysis Unit Map"
-)
-
-## =========================================================
-## MEAN AGE PER ANALYSIS UNIT
-## =========================================================
-
-library(data.table)
-library(terra)
-
-dt <- as.data.table(sim$cohortData)
-
-## گرفتن AU هر pixelGroup از raster
-
 auValues <- terra::values(sim$analysisUnitMap)
 
 lookupAU <- data.table(
-  pixelGroup = unique(dt$pixelGroup),
+  pixelGroup   = unique(dt$pixelGroup),
   analysisUnit = auValues[unique(dt$pixelGroup)]
 )
 
 dt <- merge(dt, lookupAU, by = "pixelGroup", all.x = TRUE)
 
-## محاسبه میانگین سن
+ageStructure <- dt[, .N, by = .(analysisUnit, ageClass)]
+
+print(ageStructure)
+
+# =========================================================
+# MEAN AGE PER ANALYSIS UNIT
+# =========================================================
 
 ageSummary <- dt[, .(
   meanAge = mean(age, na.rm = TRUE),
@@ -196,9 +155,9 @@ ageSummary <- dt[, .(
 
 print(ageSummary)
 
-## =========================================================
-## PLOT YIELD CURVES
-## =========================================================
+# =========================================================
+# PLOT YIELD CURVES
+# =========================================================
 
 yieldTables <- sim$yieldTables
 yieldAges   <- sim$yieldAges
@@ -207,9 +166,9 @@ matplot(
   yieldAges,
   t(yieldTables),
   type = "l",
-  lwd = 2,
-  lty = 1,
-  col = rainbow(nrow(yieldTables)),
+  lwd  = 2,
+  lty  = 1,
+  col  = rainbow(nrow(yieldTables)),
   xlab = "Age",
   ylab = "Volume",
   main = "Yield Curves"

@@ -3,27 +3,28 @@ Init <- function(sim) {
   message("Building analysisUnitMap from LandR state")
   
   ## ------------------------------------------------
-  ## 1. Read yield tables
+  ## 1. Read yield tables (CSV)
   ## ------------------------------------------------
   
-  file <- "D:/GrowthSurves_STEVE/yieldTables/data/AB/AlPac AME Mixedwood VolTabs.vol"
-  
-  lines <- readLines(file)
-  
-  header <- strsplit(lines[1], " ")[[1]]
-  
-  nCurves <- as.numeric(gsub("#", "", header[1]))
-  nAges   <- as.numeric(header[2])
-  
-  yieldTables <- do.call(
-    rbind,
-    lapply(lines[2:(nCurves + 1)], function(x)
-      as.numeric(strsplit(trimws(x), "\\s+")[[1]])
-    )
+  file <- file.path(
+    "modules",
+    "EasternCanadaClassifier",
+    "data",
+    "yieldTables.csv"
   )
   
+  yield_long <- data.table::fread(file)
+  
+  yieldTables <- data.table::dcast(
+    yield_long,
+    AU ~ age,
+    value.var = "volume"
+  )
+  
+  yieldTables <- as.matrix(yieldTables[, -1])
+  
   sim$yieldTables <- yieldTables
-  sim$yieldAges   <- seq(0, by = 10, length.out = nAges)
+  sim$yieldAges   <- as.numeric(colnames(yieldTables))
   
   
   ## ------------------------------------------------
@@ -68,12 +69,15 @@ Init <- function(sim) {
     fill = 0
   )
   
-  if (!"conifer" %in% names(summaryWide)) summaryWide[, conifer := 0]
-  if (!"broadleaf" %in% names(summaryWide)) summaryWide[, broadleaf := 0]
+  if (!"conifer" %in% names(summaryWide))
+    summaryWide[, conifer := 0]
+  
+  if (!"broadleaf" %in% names(summaryWide))
+    summaryWide[, broadleaf := 0]
   
   
   ## ------------------------------------------------
-  ## 5. Compute proportions
+  ## 5. Compute stand proportions
   ## ------------------------------------------------
   
   summaryWide[, total := conifer + broadleaf]
@@ -86,23 +90,7 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 6. Simple classifier (prototype)
-  ## ------------------------------------------------
-  
-  #summaryWide[, AU := "Mixed"]
-  
-  #summaryWide[prop_conifer >= 0.7, AU := "Conifer"]
-  
-  ##summaryWide[prop_broadleaf >= 0.7, AU := "Broadleaf"]
-  
-  #summaryWide[, AU_id := as.numeric(as.factor(AU))]
-  
-  ## ------------------------------------------------
   ## 6. Yield-table classifier
-  ## ------------------------------------------------
-  
-  ## ------------------------------------------------
-  ## Yield-table classifier
   ## ------------------------------------------------
   
   yieldTables <- sim$yieldTables
@@ -116,25 +104,34 @@ Init <- function(sim) {
                   nAges
                 )]
   
-  summaryWide[, standVolume := conifer + broadleaf]
+  summaryWide[, standVolume :=
+                conifer + broadleaf]
   
   summaryWide[, AU_id :=
-                sapply(1:nrow(summaryWide), function(i) {
-                  #sapply(seq_len(.N), function(i){   
+                sapply(seq_len(.N), function(i) {
+                  
                   a <- summaryWide$ageClass[i]
                   
                   vols <- yieldTables[, a]
                   
-                  if (all(is.na(vols))) return(NA)
+                  if (all(is.na(vols)))
+                    return(NA)
                   
-                  which.min(abs(vols - summaryWide$standVolume[i]))
+                  which.min(
+                    abs(vols - summaryWide$standVolume[i])
+                  )
                   
                 })]
+  
+  
   ## ------------------------------------------------
-  ## 7. Lookup table
+  ## 7. Build lookup table
   ## ------------------------------------------------
   
-  lookup <- summaryWide[, .(pixelGroup, AU_id)]
+  lookup <- summaryWide[, .(
+    pixelGroup,
+    AU_id
+  )]
   
   
   ## ------------------------------------------------
@@ -149,8 +146,6 @@ Init <- function(sim) {
     match(pixelValues, lookup$pixelGroup)
   ]
   
-  mappedValues[is.na(mappedValues)] <- NA
-  
   terra::values(analysisUnitMap) <- mappedValues
   
   analysisUnitMap <- terra::ifel(
@@ -158,6 +153,8 @@ Init <- function(sim) {
     analysisUnitMap,
     NA
   )
+  
+  
   ## ------------------------------------------------
   ## 9. Save outputs
   ## ------------------------------------------------
