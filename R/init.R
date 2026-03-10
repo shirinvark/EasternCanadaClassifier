@@ -3,7 +3,7 @@ Init <- function(sim) {
   message("Building analysisUnitMap from LandR state")
   
   ## ------------------------------------------------
-  ## 1. Read yield tables (CSV)
+  ## 1. Read yield tables
   ## ------------------------------------------------
   
   file <- file.path(
@@ -15,14 +15,17 @@ Init <- function(sim) {
   
   yield_long <- data.table::fread(file)
   
-  yieldTables <- data.table::dcast(
+  yieldTablesDT <- data.table::dcast(
     yield_long,
     AU ~ age,
     value.var = "volume"
   )
   
-  yieldTables <- as.matrix(yieldTables[, -1])
-  sim$yieldAges   <- as.numeric(colnames(yieldTables))
+  yieldTables <- as.matrix(yieldTablesDT[, -1])
+  storage.mode(yieldTables) <- "numeric"
+  
+  sim$yieldTables <- yieldTables
+  sim$yieldAges <- as.numeric(colnames(yieldTables))
   
   
   ## ------------------------------------------------
@@ -71,11 +74,13 @@ Init <- function(sim) {
     fill = 0
   )
   
-  if (!"conifer" %in% names(summaryWide))
+  if (!"conifer" %in% names(summaryWide)) {
     summaryWide[, conifer := 0]
+  }
   
-  if (!"broadleaf" %in% names(summaryWide))
+  if (!"broadleaf" %in% names(summaryWide)) {
     summaryWide[, broadleaf := 0]
+  }
   
   
   ## ------------------------------------------------
@@ -96,26 +101,21 @@ Init <- function(sim) {
   ## ------------------------------------------------
   
   yieldTables <- sim$yieldTables
-  
-  nCurves <- nrow(yieldTables)
-  nAges   <- ncol(yieldTables)
+  nAges <- ncol(yieldTables)
   
   summaryWide[, ageClass :=
-                pmin(
-                  floor(age / 10) + 1,
-                  nAges
-                )]
+                pmin(floor(age / 10) + 1, nAges)]
   
   summaryWide[, AU_id :=
                 sapply(seq_len(.N), function(i) {
                   
                   a <- summaryWide$ageClass[i]
-                  
                   vols <- yieldTables[, a]
                   
                   which.min(abs(vols - summaryWide$standVolume[i]))
                   
                 })]
+  
   
   ## ------------------------------------------------
   ## 8. Build lookup table
@@ -125,6 +125,8 @@ Init <- function(sim) {
     pixelGroup,
     AU_id
   )]
+  
+  lookup <- lookup[!duplicated(pixelGroup)]
   
   
   ## ------------------------------------------------
@@ -139,7 +141,14 @@ Init <- function(sim) {
     match(pixelValues, lookup$pixelGroup)
   ]
   
+  mappedValues <- as.integer(mappedValues)
+  
   terra::values(analysisUnitMap) <- mappedValues
+  
+  
+  ## ------------------------------------------------
+  ## 10. Apply harvestable mask
+  ## ------------------------------------------------
   
   analysisUnitMap <- terra::ifel(
     sim$harvestableFraction > 0,
@@ -149,12 +158,12 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 10. Save outputs
+  ## 11. Save outputs
   ## ------------------------------------------------
   
   sim$analysisUnitMap <- analysisUnitMap
   
-  message("analysisUnitMap created")
+  message("analysisUnitMap created successfully")
   
   return(sim)
 }
