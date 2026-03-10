@@ -3,7 +3,7 @@ Init <- function(sim) {
   message("Building analysisUnitMap from LandR state")
   
   ## ------------------------------------------------
-  ## 1. Read yield tables (CSV)
+  ## 1. Read yield tables
   ## ------------------------------------------------
   
   file <- file.path(
@@ -15,20 +15,21 @@ Init <- function(sim) {
   
   yield_long <- data.table::fread(file)
   
-  yieldTables <- data.table::dcast(
+  yieldTablesDT <- data.table::dcast(
     yield_long,
     AU ~ age,
     value.var = "volume"
   )
   
-  yieldTables <- as.matrix(yieldTables[, -1])
+  yieldTables <- as.matrix(yieldTablesDT[, -1])
+  storage.mode(yieldTables) <- "numeric"
   
   sim$yieldTables <- yieldTables
-  sim$yieldAges   <- as.numeric(colnames(yieldTables))
+  sim$yieldAges <- as.numeric(colnames(yieldTables))
   
   
   ## ------------------------------------------------
-  ## 2. Convert cohortData
+  ## 2. Convert cohortData to data.table
   ## ------------------------------------------------
   
   dt <- data.table::as.data.table(sim$cohortData)
@@ -62,6 +63,10 @@ Init <- function(sim) {
   ), by = .(pixelGroup, age, type)]
   
   
+  ## ------------------------------------------------
+  ## 5. Convert to wide table
+  ## ------------------------------------------------
+  
   summaryWide <- data.table::dcast(
     summaryTable,
     pixelGroup + age ~ type,
@@ -69,63 +74,51 @@ Init <- function(sim) {
     fill = 0
   )
   
-  if (!"conifer" %in% names(summaryWide))
+  if (!"conifer" %in% names(summaryWide)) {
     summaryWide[, conifer := 0]
+  }
   
-  if (!"broadleaf" %in% names(summaryWide))
+  if (!"broadleaf" %in% names(summaryWide)) {
     summaryWide[, broadleaf := 0]
+  }
   
   
   ## ------------------------------------------------
-  ## 5. Compute stand proportions
+  ## 6. Compute stand properties
   ## ------------------------------------------------
   
-  summaryWide[, total := conifer + broadleaf]
+  summaryWide[, standVolume := conifer + broadleaf]
   
   summaryWide[, prop_conifer :=
-                ifelse(total > 0, conifer / total, 0)]
+                ifelse(standVolume > 0, conifer / standVolume, 0)]
   
   summaryWide[, prop_broadleaf :=
-                ifelse(total > 0, broadleaf / total, 0)]
+                ifelse(standVolume > 0, broadleaf / standVolume, 0)]
   
   
   ## ------------------------------------------------
-  ## 6. Yield-table classifier
+  ## 7. Yield-table classifier
   ## ------------------------------------------------
   
   yieldTables <- sim$yieldTables
-  
-  nCurves <- nrow(yieldTables)
-  nAges   <- ncol(yieldTables)
+  nAges <- ncol(yieldTables)
   
   summaryWide[, ageClass :=
-                pmin(
-                  floor(age / 10) + 1,
-                  nAges
-                )]
-  
-  summaryWide[, standVolume :=
-                conifer + broadleaf]
+                pmin(floor(age / 10) + 1, nAges)]
   
   summaryWide[, AU_id :=
                 sapply(seq_len(.N), function(i) {
                   
                   a <- summaryWide$ageClass[i]
-                  
                   vols <- yieldTables[, a]
                   
-                  if (all(is.na(vols)))
-                    return(NA)
-                  
-                  which.min(
-                    abs(vols - summaryWide$standVolume[i])
-                  )
+                  which.min(abs(vols - summaryWide$standVolume[i]))
                   
                 })]
   
   
   ## ------------------------------------------------
-  ## 7. Build lookup table
+  ## 8. Build lookup table
   ## ------------------------------------------------
   
   lookup <- summaryWide[, .(
@@ -133,9 +126,11 @@ Init <- function(sim) {
     AU_id
   )]
   
+  lookup <- lookup[!duplicated(pixelGroup)]
+  
   
   ## ------------------------------------------------
-  ## 8. Build analysisUnitMap
+  ## 9. Build analysisUnitMap
   ## ------------------------------------------------
   
   analysisUnitMap <- sim$pixelGroupMap
@@ -146,7 +141,14 @@ Init <- function(sim) {
     match(pixelValues, lookup$pixelGroup)
   ]
   
+  mappedValues <- as.integer(mappedValues)
+  
   terra::values(analysisUnitMap) <- mappedValues
+  
+  
+  ## ------------------------------------------------
+  ## 10. Apply harvestable mask
+  ## ------------------------------------------------
   
   analysisUnitMap <- terra::ifel(
     sim$harvestableFraction > 0,
@@ -156,13 +158,12 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 9. Save outputs
+  ## 11. Save outputs
   ## ------------------------------------------------
   
   sim$analysisUnitMap <- analysisUnitMap
   
-  
-  message("analysisUnitMap created")
+  message("analysisUnitMap created successfully")
   
   return(sim)
 }
