@@ -28,7 +28,7 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 2. Convert cohortData
+  ## 2. Convert cohortData to data.table
   ## ------------------------------------------------
   
   dt <- data.table::as.data.table(sim$cohortData)
@@ -62,6 +62,10 @@ Init <- function(sim) {
   ), by = .(pixelGroup, age, type)]
   
   
+  ## ------------------------------------------------
+  ## 5. Convert to wide table
+  ## ------------------------------------------------
+  
   summaryWide <- data.table::dcast(
     summaryTable,
     pixelGroup + age ~ type,
@@ -77,20 +81,20 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 5. Compute stand proportions
+  ## 6. Compute stand properties
   ## ------------------------------------------------
   
-  summaryWide[, total := conifer + broadleaf]
+  summaryWide[, standVolume := conifer + broadleaf]
   
   summaryWide[, prop_conifer :=
-                ifelse(total > 0, conifer / total, 0)]
+                ifelse(standVolume > 0, conifer / standVolume, 0)]
   
   summaryWide[, prop_broadleaf :=
-                ifelse(total > 0, broadleaf / total, 0)]
+                ifelse(standVolume > 0, broadleaf / standVolume, 0)]
   
   
   ## ------------------------------------------------
-  ## 6. Yield-table classifier
+  ## 7. Yield-table classifier
   ## ------------------------------------------------
   
   yieldTables <- sim$yieldTables
@@ -103,9 +107,6 @@ Init <- function(sim) {
                   floor(age / 10) + 1,
                   nAges
                 )]
-  
-  summaryWide[, standVolume :=
-                conifer + broadleaf]
   
   summaryWide[, AU_id :=
                 sapply(seq_len(.N), function(i) {
@@ -125,7 +126,7 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 7. Build lookup table
+  ## 8. Build lookup table
   ## ------------------------------------------------
   
   lookup <- summaryWide[, .(
@@ -135,7 +136,7 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 8. Build analysisUnitMap
+  ## 9. Build analysisUnitMap
   ## ------------------------------------------------
   
   analysisUnitMap <- sim$pixelGroupMap
@@ -156,11 +157,10 @@ Init <- function(sim) {
   
   
   ## ------------------------------------------------
-  ## 9. Save outputs
+  ## 10. Save outputs
   ## ------------------------------------------------
   
   sim$analysisUnitMap <- analysisUnitMap
-  
   
   message("analysisUnitMap created")
   
