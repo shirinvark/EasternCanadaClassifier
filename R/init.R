@@ -22,8 +22,6 @@ Init <- function(sim) {
   )
   
   yieldTables <- as.matrix(yieldTables[, -1])
-  yieldProp <- yieldTables / rowSums(yieldTables)
-  sim$yieldTables <- yieldTables
   sim$yieldAges   <- as.numeric(colnames(yieldTables))
   
   
@@ -113,21 +111,11 @@ Init <- function(sim) {
                   
                   a <- summaryWide$ageClass[i]
                   
-                  stand_con  <- summaryWide$prop_conifer[i]
-                  stand_bro  <- summaryWide$prop_broadleaf[i]
+                  vols <- yieldTables[, a]
                   
-                  table_con <- yieldTables[, a] / rowSums(yieldTables)
-                  table_bro <- 1 - table_con
-                  
-                  dist <- sqrt(
-                    (table_con - stand_con)^2 +
-                      (table_bro - stand_bro)^2
-                  )
-                  
-                  which.min(dist)
+                  which.min(abs(vols - summaryWide$standVolume[i]))
                   
                 })]
-  
   
   ## ------------------------------------------------
   ## 8. Build lookup table
