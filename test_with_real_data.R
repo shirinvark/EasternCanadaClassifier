@@ -50,7 +50,8 @@ SpaDES.project::getModule(
 pixelGroupMap <- rast(
   "E:/EasternCanadaClassifier/maps/pixel_groups.tif"
 )
-
+#======================================================
+standAgeMap <- terra::rast("E:/EasternCanadaClassifier/maps/stand_age_map.tif")
 # =========================================================
 
 # LOAD COHORT DATA
@@ -73,7 +74,8 @@ sim <- simInit(
   
   objects = list(
     cohortData    = cohortData,
-    pixelGroupMap = pixelGroupMap
+    pixelGroupMap = pixelGroupMap,
+    standAgeMap   = standAgeMap
   ),
   
   options = list(
@@ -189,4 +191,53 @@ legend(
   col = rainbow(nrow(yieldTables)),
   lty = 1,
   lwd = 2
+)
+# ======================================
+# ANALYSIS UNIT SUMMARY
+# ======================================
+
+auValues <- terra::values(sim$analysisUnitMap)
+pgValues <- terra::values(sim$pixelGroupMap)
+
+lookupAU <- data.table(
+  pixelGroup = pgValues,
+  analysisUnit = auValues
+)
+names(lookupAU) <- c("pixelGroup","analysisUnit")
+lookupAU <- unique(lookupAU)
+lookupAU <- lookupAU[!is.na(pixelGroup)]
+
+dt <- as.data.table(sim$cohortData)
+
+dt <- merge(
+  dt,
+  lookupAU,
+  by = "pixelGroup",
+  all.x = TRUE
+)
+
+dt[, ageClass := cut(age, breaks = seq(0,120,10))]
+
+summaryTable <- dt[, .(
+  nStands = .N,
+  meanAge = mean(age, na.rm = TRUE),
+  minAge = min(age, na.rm = TRUE),
+  maxAge = max(age, na.rm = TRUE)
+), by = analysisUnit]
+
+
+print(summaryTable)
+#================================================
+
+plot(
+  sim$analysisUnitMap,
+  col = c("grey80","orange","darkgreen"),
+  main = "Analysis Units"
+)
+
+legend(
+  "bottomleft",
+  legend = c("Non-harvestable","Young","Mature"),
+  fill = c("grey80","orange","darkgreen"),
+  bg = "white"
 )
