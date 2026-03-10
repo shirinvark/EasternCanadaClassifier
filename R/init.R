@@ -148,7 +148,16 @@ Init <- function(sim) {
   summaryWide[, prop_broadleaf :=
                 ifelse(standVolume > 0, broadleaf / standVolume, 0)]
   
+  ## ------------------------------------------------
+  ## 6b. Stand type classification
+  ## ------------------------------------------------
   
+  summaryWide[, standType :=
+                data.table::fifelse(prop_conifer > 0.7, "conifer",
+                                    data.table::fifelse(prop_broadleaf > 0.7, "broadleaf",
+                                                        "mixed"))]
+  # Optional: store stand types for diagnostics
+  sim$standTypeTable <- summaryWide[, .(pixelGroup, age, standType)]
   ## ------------------------------------------------
   ## 7. Yield-table classifier
   ## ------------------------------------------------
@@ -185,7 +194,14 @@ Init <- function(sim) {
                   
                 })]
   
+  # ------------------------------------------------
+  # QA: report stand type distribution
+  # ------------------------------------------------
   
+  typeCount <- summaryWide[, .N, by = standType]
+  
+  message("Stand type distribution:")
+  print(typeCount)
   ## ------------------------------------------------
   ## 8. Build lookup table
   ## ------------------------------------------------
@@ -253,6 +269,13 @@ Init <- function(sim) {
   # Inform the user that the map was successfully created
   
   message("analysisUnitMap created successfully")
+  # ------------------------------------------------
+  # QA: AU distribution
+  # ------------------------------------------------
   
+  auFreq <- terra::freq(analysisUnitMap)
+  
+  message("Analysis Unit distribution:")
+  print(auFreq)
   return(sim)
 }
