@@ -22,7 +22,7 @@ Init <- function(sim) {
   )
   
   yieldTables <- as.matrix(yieldTables[, -1])
-  
+  yieldProp <- yieldTables / rowSums(yieldTables)
   sim$yieldTables <- yieldTables
   sim$yieldAges   <- as.numeric(colnames(yieldTables))
   
@@ -113,14 +113,18 @@ Init <- function(sim) {
                   
                   a <- summaryWide$ageClass[i]
                   
-                  vols <- yieldTables[, a]
+                  stand_con  <- summaryWide$prop_conifer[i]
+                  stand_bro  <- summaryWide$prop_broadleaf[i]
                   
-                  if (all(is.na(vols)))
-                    return(NA)
+                  table_con <- yieldTables[, a] / rowSums(yieldTables)
+                  table_bro <- 1 - table_con
                   
-                  which.min(
-                    abs(vols - summaryWide$standVolume[i])
+                  dist <- sqrt(
+                    (table_con - stand_con)^2 +
+                      (table_bro - stand_bro)^2
                   )
+                  
+                  which.min(dist)
                   
                 })]
   
