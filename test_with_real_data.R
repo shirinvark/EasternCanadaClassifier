@@ -67,7 +67,8 @@ cohortData <- readRDS(
 # INITIALIZE SIMULATION
 
 # =========================================================
-
+harvestableFraction <- pixelGroupMap
+values(harvestableFraction) <- 1
 sim <- simInit(
   times   = list(start = 0, end = 1),
   modules = "EasternCanadaClassifier",
@@ -75,7 +76,8 @@ sim <- simInit(
   objects = list(
     cohortData    = cohortData,
     pixelGroupMap = pixelGroupMap,
-    standAgeMap   = standAgeMap
+    standAgeMap   = standAgeMap,
+    harvestableFraction = harvestableFraction
   ),
   
   options = list(
@@ -138,19 +140,22 @@ dt[, ageClass := cut(
   labels = FALSE
 )]
 
-auValues <- terra::values(sim$analysisUnitMap)
+pg <- terra::values(sim$pixelGroupMap)
+au <- terra::values(sim$analysisUnitMap)
 
 lookupAU <- data.table(
-  pixelGroup   = unique(dt$pixelGroup),
-  analysisUnit = auValues[unique(dt$pixelGroup)]
+  pixelGroup = pg,
+  analysisUnit = au
 )
+
+lookupAU <- lookupAU[!is.na(pixelGroup) & !is.na(analysisUnit)]
+lookupAU <- unique(lookupAU)
 
 dt <- merge(dt, lookupAU, by = "pixelGroup", all.x = TRUE)
 
 ageStructure <- dt[, .N, by = .(analysisUnit, ageClass)]
 
-print(ageStructure)
-
+print(ageStructure[order(analysisUnit, ageClass)])
 # =========================================================
 
 # MEAN AGE PER ANALYSIS UNIT
@@ -192,41 +197,7 @@ legend(
   lty = 1,
   lwd = 2
 )
-# ======================================
-# ANALYSIS UNIT SUMMARY
-# ======================================
 
-auValues <- terra::values(sim$analysisUnitMap)
-pgValues <- terra::values(sim$pixelGroupMap)
-
-lookupAU <- data.table(
-  pixelGroup = pgValues,
-  analysisUnit = auValues
-)
-names(lookupAU) <- c("pixelGroup","analysisUnit")
-lookupAU <- unique(lookupAU)
-lookupAU <- lookupAU[!is.na(pixelGroup)]
-
-dt <- as.data.table(sim$cohortData)
-
-dt <- merge(
-  dt,
-  lookupAU,
-  by = "pixelGroup",
-  all.x = TRUE
-)
-
-dt[, ageClass := cut(age, breaks = seq(0,120,10))]
-
-summaryTable <- dt[, .(
-  nStands = .N,
-  meanAge = mean(age, na.rm = TRUE),
-  minAge = min(age, na.rm = TRUE),
-  maxAge = max(age, na.rm = TRUE)
-), by = analysisUnit]
-
-
-print(summaryTable)
 #================================================
 
 plot(
@@ -241,3 +212,12 @@ legend(
   fill = c("grey80","orange","darkgreen"),
   bg = "white"
 )
+#==================================================
+fwrite(ageStructure,
+       "E:/EasternCanadaClassifier/outputs/AU_age_structure.csv")
+
+fwrite(ageSummary,
+       "E:/EasternCanadaClassifier/outputs/AU_age_summary.csv")
+
+fwrite(areaTable,
+       "E:/EasternCanadaClassifier/outputs/AU_area.csv")
