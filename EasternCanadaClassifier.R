@@ -66,16 +66,16 @@ defineModule(sim, list(
       "Matrix containing yield curves used for classification."
     ),
     outputObjects = list(
-      P(sim$analysisUnitMap) = list(
+      P(analysisUnitMap) = list(
         desc = "Raster map of analysis units"
       ),
-      P(sim$standTypeTable) = list(
+      P(standTypeTable) = list(
         desc = "Stand type classification table for diagnostics"
       ),
-      P(sim$yieldTables) = list(
+      P(yieldTables) = list(
         desc = "Yield tables used for classifier"
       ),
-      P(sim$yieldAges) = list(
+      P(yieldAges) = list(
         desc = "Age classes for yield tables"
       )
     ),
