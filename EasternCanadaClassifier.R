@@ -55,35 +55,31 @@ defineModule(sim, list(
   ),
   
   outputObjects = bindrows(
+    
     createsOutput(
       "analysisUnitMap",
       "SpatRaster",
       "Raster assigning harvestable pixels to analysis units."
     ),
+    
+    createsOutput(
+      "standTypeTable",
+      "data.table",
+      "Stand type classification table for diagnostics."
+    ),
+    
     createsOutput(
       "yieldTables",
       "matrix",
-      "Matrix containing yield curves used for classification."
+      "Yield tables used for classifier."
     ),
-    outputObjects = list(
-      P(analysisUnitMap) = list(
-        desc = "Raster map of analysis units"
-      ),
-      P(standTypeTable) = list(
-        desc = "Stand type classification table for diagnostics"
-      ),
-      P(yieldTables) = list(
-        desc = "Yield tables used for classifier"
-      ),
-      P(yieldAges) = list(
-        desc = "Age classes for yield tables"
-      )
-    ),
+    
     createsOutput(
       "yieldAges",
       "numeric",
       "Age classes corresponding to yield tables."
-      )
+    )
+    
   ))
    )
 
