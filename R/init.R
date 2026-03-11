@@ -45,14 +45,55 @@ Init <- function(sim) {
   
   # Define species composition for each yield curve
   # These values are temporary approximations used for classification
+  # Yield curve composition derived from YcNames described by Steve
   yieldComposition <- data.table::data.table(
     AU = yieldTablesDT$AU,
     
-    deciduous = c(0.9,0.6,0.4,0.1,0.1,0.1,0.2,0.3),
-    whiteSpruce = c(0.05,0.3,0.5,0.8,0.1,0.1,0.1,0.1),
-    pine = c(0.02,0.05,0.05,0.05,0.05,0.05,0.7,0.6),
-    blackSpruce = c(0.03,0.05,0.05,0.05,0.75,0.75,0,0)
+    deciduous = c(
+      0.9,  # Aw
+      NA,   # Aw/S (ignored)
+      0.6,  # AwSw
+      0.4,  # SwAw
+      0.1,  # Sw
+      0.1,  # Sb
+      0.0,  # Pj
+      0.3   # MxPj
+    ),
+    
+    whiteSpruce = c(
+      0.1,  # Aw
+      NA,
+      0.4,  # AwSw
+      0.6,  # SwAw
+      0.9,  # Sw
+      0.0,  # Sb
+      0.0,  # Pj
+      0.0   # MxPj
+    ),
+    
+    pine = c(
+      0.0,
+      NA,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,  # Pj
+      0.7   # MxPj
+    ),
+    
+    blackSpruce = c(
+      0.0,
+      NA,
+      0.0,
+      0.0,
+      0.0,
+      0.9,  # Sb
+      0.0,
+      0.0
+    )
   )
+  yieldComposition <- yieldComposition[!is.na(deciduous)]
   
   # Store species composition associated with yield curves
   sim$yieldComposition <- yieldComposition
@@ -91,7 +132,8 @@ Init <- function(sim) {
          )
        )]
   
-  # Remove species that do not belong to any defined group
+  ##########??????????? Remove species that do not belong to any defined group?maybe we can defin others instead of removing?
+  
   dt <- dt[!is.na(group)]
   
   
@@ -180,12 +222,11 @@ Init <- function(sim) {
                   diffs <- apply(
                     yieldMat,
                     1,
-                    function(y) max(abs(pixelVec - y))
+                    function(y) sum((pixelVec - y)^2)
                   )
                   
                   # Select the yield curve with the smallest difference
-                  which.min(diffs)
-                  
+                  sim$yieldComposition$AU[which.min(diffs)]                  
                 })
   ]
   
