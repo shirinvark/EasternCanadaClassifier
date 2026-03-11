@@ -140,8 +140,8 @@ dt[, ageClass := cut(
   labels = FALSE
 )]
 
-pg <- terra::values(sim$pixelGroupMap)[,1]
-au <- terra::values(sim$analysisUnitMap)[,1]
+pg <- terra::values(sim$pixelGroupMap)
+au <- terra::values(sim$analysisUnitMap)
 
 lookupAU <- data.table(
   pixelGroup = pg,

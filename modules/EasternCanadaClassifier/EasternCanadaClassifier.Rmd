@@ -15,7 +15,7 @@ theme: sandstone
 number_sections: true
 ---------------------
 
-# Overview.
+# Overview
 
 The **EasternCanadaClassifier** module classifies forest stands into **Analysis Units (AUs)** using information from the forest simulation state.
 

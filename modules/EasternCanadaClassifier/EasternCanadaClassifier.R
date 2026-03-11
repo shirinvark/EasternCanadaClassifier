@@ -101,7 +101,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   
   ## ------------------------------------------------
   ## pixelGroupMap (fake if missing)
-  ## -----------------------------------------------
+  ## ------------------------------------------------
   
   if (!("pixelGroupMap" %in% names(sim))) {
     

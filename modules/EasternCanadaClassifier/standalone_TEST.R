@@ -2,9 +2,7 @@ rm(list = ls())
 gc()
 
 # =========================================================
-
 # LOAD LIBRARIES
-
 # =========================================================
 
 library(SpaDES.core)
@@ -14,9 +12,7 @@ library(sf)
 library(data.table)
 
 # =========================================================
-
 # SET PATHS
-
 # =========================================================
 
 setPaths(
@@ -30,55 +26,58 @@ setPaths(
 print(getPaths())
 
 # =========================================================
-
 # DOWNLOAD MODULE
-
 # =========================================================
 
 SpaDES.project::getModule(
   modules    = "shirinvark/EasternCanadaClassifier",
-  modulePath = "E:/EasternCanadaClassifier/modules",
+  modulePath = getPaths()$modulePath,
   overwrite  = TRUE
 )
 
 # =========================================================
-
-# LOAD MAPS FROM PROJECT
-
+# CREATE TEST DATA (FAKE LANDR STATE)
 # =========================================================
+
+# pixelGroup raster
 
 pixelGroupMap <- rast(
-  "E:/EasternCanadaClassifier/maps/pixel_groups.tif"
-)
-#======================================================
-standAgeMap <- terra::rast("E:/EasternCanadaClassifier/maps/stand_age_map.tif")
-# =========================================================
-
-# LOAD COHORT DATA
-
-# =========================================================
-
-cohortData <- readRDS(
-  "E:/EasternCanadaClassifier/maps/cohortData.rds"
+  nrows = 10,
+  ncols = 10,
+  xmin  = 0,
+  xmax  = 1000,
+  ymin  = 0,
+  ymax  = 1000
 )
 
-# =========================================================
+values(pixelGroupMap) <- sample(1:20, 100, replace = TRUE)
 
+# cohortData (LandR-like structure)
+
+cohortData <- data.table(
+  pixelGroup = sample(1:20, 200, replace = TRUE),
+  speciesCode = sample(
+    c("Abie_bal","Pice_mar","Pinu_ban","Pinu_res","Pinu_str","Acer_sah"),
+    200,
+    replace = TRUE
+  ),
+  age = sample(1:120, 200, replace = TRUE),
+  B   = runif(200, 1, 50)
+)
+
+# =========================================================
 # INITIALIZE SIMULATION
-
 # =========================================================
-harvestableFraction <- pixelGroupMap
-values(harvestableFraction) <- 1
+
 sim <- simInit(
   times   = list(start = 0, end = 1),
   modules = "EasternCanadaClassifier",
   
-  objects = list(
-    cohortData    = cohortData,
-    pixelGroupMap = pixelGroupMap,
-    standAgeMap   = standAgeMap,
-    harvestableFraction = harvestableFraction
-  ),
+  # uncomment if you want to pass objects directly
+  # objects = list(
+  #   cohortData = cohortData,
+  #   pixelGroupMap = pixelGroupMap
+  # ),
   
   options = list(
     spades.checkpoint = FALSE,
@@ -88,9 +87,7 @@ sim <- simInit(
 )
 
 # =========================================================
-
 # RUN MODEL
-
 # =========================================================
 
 system.time({
@@ -98,9 +95,7 @@ system.time({
 })
 
 # =========================================================
-
 # PLOT ANALYSIS UNIT MAP
-
 # =========================================================
 
 plot(
@@ -110,9 +105,7 @@ plot(
 )
 
 # =========================================================
-
 # AREA PER ANALYSIS UNIT
-
 # =========================================================
 
 cellArea <- prod(res(sim$analysisUnitMap)) / 10000
@@ -124,9 +117,7 @@ areaTable$area_ha <- areaTable$count * cellArea
 print(areaTable)
 
 # =========================================================
-
 # AGE STRUCTURE PER ANALYSIS UNIT
-
 # =========================================================
 
 dt <- as.data.table(sim$cohortData)
@@ -140,26 +131,21 @@ dt[, ageClass := cut(
   labels = FALSE
 )]
 
-pg <- terra::values(sim$pixelGroupMap)[,1]
-au <- terra::values(sim$analysisUnitMap)[,1]
+auValues <- terra::values(sim$analysisUnitMap)
 
 lookupAU <- data.table(
-  pixelGroup = pg,
-  analysisUnit = au
+  pixelGroup   = unique(dt$pixelGroup),
+  analysisUnit = auValues[unique(dt$pixelGroup)]
 )
-
-lookupAU <- lookupAU[!is.na(pixelGroup) & !is.na(analysisUnit)]
-lookupAU <- unique(lookupAU)
 
 dt <- merge(dt, lookupAU, by = "pixelGroup", all.x = TRUE)
 
 ageStructure <- dt[, .N, by = .(analysisUnit, ageClass)]
 
-print(ageStructure[order(analysisUnit, ageClass)])
+print(ageStructure)
+
 # =========================================================
-
 # MEAN AGE PER ANALYSIS UNIT
-
 # =========================================================
 
 ageSummary <- dt[, .(
@@ -170,9 +156,7 @@ ageSummary <- dt[, .(
 print(ageSummary)
 
 # =========================================================
-
 # PLOT YIELD CURVES
-
 # =========================================================
 
 yieldTables <- sim$yieldTables
@@ -198,26 +182,3 @@ legend(
   lwd = 2
 )
 
-#================================================
-
-plot(
-  sim$analysisUnitMap,
-  col = c("grey80","orange","darkgreen"),
-  main = "Analysis Units"
-)
-
-legend(
-  "bottomleft",
-  legend = c("Non-harvestable","Young","Mature"),
-  fill = c("grey80","orange","darkgreen"),
-  bg = "white"
-)
-#==================================================
-fwrite(ageStructure,
-       "E:/EasternCanadaClassifier/outputs/AU_age_structure.csv")
-
-fwrite(ageSummary,
-       "E:/EasternCanadaClassifier/outputs/AU_age_summary.csv")
-
-fwrite(areaTable,
-       "E:/EasternCanadaClassifier/outputs/AU_area.csv")
