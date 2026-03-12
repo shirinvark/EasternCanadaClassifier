@@ -177,7 +177,7 @@ print(ageSummary)
 
 yieldTables <- sim$yieldTables
 yieldAges   <- sim$yieldAges
-
+x11()
 matplot(
   yieldAges,
   t(yieldTables),
@@ -199,6 +199,7 @@ legend(
 )
 
 #================================================
+x11()
 
 plot(
   sim$analysisUnitMap,
