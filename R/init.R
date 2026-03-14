@@ -178,8 +178,14 @@ Init <- function(sim) {
   ## ------------------------------------------------
   
   # Convert yield composition to a numeric matrix
+  ## ------------------------------------------------
+  ## 7. Vector classifier
+  ## ------------------------------------------------
+  
   totalYield <- yieldConifer + yieldDecid
   
+  decidFrac <- rowMeans(yieldDecid / totalYield)
+  conifFrac <- rowMeans(yieldConifer / totalYield)
   
   yieldMat <- cbind(
     deciduous = decidFrac,
