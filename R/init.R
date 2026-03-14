@@ -11,10 +11,7 @@ Init <- function(sim) {
   
   url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/AlPac%20AME%20Mixedwood%20VolTabs.vol"
   
-  dest <- file.path(
-    sim$paths$inputPath,
-    "AlPac_AME_Mixedwood_VolTabs.vol"
-  )
+  dest <- "AlPac_AME_Mixedwood_VolTabs.vol"
   
   # download automatically if file does not exist
   if (!file.exists(dest)) {
