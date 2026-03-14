@@ -143,7 +143,7 @@ Init <- function(sim) {
   
   # Remove stands with zero biomass
   summaryWide <- summaryWide[total > 0]
-  
+  summaryWide <- summaryWide[age == 100]
   # Compute proportional composition of each species group
   summaryWide[, deciduous_p :=
                 data.table::fifelse(total > 0, deciduous / total, 0)]
@@ -183,8 +183,11 @@ Init <- function(sim) {
   
   totalYield <- yieldConifer + yieldDecid
   
-  decidFrac <- rowMeans(yieldDecid / totalYield)
-  conifFrac <- rowMeans(yieldConifer / totalYield)
+  ageIndex <- 10   # تقریباً سن 100 سال
+  
+  decidFrac <- yieldDecid[, ageIndex] / totalYield[, ageIndex]
+  conifFrac <- yieldConifer[, ageIndex] / totalYield[, ageIndex]
+  
   decidFrac[is.nan(decidFrac)] <- 0
   conifFrac[is.nan(conifFrac)] <- 0
   yieldMat <- cbind(
