@@ -170,15 +170,15 @@ Init <- function(sim) {
   ## ------------------------------------------------
   ## 7. Vector classifier
   ## ------------------------------------------------
+  # Convert stand age to an index compatible with the yield tables
   summaryWide[, ageIndex := pmin(
     nAges,
     round(age / 10) + 1
   )]
-  # Convert yield composition to a numeric matrix
-  ## ------------------------------------------------
-  ## 7. Vector classifier
-  ## ------------------------------------------------
-  summaryWide[, AU_id :=
+  
+  # Assign each pixelGroup to the closest yield curve
+  
+    summaryWide[, AU_id :=
                 sapply(seq_len(.N), function(i) {
                   
                   ageIndex <- summaryWide$ageIndex[i]
@@ -189,25 +189,31 @@ Init <- function(sim) {
                   
                   conifFrac <- yieldConifer[, ageIndex] /
                     (yieldDeciduous[, ageIndex] + yieldConifer[, ageIndex])
+                  # Compute deciduous and conifer fractions from yield tables
                   
                   decidFrac[is.nan(decidFrac)] <- 0
                   conifFrac[is.nan(conifFrac)] <- 0
+                  # Construct comparison matrix
                   
                   yieldMat <- cbind(
                     deciduous = decidFrac,
                     whiteSpruce = conifFrac,
                     pine = conifFrac,
                     blackSpruce = conifFrac
-                  )                  
+                  )   
+                  # Pixel composition vector
+                  
                   pixelVec <- as.numeric(
                     summaryWide[i,.(deciduous_p,whiteSpruce_p,pine_p,blackSpruce_p)]
                   )
+                  # Compute distance to each yield curve
                   
                   diffs <- apply(
                     yieldMat,
                     1,
                     function(y) max(abs(pixelVec - y))
                   )
+                  # Assign the closest yield curve
                   
                   which.min(diffs)                })
   ]
