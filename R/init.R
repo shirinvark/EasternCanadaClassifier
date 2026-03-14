@@ -140,11 +140,13 @@ Init <- function(sim) {
                 pine +
                 blackSpruce]
   
-  
+  summaryWide[, ageClass := round(age / 10) * 10]
   # Remove stands with zero biomass
   summaryWide <- summaryWide[total > 0]
-  summaryWide <- summaryWide[age == 100]
-  # Compute proportional composition of each species group
+  summaryWide <- summaryWide[
+    , .SD[which.max(age)],
+    by = pixelGroup
+  ]  # Compute proportional composition of each species group
   summaryWide[, deciduous_p :=
                 data.table::fifelse(total > 0, deciduous / total, 0)]
   
@@ -175,34 +177,32 @@ Init <- function(sim) {
   ## ------------------------------------------------
   ## 7. Vector classifier
   ## ------------------------------------------------
-  
+  summaryWide[, ageIndex := pmin(
+    nAges,
+    round(age / 10) + 1
+  )]
   # Convert yield composition to a numeric matrix
   ## ------------------------------------------------
   ## 7. Vector classifier
   ## ------------------------------------------------
-  
   totalYield <- yieldConifer + yieldDecid
-  
-  ageIndex <- 10   # تقریباً سن 100 سال
-  
-  decidFrac <- yieldDecid[, ageIndex] / totalYield[, ageIndex]
-  conifFrac <- yieldConifer[, ageIndex] / totalYield[, ageIndex]
-  
-  decidFrac[is.nan(decidFrac)] <- 0
-  conifFrac[is.nan(conifFrac)] <- 0
-  yieldMat <- cbind(
-    deciduous = decidFrac,
-    whiteSpruce = conifFrac,
-    pine = rep(0, nCurves),
-    blackSpruce = rep(0, nCurves)
-  )
-  print(yieldMat)
-  # For each pixelGroup, find the yield curve whose species composition
-  # is closest to the observed stand composition
-  storage.mode(yieldMat) <- "numeric"
   summaryWide[, AU_id :=
-                
                 sapply(seq_len(.N), function(i) {
+                  
+                  ageIndex <- summaryWide$ageIndex[i]
+                  
+                  decidFrac <- yieldDecid[, ageIndex] / totalYield[, ageIndex]
+                  conifFrac <- yieldConifer[, ageIndex] / totalYield[, ageIndex]
+                  
+                  decidFrac[is.nan(decidFrac)] <- 0
+                  conifFrac[is.nan(conifFrac)] <- 0
+                  
+                  yieldMat <- cbind(
+                    deciduous = decidFrac,
+                    whiteSpruce = conifFrac,
+                    pine = rep(0, nCurves),
+                    blackSpruce = rep(0, nCurves)
+                  )
                   
                   pixelVec <- as.numeric(
                     summaryWide[i,.(deciduous_p,whiteSpruce_p,pine_p,blackSpruce_p)]
@@ -214,10 +214,10 @@ Init <- function(sim) {
                     function(y) sum((pixelVec - y)^2)
                   )
                   
-                  which.min(diffs)                  
+                  which.min(diffs)
+                  
                 })
   ]
-  
   ## ------------------------------------------------
   ## 8. Build lookup table
   ## ------------------------------------------------
