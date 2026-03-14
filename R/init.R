@@ -28,12 +28,11 @@ Init <- function(sim) {
   nAges   <- as.numeric(header[2])
   
   # read the numeric table
-  yieldTables <- do.call(
-    rbind,
-    lapply(lines[2:(nCurves * 2 + 1)], function(x)
-      as.numeric(strsplit(trimws(x), "\\s+")[[1]])
-    )
-  )
+  dataLines <- lines[2:(nCurves * 2 + 1)]
+  
+  yieldTables <- t(sapply(dataLines, function(x) {
+    as.numeric(unlist(strsplit(trimws(x), "\\s+")))
+  }))
   
   storage.mode(yieldTables) <- "numeric"
   coniferRows <- seq(1, nCurves * 2, by = 2)
