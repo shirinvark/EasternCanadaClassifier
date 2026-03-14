@@ -99,8 +99,8 @@ system.time({
 
 # =========================================================
 
+# =========================================================
 # PLOT ANALYSIS UNIT MAP
-
 # =========================================================
 
 plot(
@@ -110,23 +110,18 @@ plot(
 )
 
 # =========================================================
-
 # AREA PER ANALYSIS UNIT
-
 # =========================================================
 
 cellArea <- prod(res(sim$analysisUnitMap)) / 10000
 
 areaTable <- as.data.frame(freq(sim$analysisUnitMap))
-
 areaTable$area_ha <- areaTable$count * cellArea
 
 print(areaTable)
 
 # =========================================================
-
-# AGE STRUCTURE PER ANALYSIS UNIT
-
+# PREPARE DATA FOR ANALYSIS
 # =========================================================
 
 dt <- as.data.table(sim$cohortData)
@@ -140,6 +135,10 @@ dt[, ageClass := cut(
   labels = FALSE
 )]
 
+# =========================================================
+# BUILD PIXELGROUP → ANALYSISUNIT LOOKUP
+# =========================================================
+
 pg <- terra::values(sim$pixelGroupMap)[,1]
 au <- terra::values(sim$analysisUnitMap)[,1]
 
@@ -151,15 +150,19 @@ lookupAU <- data.table(
 lookupAU <- lookupAU[!is.na(pixelGroup) & !is.na(analysisUnit)]
 lookupAU <- unique(lookupAU)
 
+# attach AU to cohort data
 dt <- merge(dt, lookupAU, by = "pixelGroup", all.x = TRUE)
+
+# =========================================================
+# AGE STRUCTURE PER ANALYSIS UNIT
+# =========================================================
 
 ageStructure <- dt[, .N, by = .(analysisUnit, ageClass)]
 
 print(ageStructure[order(analysisUnit, ageClass)])
+
 # =========================================================
-
 # MEAN AGE PER ANALYSIS UNIT
-
 # =========================================================
 
 ageSummary <- dt[, .(
@@ -170,14 +173,14 @@ ageSummary <- dt[, .(
 print(ageSummary)
 
 # =========================================================
-
-# PLOT YIELD CURVES
-
+# PLOT YIELD CURVES (ALL CURVES)
 # =========================================================
 
 yieldTables <- sim$yieldTables
 yieldAges   <- sim$yieldAges
+
 x11()
+
 matplot(
   yieldAges,
   t(yieldTables),
@@ -198,27 +201,126 @@ legend(
   lwd = 2
 )
 
-#================================================
+# =========================================================
+# SIMPLE MAP PLOT
+# =========================================================
+
 x11()
 
 plot(
   sim$analysisUnitMap,
-  col = c("grey80","orange","darkgreen"),
+  col = terrain.colors(8),
   main = "Analysis Units"
 )
 
-legend(
-  "bottomleft",
-  legend = c("Non-harvestable","Young","Mature"),
-  fill = c("grey80","orange","darkgreen"),
-  bg = "white"
+# =========================================================
+# SAVE OUTPUT TABLES
+# =========================================================
+
+fwrite(
+  ageStructure,
+  "E:/EasternCanadaClassifier/outputs/AU_age_structure.csv"
 )
-#==================================================
-fwrite(ageStructure,
-       "E:/EasternCanadaClassifier/outputs/AU_age_structure.csv")
 
-fwrite(ageSummary,
-       "E:/EasternCanadaClassifier/outputs/AU_age_summary.csv")
+fwrite(
+  ageSummary,
+  "E:/EasternCanadaClassifier/outputs/AU_age_summary.csv"
+)
 
-fwrite(areaTable,
-       "E:/EasternCanadaClassifier/outputs/AU_area.csv")
+fwrite(
+  areaTable,
+  "E:/EasternCanadaClassifier/outputs/AU_area.csv"
+)
+
+# =========================================================
+# SPECIES COMPOSITION PER ANALYSIS UNIT
+# =========================================================
+
+speciesSummary <- dt[, .(
+  
+  deciduous = sum(B[speciesCode %in% c(
+    "Popu_tre","Popu_bal","Betu_pap"
+  )]),
+  
+  white_spruce = sum(B[speciesCode %in% c(
+    "Pice_gla","Abie_bal"
+  )]),
+  
+  black_spruce = sum(B[speciesCode %in% c(
+    "Pice_mar","Lari_lar"
+  )]),
+  
+  pine = sum(B[speciesCode %in% c(
+    "Pinu_ban","Pinu_res","Pinu_str"
+  )])
+  
+), by = analysisUnit]
+
+# remove NA AU
+speciesSummary <- speciesSummary[!is.na(analysisUnit)]
+
+# total biomass
+speciesSummary[, total :=
+                 deciduous +
+                 white_spruce +
+                 black_spruce +
+                 pine
+]
+
+# proportions
+speciesSummary[, `:=`(
+  
+  deciduous_p    = deciduous / total,
+  white_spruce_p = white_spruce / total,
+  black_spruce_p = black_spruce / total,
+  pine_p         = pine / total
+  
+)]
+
+print(speciesSummary)
+
+# =========================================================
+# SPECIES COMPOSITION PLOT
+# =========================================================
+
+x11()
+
+barplot(
+  t(as.matrix(
+    speciesSummary[, .(
+      deciduous_p,
+      white_spruce_p,
+      black_spruce_p,
+      pine_p
+    )]
+  )),
+  col = c("darkgreen","lightblue","blue","orange"),
+  legend = c("Deciduous","WhiteSpruce","BlackSpruce","Pine"),
+  xlab = "Analysis Unit",
+  ylab = "Proportion"
+)
+
+# =========================================================
+# CONIFER YIELD CURVES
+# =========================================================
+
+x11()
+
+matplot(
+  yieldAges,
+  t(sim$yieldConifer),
+  type = "l",
+  lwd  = 2,
+  col  = rainbow(nrow(sim$yieldConifer)),
+  xlab = "Age",
+  ylab = "Volume",
+  main = "Conifer Yield Curves"
+)
+
+legend(
+  "topleft",
+  legend = paste("AU",1:nrow(sim$yieldConifer)),
+  col = rainbow(nrow(sim$yieldConifer)),
+  lty = 1,
+  lwd = 2
+)

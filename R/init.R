@@ -5,7 +5,7 @@ Init <- function(sim) {
   # Print a message so the user knows the classifier module is starting
   
   ## ------------------------------------------------
-  ## ------------------------------------------------
+  ## -------------------------------------------
   ## 1. Read yield tables (.vol)
   ## ------------------------------------------------
   
@@ -39,10 +39,10 @@ Init <- function(sim) {
   decidRows   <- seq(2, nCurves * 2, by = 2)
   
   yieldConifer <- yieldTables[coniferRows, ]
-  yieldDecid   <- yieldTables[decidRows, ]
+  yieldDeciduous   <- yieldTables[decidRows, ]
   
   sim$yieldConifer <- yieldConifer
-  sim$yieldDecid   <- yieldDecid
+  sim$yieldDeciduous   <- yieldDeciduous
   
   sim$yieldTables <- yieldTables
   sim$yieldAges <- seq(0, by = 10, length.out = nAges)
@@ -178,18 +178,17 @@ Init <- function(sim) {
   ## ------------------------------------------------
   ## 7. Vector classifier
   ## ------------------------------------------------
-  totalYield <- yieldConifer + yieldDecid
   summaryWide[, AU_id :=
                 sapply(seq_len(.N), function(i) {
                   
                   ageIndex <- summaryWide$ageIndex[i]
                   
             
-                  decidFrac <- yieldDecid[, ageIndex] /
-                    (yieldDecid[, ageIndex] + yieldConifer[, ageIndex])
+                  decidFrac <- yieldDeciduous[, ageIndex] /
+                    (yieldDeciduous[, ageIndex] + yieldConifer[, ageIndex])
                   
                   conifFrac <- yieldConifer[, ageIndex] /
-                    (yieldDecid[, ageIndex] + yieldConifer[, ageIndex])
+                    (yieldDeciduous[, ageIndex] + yieldConifer[, ageIndex])
                   
                   decidFrac[is.nan(decidFrac)] <- 0
                   conifFrac[is.nan(conifFrac)] <- 0
