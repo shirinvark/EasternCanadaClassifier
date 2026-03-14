@@ -5,98 +5,77 @@ Init <- function(sim) {
   # Print a message so the user knows the classifier module is starting
   
   ## ------------------------------------------------
-  ## 1. Read yield tables
   ## ------------------------------------------------
-  # Build the path to the yield table file stored inside the module
+  ## 1. Read yield tables (.vol)
+  ## ------------------------------------------------
   
-  file <- file.path(
-    "modules",
-    "EasternCanadaClassifier",
-    "data",
-    "yieldTables.csv"
+  url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/AlPac%20AME%20Mixedwood%20VolTabs.vol"
+  
+  dest <- file.path(
+    sim$paths$inputPath,
+    "AlPac_AME_Mixedwood_VolTabs.vol"
   )
-  # Read the yield table file using data.table for speed
-  # The file is expected to contain columns: AU, age, volume
-  yield_long <- data.table::fread(file)
-  # Convert the yield table from long format to wide format
-  # Each AU becomes one row and each age becomes a column
-  yieldTablesDT <- data.table::dcast(
-    yield_long,
-    AU ~ age,
-    value.var = "volume"
-  )
-  # Remove the AU column and convert the table to a matrix
-  # Matrices are faster for numerical operations
-  yieldTables <- as.matrix(yieldTablesDT[, -1])
   
-  # Ensure the matrix contains numeric values
-  storage.mode(yieldTables) <- "numeric"
+  # download automatically if file does not exist
+  if (!file.exists(dest)) {
+    download.file(url, dest, mode = "wb")
+  }
   
-  # Store yield tables in the simulation object
-  sim$yieldTables <- yieldTables
+  # read file
+  lines <- readLines(dest)
   
-  # Extract the age classes from the column names
-  sim$yieldAges <- as.numeric(colnames(yieldTables))
+  # first line contains metadata (#8 21)
+  header <- strsplit(lines[1], "\\s+")[[1]]
   
+  nCurves <- as.numeric(gsub("#", "", header[1]))
+  nAges   <- as.numeric(header[2])
   
-  ## ------------------------------------------------
-  ## Yield curve composition (temporary approximation)
-  ## ------------------------------------------------
-  
-  # Define species composition for each yield curve
-  # These values are temporary approximations used for classification
-  # Yield curve composition derived from YcNames described by Steve
-  yieldComposition <- data.table::data.table(
-    AU = yieldTablesDT$AU,
-    
-    deciduous = c(
-      0.9,  # Aw
-      NA,   # Aw/S (ignored)
-      0.6,  # AwSw
-      0.4,  # SwAw
-      0.1,  # Sw
-      0.1,  # Sb
-      0.0,  # Pj
-      0.3   # MxPj
-    ),
-    
-    whiteSpruce = c(
-      0.1,  # Aw
-      NA,
-      0.4,  # AwSw
-      0.6,  # SwAw
-      0.9,  # Sw
-      0.0,  # Sb
-      0.0,  # Pj
-      0.0   # MxPj
-    ),
-    
-    pine = c(
-      0.0,
-      NA,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      1.0,  # Pj
-      0.7   # MxPj
-    ),
-    
-    blackSpruce = c(
-      0.0,
-      NA,
-      0.0,
-      0.0,
-      0.0,
-      0.9,  # Sb
-      0.0,
-      0.0
+  # read the numeric table
+  yieldTables <- do.call(
+    rbind,
+    lapply(lines[2:(nCurves * 2 + 1)], function(x)
+      as.numeric(strsplit(trimws(x), "\\s+")[[1]])
     )
   )
-  yieldComposition <- yieldComposition[!is.na(deciduous)]
   
-  # Store species composition associated with yield curves
-  sim$yieldComposition <- yieldComposition
+  storage.mode(yieldTables) <- "numeric"
+  coniferRows <- seq(1, nCurves * 2, by = 2)
+  decidRows   <- seq(2, nCurves * 2, by = 2)
+  
+  yieldConifer <- yieldTables[coniferRows, ]
+  yieldDecid   <- yieldTables[decidRows, ]
+  
+  sim$yieldConifer <- yieldConifer
+  sim$yieldDecid   <- yieldDecid
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  sim$yieldTables <- yieldTables
+  sim$yieldAges <- seq(0, by = 10, length.out = nAges)
+  
+  
+  ## ------------------------------------------------
+ 
+  
+  
+  
+  
+  
+  
+  
   ## ------------------------------------------------
   ## 2. Convert cohortData
   ## ------------------------------------------------
@@ -118,24 +97,11 @@ Init <- function(sim) {
   # Assign each species to one of the four groups
   # fifelse is a faster version of ifelse from data.table
   dt[, group :=
-       data.table::fifelse(
-         speciesCode %in% deciduous,"deciduous",
-         data.table::fifelse(
-           speciesCode %in% whiteSpruce,"whiteSpruce",
-           data.table::fifelse(
-             speciesCode %in% pine,"pine",
-             data.table::fifelse(
-               speciesCode %in% blackSpruce,"blackSpruce",
-               NA_character_
-             )
-           )
-         )
-       )]
-  
-  ##########??????????? Remove species that do not belong to any defined group?maybe we can defin others instead of removing?
-  
-  dt <- dt[!is.na(group)]
-  
+       fifelse(speciesCode %in% deciduous,"deciduous",
+               fifelse(speciesCode %in% whiteSpruce,"whiteSpruce",
+                       fifelse(speciesCode %in% pine,"pine",
+                               fifelse(speciesCode %in% blackSpruce,"blackSpruce",
+                                       "unknown"))))] 
   
   ## ------------------------------------------------
   ## 4. Biomass aggregation
@@ -196,15 +162,35 @@ Init <- function(sim) {
                 data.table::fifelse(total > 0, blackSpruce / total, 0)]
   
 
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   ## ------------------------------------------------
   ## 7. Vector classifier
   ## ------------------------------------------------
   
   # Convert yield composition to a numeric matrix
-  yieldMat <- as.matrix(
-    sim$yieldComposition[,.(deciduous,whiteSpruce,pine,blackSpruce)]
-  )
+  totalYield <- yieldConifer + yieldDecid
   
+  
+  yieldMat <- cbind(
+    deciduous = decidFrac,
+    whiteSpruce = conifFrac,
+    pine = rep(0, nCurves),
+    blackSpruce = rep(0, nCurves)
+  )
+  print(yieldMat)
   # For each pixelGroup, find the yield curve whose species composition
   # is closest to the observed stand composition
   storage.mode(yieldMat) <- "numeric"
@@ -212,21 +198,17 @@ Init <- function(sim) {
                 
                 sapply(seq_len(.N), function(i) {
                   
-                  # Species composition vector of the current stand
                   pixelVec <- as.numeric(
                     summaryWide[i,.(deciduous_p,whiteSpruce_p,pine_p,blackSpruce_p)]
                   )
                   
-                  # Compute the maximum absolute difference
-                  # between the stand composition and each yield curve
                   diffs <- apply(
                     yieldMat,
                     1,
                     function(y) sum((pixelVec - y)^2)
                   )
                   
-                  # Select the yield curve with the smallest difference
-                  sim$yieldComposition$AU[which.min(diffs)]                  
+                  which.min(diffs)                  
                 })
   ]
   
