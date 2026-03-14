@@ -44,34 +44,10 @@ Init <- function(sim) {
   sim$yieldConifer <- yieldConifer
   sim$yieldDecid   <- yieldDecid
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   sim$yieldTables <- yieldTables
   sim$yieldAges <- seq(0, by = 10, length.out = nAges)
   
-  
-  ## ------------------------------------------------
  
-  
-  
-  
-  
-  
-  
-  
   ## ------------------------------------------------
   ## 2. Convert cohortData
   ## ------------------------------------------------
@@ -86,19 +62,37 @@ Init <- function(sim) {
  
    # Define species groups used for classification
   deciduous <- c("Popu_tre","Popu_bal","Betu_pap")
+  
   whiteSpruce <- c("Pice_gla","Abie_bal")
+  
   pine <- c("Pinu_ban","Pinu_res","Pinu_str")
-  blackSpruce <- c("Pice_mar")
+  
+  blackSpruce <- c("Pice_mar","Lari_lar")
+  
+ 
+  
+   #not sure if these are correct!
+  knownConifer <- c(
+    "Pice_gla","Abie_bal",
+    "Pinu_ban","Pinu_res","Pinu_str",
+    "Pice_mar","Lari_lar"
+  )
+  
+  knownBroadleaf <- c(
+    "Popu_tre","Popu_bal","Betu_pap"
+  )
+  
   
   # Assign each species to one of the four groups
   # fifelse is a faster version of ifelse from data.table
   dt[, group :=
-       fifelse(speciesCode %in% deciduous,"deciduous",
-               fifelse(speciesCode %in% whiteSpruce,"whiteSpruce",
-                       fifelse(speciesCode %in% pine,"pine",
-                               fifelse(speciesCode %in% blackSpruce,"blackSpruce",
-                                       "unknown"))))] 
-  
+       fifelse(speciesCode %in% deciduous, "deciduous",
+               fifelse(speciesCode %in% whiteSpruce, "whiteSpruce",
+                       fifelse(speciesCode %in% pine, "pine",
+                               fifelse(speciesCode %in% blackSpruce, "blackSpruce",
+                                       fifelse(speciesCode %in% knownConifer, "unknown_conifer",
+                                               fifelse(speciesCode %in% knownBroadleaf, "unknown_broadleaf",
+                                                       "unknown"))))))]
   ## ------------------------------------------------
   ## 4. Biomass aggregation
   ## ------------------------------------------------
@@ -123,12 +117,26 @@ Init <- function(sim) {
   
   # Ensure all expected species groups exist as columns
   # If a group is absent, create it with zeros
-  for (g in c("deciduous","whiteSpruce","pine","blackSpruce")) {
+  for (g in c(
+    "deciduous",
+    "whiteSpruce",
+    "pine",
+    "blackSpruce",
+    "unknown_conifer",
+    "unknown_broadleaf"
+  )) {
     if (!g %in% names(summaryWide)) {
       summaryWide[, (g) := 0]
     }
   }
+  if ("unknown" %in% names(summaryWide)) {
+    summaryWide[, deciduous := deciduous + unknown]
+  }
+  summaryWide[, deciduous :=
+                deciduous + unknown_broadleaf]
   
+  summaryWide[, whiteSpruce :=
+                whiteSpruce + unknown_conifer]
   
   ## ------------------------------------------------
   ## 6. Compute composition
@@ -159,21 +167,6 @@ Init <- function(sim) {
   summaryWide[, blackSpruce_p :=
                 data.table::fifelse(total > 0, blackSpruce / total, 0)]
   
-
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   ## ------------------------------------------------
   ## 7. Vector classifier
   ## ------------------------------------------------
@@ -191,8 +184,12 @@ Init <- function(sim) {
                   
                   ageIndex <- summaryWide$ageIndex[i]
                   
-                  decidFrac <- yieldDecid[, ageIndex] / totalYield[, ageIndex]
-                  conifFrac <- yieldConifer[, ageIndex] / totalYield[, ageIndex]
+            
+                  decidFrac <- yieldDecid[, ageIndex] /
+                    (yieldDecid[, ageIndex] + yieldConifer[, ageIndex])
+                  
+                  conifFrac <- yieldConifer[, ageIndex] /
+                    (yieldDecid[, ageIndex] + yieldConifer[, ageIndex])
                   
                   decidFrac[is.nan(decidFrac)] <- 0
                   conifFrac[is.nan(conifFrac)] <- 0
@@ -200,10 +197,9 @@ Init <- function(sim) {
                   yieldMat <- cbind(
                     deciduous = decidFrac,
                     whiteSpruce = conifFrac,
-                    pine = rep(0, nCurves),
-                    blackSpruce = rep(0, nCurves)
-                  )
-                  
+                    pine = conifFrac,
+                    blackSpruce = conifFrac
+                  )                  
                   pixelVec <- as.numeric(
                     summaryWide[i,.(deciduous_p,whiteSpruce_p,pine_p,blackSpruce_p)]
                   )
@@ -211,12 +207,10 @@ Init <- function(sim) {
                   diffs <- apply(
                     yieldMat,
                     1,
-                    function(y) sum((pixelVec - y)^2)
+                    function(y) max(abs(pixelVec - y))
                   )
                   
-                  which.min(diffs)
-                  
-                })
+                  which.min(diffs)                })
   ]
   ## ------------------------------------------------
   ## 8. Build lookup table
