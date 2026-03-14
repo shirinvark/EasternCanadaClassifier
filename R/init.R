@@ -178,29 +178,58 @@ Init <- function(sim) {
   
   # Assign each pixelGroup to the closest yield curve
   
-    summaryWide[, AU_id :=
+  summaryWide[, AU_id :=
                 sapply(seq_len(.N), function(i) {
                   
                   ageIndex <- summaryWide$ageIndex[i]
                   
-            
-                  decidFrac <- yieldDeciduous[, ageIndex] /
-                    (yieldDeciduous[, ageIndex] + yieldConifer[, ageIndex])
+                  conif <- yieldConifer[, ageIndex]
+                  decid <- yieldDeciduous[, ageIndex]
                   
-                  conifFrac <- yieldConifer[, ageIndex] /
-                    (yieldDeciduous[, ageIndex] + yieldConifer[, ageIndex])
-                  # Compute deciduous and conifer fractions from yield tables
+                  total <- conif + decid
                   
-                  decidFrac[is.nan(decidFrac)] <- 0
+                  conifFrac <- conif / total
+                  decidFrac <- decid / total
+                  
                   conifFrac[is.nan(conifFrac)] <- 0
+                  decidFrac[is.nan(decidFrac)] <- 0
                   # Construct comparison matrix
-                  
+                  validCurves <- setdiff(1:nCurves, 2)
+          
                   yieldMat <- cbind(
                     deciduous = decidFrac,
-                    whiteSpruce = conifFrac,
-                    pine = conifFrac,
-                    blackSpruce = conifFrac
-                  )   
+                    whiteSpruce = c(
+                      conifFrac[1],
+                      0,
+                      conifFrac[3],
+                      conifFrac[4],
+                      conifFrac[5],
+                      0,
+                      0,
+                      0
+                    ),
+                    pine = c(
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      conifFrac[7],
+                      conifFrac[8]
+                    ),
+                    blackSpruce = c(
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      conifFrac[6],
+                      0,
+                      0
+                    )
+                  )
+                  yieldMat <- yieldMat[validCurves, ]
                   # Pixel composition vector
                   
                   pixelVec <- as.numeric(
@@ -215,7 +244,7 @@ Init <- function(sim) {
                   )
                   # Assign the closest yield curve
                   
-                  which.min(diffs)                })
+                  validCurves[which.min(diffs)]               })
   ]
   ## ------------------------------------------------
   ## 8. Build lookup table
