@@ -185,7 +185,8 @@ Init <- function(sim) {
   
   decidFrac <- rowMeans(yieldDecid / totalYield)
   conifFrac <- rowMeans(yieldConifer / totalYield)
-  
+  decidFrac[is.nan(decidFrac)] <- 0
+  conifFrac[is.nan(conifFrac)] <- 0
   yieldMat <- cbind(
     deciduous = decidFrac,
     whiteSpruce = conifFrac,
@@ -236,12 +237,11 @@ Init <- function(sim) {
   analysisUnitMap <- sim$pixelGroupMap
   
   # Extract pixelGroup values
-  pixelValues <- terra::values(sim$pixelGroupMap)
-  
+  pixelValues <- as.vector(terra::values(sim$pixelGroupMap))  
   # Match pixelGroup values to AU IDs
-  mappedValues <- lookup$AU_id[
-    match(pixelValues, lookup$pixelGroup)
-  ]
+  mappedValues <- as.integer(
+    lookup$AU_id[match(pixelValues, lookup$pixelGroup)]
+  )
   
   # Ensure NA values are stored as integer NA
   mappedValues[is.na(mappedValues)] <- NA_integer_
