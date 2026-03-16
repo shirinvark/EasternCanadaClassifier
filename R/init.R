@@ -300,7 +300,145 @@ Init <- function(sim) {
   # Store the resulting raster in the simulation object
   
   sim$analysisUnitMap <- analysisUnitMap
+  ## ------------------------------------------------
+ 
   
+  ## ------------------------------------------------
+  ## 13. Area per analysis unit
+  ## ------------------------------------------------
+  # Compute cell area in hectares
+  cellArea <- prod(terra::res(analysisUnitMap)) / 10000
+  
+  areaTable <- data.table::as.data.table(terra::freq(analysisUnitMap))
+  
+  if (nrow(areaTable) > 0) {
+    data.table::setnames(
+      areaTable,
+      old = c("value", "count"),
+      new = c("analysisUnit", "nCells")
+    )
+    
+    areaTable <- areaTable[!is.na(analysisUnit)]
+    areaTable[, nCells := as.integer(nCells)]
+    areaTable[, area_ha := nCells * cellArea]
+    
+  } else {
+    areaTable <- data.table::data.table(
+      analysisUnit = integer(0),
+      nCells = integer(0),
+      area_ha = numeric(0)
+    )
+  }
+  
+  sim$areaByAU <- areaTable
+  
+  
+  ## ------------------------------------------------
+  ## 14. Attach analysis unit to cohort data
+  ## ------------------------------------------------
+  # Build a lookup directly from rasters so cohort data can be linked to AUs
+  pg <- terra::values(sim$pixelGroupMap)[, 1]
+  au <- terra::values(analysisUnitMap)[, 1]
+  
+  lookupAU <- data.table::data.table(
+    pixelGroup = pg,
+    analysisUnit = au
+  )
+  
+  lookupAU <- lookupAU[!is.na(pixelGroup) & !is.na(analysisUnit)]
+  lookupAU <- unique(lookupAU, by = "pixelGroup")
+  data.table::setorder(lookupAU, pixelGroup)
+  sim$pixelGroupToAU <- data.table::copy(lookupAU)
+  # Merge AU into cohort data
+  dtAU <- data.table::merge.data.table(
+    data.table::copy(dt),
+    lookupAU,
+    by = "pixelGroup",
+    all.x = TRUE
+  )
+  
+  
+  ## ------------------------------------------------
+  ## 15. Age structure per analysis unit
+  ## ------------------------------------------------
+  ageBreaks <- c(0, 20, 40, 60, 80, 100, 150, Inf)
+  
+  dtAU[, ageClass := cut(
+    age,
+    breaks = ageBreaks,
+    right = FALSE,
+    labels = FALSE
+  )]
+  
+  ageStructure <- dtAU[
+    !is.na(analysisUnit),
+    .N,
+    by = .(analysisUnit, ageClass)
+  ]
+  
+  data.table::setorder(ageStructure, analysisUnit, ageClass)
+  
+  sim$ageStructureByAU <- ageStructure
+  
+  
+  ## ------------------------------------------------
+  ## 16. Mean age summary per analysis unit
+  ## ------------------------------------------------
+  ageSummary <- dtAU[
+    !is.na(analysisUnit),
+    .(
+      meanAge = mean(age, na.rm = TRUE),
+      nStands = .N
+    ),
+    by = analysisUnit
+  ]
+  
+  data.table::setorder(ageSummary, analysisUnit)
+  
+  sim$ageSummaryByAU <- ageSummary
+  
+  
+  ## ------------------------------------------------
+  ## 17. Species composition per analysis unit
+  ## ------------------------------------------------
+  speciesSummary <- dtAU[
+    !is.na(analysisUnit),
+    .(
+      deciduous = sum(B[speciesCode %in% c(
+        "Popu_tre","Popu_bal","Betu_pap"
+      )], na.rm = TRUE),
+      
+      white_spruce = sum(B[speciesCode %in% c(
+        "Pice_gla","Abie_bal"
+      )], na.rm = TRUE),
+      
+      black_spruce = sum(B[speciesCode %in% c(
+        "Pice_mar","Lari_lar"
+      )], na.rm = TRUE),
+      
+      pine = sum(B[speciesCode %in% c(
+        "Pinu_ban","Pinu_res","Pinu_str"
+      )], na.rm = TRUE)
+    ),
+    by = analysisUnit
+  ]
+  
+  speciesSummary[, total :=
+                   deciduous +
+                   white_spruce +
+                   black_spruce +
+                   pine]
+  
+  speciesSummary[, `:=`(
+    deciduous_p = data.table::fifelse(total > 0, deciduous / total, 0),
+    white_spruce_p = data.table::fifelse(total > 0, white_spruce / total, 0),
+    black_spruce_p = data.table::fifelse(total > 0, black_spruce / total, 0),
+    pine_p = data.table::fifelse(total > 0, pine / total, 0)
+  )]
+  
+  data.table::setorder(speciesSummary, analysisUnit)
+  
+  sim$speciesSummaryByAU <- speciesSummary
   message("analysisUnitMap created successfully")
   # Print the distribution of analysis units
   auFreq <- terra::freq(analysisUnitMap)
