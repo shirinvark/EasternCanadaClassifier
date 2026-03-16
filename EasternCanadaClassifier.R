@@ -63,12 +63,6 @@ defineModule(sim, list(
     ),
     
     createsOutput(
-      "standTypeTable",
-      "data.table",
-      "Stand type classification table for diagnostics."
-    ),
-    
-    createsOutput(
       "yieldTables",
       "matrix",
       "Yield tables used for classifier."
@@ -78,6 +72,48 @@ defineModule(sim, list(
       "yieldAges",
       "numeric",
       "Age classes corresponding to yield tables."
+    ),
+    
+    createsOutput(
+      "yieldConifer",
+      "matrix",
+      "Conifer component of the yield tables."
+    ),
+    
+    createsOutput(
+      "yieldDeciduous",
+      "matrix",
+      "Deciduous component of the yield tables."
+    ),
+    
+    createsOutput(
+      "pixelGroupToAU",
+      "data.table",
+      "Lookup table linking pixelGroup IDs to analysis unit IDs."
+    ),
+    
+    createsOutput(
+      "areaByAU",
+      "data.table",
+      "Area summary in hectares for each analysis unit."
+    ),
+    
+    createsOutput(
+      "ageStructureByAU",
+      "data.table",
+      "Age-class distribution for each analysis unit."
+    ),
+    
+    createsOutput(
+      "ageSummaryByAU",
+      "data.table",
+      "Mean age and number of stands for each analysis unit."
+    ),
+    
+    createsOutput(
+      "speciesSummaryByAU",
+      "data.table",
+      "Species biomass composition summary for each analysis unit."
     )
     
   ))

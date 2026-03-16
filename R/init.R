@@ -152,7 +152,7 @@ Init <- function(sim) {
   # Remove stands with zero biomass
   summaryWide <- summaryWide[total > 0]
   summaryWide <- summaryWide[
-    , .SD[which.max(age)],
+    , .SD[base::which.max(age)],
     by = pixelGroup
   ]  # Compute proportional composition of each species group
   summaryWide[, deciduous_p :=
