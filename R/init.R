@@ -27,23 +27,33 @@ Init <- function(sim) {
   nCurves <- as.numeric(gsub("#", "", header[1]))
   nAges   <- as.numeric(header[2])
   
-  # read the numeric table
+  # read the numeric table(each table contains 2 lines conifer and deciduous)
   dataLines <- lines[2:(nCurves * 2 + 1)]
   
+  
+  #This section splits the numbers in the file and converts them into a numeric matrix.
   yieldTables <- t(sapply(dataLines, function(x) {
     as.numeric(unlist(strsplit(trimws(x), "\\s+")))
   }))
   
+  
+  #Ensures the matrix is stored as numeric values
   storage.mode(yieldTables) <- "numeric"
+  #These lines identify which rows correspond to conifer and deciduous yields.
   coniferRows <- seq(1, nCurves * 2, by = 2)
   decidRows   <- seq(2, nCurves * 2, by = 2)
   
+  
+  #These lines create separate matrices for conifer and deciduous yields
   yieldConifer <- yieldTables[coniferRows, ]
   yieldDeciduous   <- yieldTables[decidRows, ]
   
+  
+  #These objects are stored in the simulation object so other modules can use them
   sim$yieldConifer <- yieldConifer
   sim$yieldDeciduous   <- yieldDeciduous
   
+  #This creates the vector of stand ages.
   sim$yieldTables <- yieldTables
   sim$yieldAges <- seq(0, by = 10, length.out = nAges)
   
@@ -125,19 +135,21 @@ Init <- function(sim) {
     "unknown_conifer",
     "unknown_broadleaf"
   )) {
+    #If a column does not exist, it is created and filled with zeros
     if (!g %in% names(summaryWide)) {
       summaryWide[, (g) := 0]
     }
   }
+  #If a species is labeled unknown, it is added to the deciduous group
   if ("unknown" %in% names(summaryWide)) {
     summaryWide[, deciduous := deciduous + unknown]
   }
   summaryWide[, deciduous :=
                 deciduous + unknown_broadleaf]
-  
+  #Unknown broadleaf species are added to the deciduous group
   summaryWide[, whiteSpruce :=
                 whiteSpruce + unknown_conifer]
-  
+  #Unknown conifer species are added to the white spruce group
   ## ------------------------------------------------
   ## 6. Compute composition
   ## ------------------------------------------------
@@ -148,13 +160,23 @@ Init <- function(sim) {
                 pine +
                 blackSpruce]
   
+  
+  
+  
+  #Stand age is rounded to the nearest 10-year age class.
   summaryWide[, ageClass := round(age / 10) * 10]
+  
   # Remove stands with zero biomass
   summaryWide <- summaryWide[total > 0]
+  
+  #If multiple cohorts exist within a pixelGroup, the cohort with the maximum age(oldest) is selected
   summaryWide <- summaryWide[
     , .SD[base::which.max(age)],
     by = pixelGroup
-  ]  # Compute proportional composition of each species group
+  ]  
+  
+  
+  # Here the proportion of each species group relative to the total biomass is calculated
   summaryWide[, deciduous_p :=
                 data.table::fifelse(total > 0, deciduous / total, 0)]
   
@@ -176,26 +198,34 @@ Init <- function(sim) {
     round(age / 10) + 1
   )]
   
-  # Assign each pixelGroup to the closest yield curve
+  # Assign each pixelGroup to the closest yield curve(This loop runs for each pixelGroup and finds the closest yield curve)
   
   summaryWide[, AU_id :=
                 sapply(seq_len(.N), function(i) {
-                  
+                  #Conifer and deciduous yield values are extracted for the corresponding age
                   ageIndex <- summaryWide$ageIndex[i]
                   
                   conif <- yieldConifer[, ageIndex]
                   decid <- yieldDeciduous[, ageIndex]
                   
-                  total <- conif + decid
                   
+                  #Yield values are converted to proportions
+                  total <- conif + decid
                   conifFrac <- conif / total
                   decidFrac <- decid / total
                   
+                  
+                  #If division by zero occurs, the fraction is set to zero
                   conifFrac[is.nan(conifFrac)] <- 0
                   decidFrac[is.nan(decidFrac)] <- 0
-                  # Construct comparison matrix
+                  
+                  
+                  # Construct comparison matrix(Curve number 2 is removed because it should be ignored)
                   validCurves <- setdiff(1:nCurves, 2)
           
+                  
+                  
+                  #This matrix represents the species composition of each yield curve
                   yieldMat <- cbind(
                     deciduous = decidFrac,
                     whiteSpruce = c(
@@ -230,12 +260,17 @@ Init <- function(sim) {
                     )
                   )
                   yieldMat <- yieldMat[validCurves, ]
-                  # Pixel composition vector
+                  
+                  
+                  
+                  # Pixel composition vector(This vector represents the species composition of the actual stand)
                   
                   pixelVec <- as.numeric(
                     summaryWide[i,.(deciduous_p,whiteSpruce_p,pine_p,blackSpruce_p)]
                   )
-                  # Compute distance to each yield curve
+                  
+                  
+                  # Compute distance to each yield curve(The difference between stand composition and each yield curve composition is computed)
                   
                   diffs <- apply(
                     yieldMat,
@@ -308,9 +343,11 @@ Init <- function(sim) {
   ## ------------------------------------------------
   # Compute cell area in hectares
   cellArea <- prod(terra::res(analysisUnitMap)) / 10000
-  
+  #The number of cells per analysis unit is counted
   areaTable <- data.table::as.data.table(terra::freq(analysisUnitMap))
   
+  
+  #The area of each analysis unit is calculated
   if (nrow(areaTable) > 0) {
     data.table::setnames(
       areaTable,
@@ -340,6 +377,9 @@ Init <- function(sim) {
   pg <- terra::values(sim$pixelGroupMap)[, 1]
   au <- terra::values(analysisUnitMap)[, 1]
   
+  
+  
+  #The analysis unit is attached to cohort data
   lookupAU <- data.table::data.table(
     pixelGroup = pg,
     analysisUnit = au
