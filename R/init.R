@@ -8,6 +8,7 @@ Init <- function(sim) {
   ## ------------------------------------------------
   requireNamespace("data.table")
   requireNamespace("terra")
+  library(terra)
   
   cohortData <- sim$cohortData
   pixelGroupMap <- sim$pixelGroupMap
@@ -20,40 +21,53 @@ Init <- function(sim) {
     download.file(url, dest, mode = "wb")
   }
   
-  # Read file
-  lines <- readLines(dest)
+  # Read file(s)
+  vol_files <- c(dest)
   
-  # Parse header information
-  header <- strsplit(lines[1], "\\s+")[[1]]
-  nCurves <- as.numeric(gsub("#", "", header[1]))
-  nAges   <- as.numeric(header[2])
-  
-  # Extract numeric data
-  dataLines <- lines[2:(nCurves * 2 + 1)]
-  
-  dataMatrix <- do.call(rbind, lapply(dataLines, function(x) {
-    x <- trimws(x)   # Important: remove extra whitespace
-    as.numeric(strsplit(x, "\\s+")[[1]])
-  }))
-  
-  # Build list of curves (conifer / deciduous)
+  # objects to fill
   curves <- list()
-  
-  for (i in 1:nCurves) {
-    
-    conifer_row   <- dataMatrix[(2*i - 1), ]
-    deciduous_row <- dataMatrix[(2*i), ]
-    
-    curves[[i]] <- list(
-      conifer   = conifer_row,
-      deciduous = deciduous_row
-    )
-  }
-  
-  # Convert curves to proportional form
   curves_prop <- list()
   
-  for (i in 1:nCurves) {
+  for (f in vol_files) {
+    
+    lines <- readLines(f)
+    cat("Reading file:", f, "\n")
+    cat("Number of lines:", length(lines), "\n\n")
+    
+    # Parse header
+    header <- strsplit(lines[1], "\\s+")[[1]]
+    nCurves <- as.numeric(gsub("#", "", header[1]))
+    nAges   <- as.numeric(header[2])
+    
+    cat("nCurves:", nCurves, " | nAges:", nAges, "\n\n")
+    
+    # Extract numeric data
+    dataLines <- lines[2:(nCurves * 2 + 1)]
+    
+    dataMatrix <- do.call(rbind, lapply(dataLines, function(x) {
+      x <- trimws(x)
+      as.numeric(strsplit(x, "\\s+")[[1]])
+    }))
+    
+    cat("dataMatrix dim:", dim(dataMatrix), "\n\n")
+    
+    # Build curves
+    for (i in 1:nCurves) {
+      
+      conifer_row   <- dataMatrix[(2*i - 1), ]
+      deciduous_row <- dataMatrix[(2*i), ]
+      
+      curves[[i]] <- list(
+        conifer   = conifer_row,
+        deciduous = deciduous_row
+      )
+    }
+  }
+  
+  cat("Number of curves built:", length(curves), "\n\n")
+  
+  # Convert to proportional form
+  for (i in seq_along(curves)) {
     
     con <- curves[[i]]$conifer
     dec <- curves[[i]]$deciduous
@@ -61,19 +75,16 @@ Init <- function(sim) {
     total <- con + dec
     total[total == 0] <- 1
     
-    prop_con <- con / total
-    prop_dec <- dec / total
-    
     curves_prop[[i]] <- list(
-      conifer   = prop_con,
-      deciduous = prop_dec
+      conifer   = con / total,
+      deciduous = dec / total
     )
   }
   
-  # Assign names to curves
+  # Assign names
   curve_names <- c(
     "Aw",
-    "AwS",   # ignored
+    "AwS",
     "AwSw",
     "SwAw",
     "Sw",
@@ -87,6 +98,27 @@ Init <- function(sim) {
   # Remove unused curve
   curves_prop$AwS <- NULL
   
+  cat("Curves (proportion) names:\n")
+  print(names(curves_prop))
+  cat("\n")
+  # =========================================================
+  # READ speciesGroups
+  # =========================================================
+  
+  species_file <- "data/speciesGroups.txt"
+  sg_lines <- readLines(species_file)
+  
+  speciesGroups <- lapply(sg_lines, function(x) {
+    parts <- strsplit(x, ":")[[1]]
+    group_name <- trimws(parts[1])
+    spp <- trimws(strsplit(parts[2], ",")[[1]])
+    return(spp)
+  })
+  
+  names(speciesGroups) <- sapply(strsplit(sg_lines, ":"), function(x) trimws(x[1]))
+  cat("Example species per group:\n")
+print(speciesGroups)
+cat("\n")
   # =========================================================
   # COHORT DATA PROCESSING
   # =========================================================
@@ -98,28 +130,14 @@ Init <- function(sim) {
   
   # 2️⃣ Create group column
   cohortDT[, group := NA_character_]
-  
-  # 3️⃣ Map species to groups
-  
-  # deciduous species
-  cohortDT[speciesCode %in% c("Popu_tre", "Betu_pap"),
-           group := "borealDeciduous_AB"]
-  
-  # white spruce / fir
-  cohortDT[speciesCode %in% c("Abie_bal"),
-           group := "whiteSpruce_AB"]
-  
-  # black spruce
-  cohortDT[speciesCode %in% c("Pice_mar"),
-           group := "blackSpruce_AB"]
-  
-  # pine species
-  cohortDT[speciesCode %in% c("Pinu_ban", "Pinu_res", "Pinu_str"),
-           group := "borealPine_AB"]
-  
+  for (g in names(speciesGroups)) {
+    cohortDT[speciesCode %in% speciesGroups[[g]], group := g]
+  }
   # 4️⃣ Remove species not assigned to any group (e.g. Acer)
   cohortDT <- cohortDT[!is.na(group)]
-  
+  cat("Group counts:\n")
+  print(table(cohortDT$group))
+  cat("\n")
   # 5️⃣ Aggregate biomass by pixel and group
   pixelGroups <- cohortDT[
     , .(biomass = sum(B)), 
@@ -148,7 +166,13 @@ Init <- function(sim) {
     prop_sb        = blackSpruce_AB / total,
     prop_pine      = borealPine_AB / total
   )]
+  cat("pixelWide columns:\n")
+  print(names(pixelWide))
+  cat("\n")
   
+  cat("Check proportions (first rows):\n")
+  print(head(pixelWide))
+  cat("\n")
   # =========================================================
   # PREP AGE INDEX (ONCE)
   # =========================================================
@@ -170,32 +194,49 @@ Init <- function(sim) {
   # MATCH PIXELS TO CURVES
   # =========================================================
   
-  # Compute total conifer proportion
-  total_con <- pixelWide$prop_sw + pixelWide$prop_sb + pixelWide$prop_pine
-  total_con[total_con == 0] <- 1
-  
-  # Compute shares within conifer
-  sw_share   <- pixelWide$prop_sw   / total_con
-  sb_share   <- pixelWide$prop_sb   / total_con
-  pine_share <- pixelWide$prop_pine / total_con
-  
   results <- list()
-  
+  curve_to_group <- list(
+    Aw   = "whiteSpruce_AB",
+    AwSw = "whiteSpruce_AB",
+    SwAw = "whiteSpruce_AB",
+    Sw   = "whiteSpruce_AB",
+    Sb   = "blackSpruce_AB",
+    Pj   = "borealPine_AB",
+    MxPj = "borealPine_AB"
+  )
   for (curve_name in names(curves_prop)) {
     
     curve <- curves_prop[[curve_name]]
     
     curve_con_vals <- curve$conifer[age_index]
     curve_dec_vals <- curve$deciduous[age_index]
+    # پیدا کن این curve مربوط به کدوم group هست
+    target_group <- curve_to_group[[curve_name]]
     
+    # بساز نسخه 4 بعدی table
+    curve_dec <- curve_dec_vals
+    curve_sw  <- rep(0, length(curve_con_vals))
+    curve_sb  <- rep(0, length(curve_con_vals))
+    curve_pine <- rep(0, length(curve_con_vals))
+    
+    if (target_group == "whiteSpruce_AB") {
+      curve_sw <- curve_con_vals
+    } else if (target_group == "blackSpruce_AB") {
+      curve_sb <- curve_con_vals
+    } else if (target_group == "borealPine_AB") {
+      curve_pine <- curve_con_vals
+    }
+    cat("Curve:", curve_name, "\n")
+    cat("sw:", head(curve_sw), "\n")
+    cat("sb:", head(curve_sb), "\n")
+    cat("pine:", head(curve_pine), "\n\n")
+    cat("Curve:", curve_name, "→ group:", target_group, "\n")
     # Distribute conifer proportion across species groups
-    curve_sw   <- curve_con_vals * sw_share
-    curve_sb   <- curve_con_vals * sb_share
-    curve_pine <- curve_con_vals * pine_share
+    
     
     # Compute distance (max absolute difference)
     dist <- pmax(
-      abs(pixelWide$prop_deciduous - curve_dec_vals),
+      abs(pixelWide$prop_deciduous - curve_dec),
       abs(pixelWide$prop_sw        - curve_sw),
       abs(pixelWide$prop_sb        - curve_sb),
       abs(pixelWide$prop_pine      - curve_pine)
@@ -203,7 +244,7 @@ Init <- function(sim) {
     
     results[[curve_name]] <- dist
   }
-  
+  cat("\n")
   # Convert to matrix and select best matching curve
   distMatrix <- as.data.frame(results)
   
@@ -229,6 +270,9 @@ Init <- function(sim) {
   # Match pixelGroup to classID
   idx <- match(vals, lookup$pixelGroup)
   
+  cat("Unmatched pixelGroups:\n")
+  print(sum(is.na(idx)))
+  cat("\n")
   # Warn if some pixelGroups are missing
   if (any(is.na(idx))) {
     warning("Some pixelGroups not matched to lookup")
@@ -243,13 +287,13 @@ Init <- function(sim) {
   values(analysisUnitRaster) <- new_vals
   
   # Define raster categories
+  
   class_table <- data.frame(
-    classID = 1:7,
-    curve = c("Aw","AwSw","SwAw","Sw","Sb","Pj","MxPj")
+    classID = 0:7,
+    curve = c("background","Aw","AwSw","SwAw","Sw","Sb","Pj","MxPj")
   )
   
   levels(analysisUnitRaster) <- class_table  
-  
   # =========================================================
   # AREA CALCULATION
   # =========================================================
@@ -267,7 +311,74 @@ Init <- function(sim) {
   
   areaByAU <- freq_table[, c("value", "area_ha")]
   names(areaByAU) <- c("curve", "area_ha")
+  # =========================================================
+  # FINAL CHECKS & VISUALIZATION
+  # =========================================================
   
+  cat("\n================ FINAL CHECKS ================\n")
+  
+  # 1️⃣ Distribution of classes
+  cat("\nClass distribution (bestCurve):\n")
+  print(table(pixelWide$bestCurve))
+  
+  # 2️⃣ Check proportions summary
+  cat("\nSummary of proportions:\n")
+  print(summary(pixelWide[, .(
+    prop_deciduous,
+    prop_sw,
+    prop_sb,
+    prop_pine
+  )]))
+  
+  # 3️⃣ Check if proportions sum ~ 1
+  cat("\nCheck sum of proportions (should be ~1):\n")
+  prop_sum <- pixelWide$prop_deciduous +
+    pixelWide$prop_sw +
+    pixelWide$prop_sb +
+    pixelWide$prop_pine
+  print(summary(prop_sum))
+  
+  # 4️⃣ Check for NA values
+  cat("\nNA check in key columns:\n")
+  print(colSums(is.na(pixelWide)))
+  
+  # 5️⃣ Cross-check: class vs deciduous level
+  cat("\nCross-tab: class vs deciduous proportion:\n")
+  print(table(
+    pixelWide$bestCurve,
+    cut(pixelWide$prop_deciduous, breaks = 3)
+  ))
+  
+  # =========================================================
+  # PLOT
+  # =========================================================
+  
+  cat("\n================ PLOTS ================\n")
+  
+  # 6️⃣ Plot raster
+  plot(analysisUnitRaster, main = "Analysis Unit Map")
+  
+  # 7️⃣ Histogram of deciduous proportion
+  hist(pixelWide$prop_deciduous,
+       main = "Deciduous proportion",
+       xlab = "prop_deciduous")
+  
+  # 8️⃣ Histogram of spruce proportion
+  hist(pixelWide$prop_sw,
+       main = "White Spruce proportion",
+       xlab = "prop_sw")
+  
+  # 9️⃣ Histogram of black spruce proportion
+  hist(pixelWide$prop_sb,
+       main = "Black Spruce proportion",
+       xlab = "prop_sb")
+  
+  # 🔟 Histogram of pine proportion
+  hist(pixelWide$prop_pine,
+       main = "Pine proportion",
+       xlab = "prop_pine")
+  
+  cat("\n=============== DONE ===============\n")
   # =========================================================
   # SAVE OUTPUTS
   # =========================================================
@@ -276,3 +387,4 @@ Init <- function(sim) {
   sim$analysisUnitRaster <- analysisUnitRaster
   sim$areaByAU <- areaByAU
 }
+  
