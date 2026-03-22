@@ -350,34 +350,7 @@ cat("\n")
   ))
   
   # =========================================================
-  # PLOT
-  # =========================================================
   
-  cat("\n================ PLOTS ================\n")
-  
-  # 6️⃣ Plot raster
-  plot(as.factor(analysisUnitRaster), main = "Analysis Unit Map")  
-  # 7️⃣ Histogram of deciduous proportion
-  hist(pixelWide$prop_deciduous,
-       main = "Deciduous proportion",
-       xlab = "prop_deciduous")
-  
-  # 8️⃣ Histogram of spruce proportion
-  hist(pixelWide$prop_sw,
-       main = "White Spruce proportion",
-       xlab = "prop_sw")
-  
-  # 9️⃣ Histogram of black spruce proportion
-  hist(pixelWide$prop_sb,
-       main = "Black Spruce proportion",
-       xlab = "prop_sb")
-  
-  # 🔟 Histogram of pine proportion
-  hist(pixelWide$prop_pine,
-       main = "Pine proportion",
-       xlab = "prop_pine")
-  
-  cat("\n=============== DONE ===============\n")
   # =========================================================
   # SAVE OUTPUTS
   # =========================================================
