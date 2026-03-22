@@ -356,8 +356,7 @@ cat("\n")
   cat("\n================ PLOTS ================\n")
   
   # 6️⃣ Plot raster
-  plot(analysisUnitRaster, main = "Analysis Unit Map")
-  
+  plot(as.factor(analysisUnitRaster), main = "Analysis Unit Map")  
   # 7️⃣ Histogram of deciduous proportion
   hist(pixelWide$prop_deciduous,
        main = "Deciduous proportion",
