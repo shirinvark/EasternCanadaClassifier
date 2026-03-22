@@ -8,8 +8,7 @@ Init <- function(sim) {
   ## ------------------------------------------------
   requireNamespace("data.table")
   requireNamespace("terra")
-  library(terra)
-  
+
   cohortData <- sim$cohortData
   pixelGroupMap <- sim$pixelGroupMap
   
@@ -284,8 +283,7 @@ cat("\n")
   
   # Create output raster
   analysisUnitRaster <- pixelGroupMap
-  values(analysisUnitRaster) <- new_vals
-  
+  terra::values(analysisUnitRaster) <- new_vals  
   # Define raster categories
   
   class_table <- data.frame(
@@ -358,5 +356,6 @@ cat("\n")
   sim$analysisUnitDT <- pixelWide
   sim$analysisUnitRaster <- analysisUnitRaster
   sim$areaByAU <- areaByAU
+  invisible(sim)
 }
   
