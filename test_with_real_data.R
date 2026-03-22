@@ -87,102 +87,64 @@ system.time({
 })
 
 # =========================================================
-# CHECK MAIN OUTPUTS FROM MODULE
 # =========================================================
 
+# TEST SCRIPT FOR EasternCanadaClassifier
+
+# =========================================================
+
+# =========================================================
+
+# CHECK MAIN OUTPUTS
+
+# =========================================================
+
+cat("\n===== AREA BY AU =====\n")
 print(sim$areaByAU)
-print(sim$pixelGroupToAU)
-print(sim$ageStructureByAU)
-print(sim$ageSummaryByAU)
-print(sim$speciesSummaryByAU)
+
+cat("\n===== HEAD OF analysisUnitDT =====\n")
+print(head(sim$analysisUnitDT))
 
 # =========================================================
+
+# CLASS DISTRIBUTION
+
+# =========================================================
+
+cat("\n===== CLASS DISTRIBUTION =====\n")
+print(table(sim$analysisUnitDT$bestCurve))
+
+# =========================================================
+
 # PLOT ANALYSIS UNIT MAP
+
 # =========================================================
 
-plot(
-  sim$analysisUnitMap,
+terra::plot(
+  sim$analysisUnitRaster,
   col  = terrain.colors(8),
   main = "Analysis Unit Map"
 )
 
 # =========================================================
-# PLOT YIELD CURVES (ALL CURVES)
-# =========================================================
 
-yieldTables <- sim$yieldTables
-yieldAges   <- sim$yieldAges
-
-x11()
-
-matplot(
-  yieldAges,
-  t(yieldTables),
-  type = "l",
-  lwd  = 2,
-  lty  = 1,
-  col  = rainbow(nrow(yieldTables)),
-  xlab = "Age",
-  ylab = "Volume",
-  main = "Yield Curves"
-)
-
-legend(
-  "topleft",
-  legend = paste("Curve", 1:nrow(yieldTables)),
-  col    = rainbow(nrow(yieldTables)),
-  lty    = 1,
-  lwd    = 2
-)
+# SPECIES COMPOSITION CHECK
 
 # =========================================================
-# SPECIES COMPOSITION PLOT
-# =========================================================
 
-x11()
-
-barplot(
-  t(as.matrix(
-    sim$speciesSummaryByAU[, .(
-      deciduous_p,
-      white_spruce_p,
-      black_spruce_p,
-      pine_p
-    )]
-  )),
-  col = c("darkgreen", "lightblue", "blue", "orange"),
-  legend = c("Deciduous", "WhiteSpruce", "BlackSpruce", "Pine"),
+boxplot(
+  prop_deciduous ~ bestCurve,
+  data = sim$analysisUnitDT,
+  main = "Deciduous proportion by class",
   xlab = "Analysis Unit",
-  ylab = "Proportion"
+  ylab = "Deciduous proportion",
+  col  = "lightgreen"
 )
 
 # =========================================================
-# CONIFER YIELD CURVES
-# =========================================================
 
-x11()
+# SAVE OUTPUTS
 
-matplot(
-  yieldAges,
-  t(sim$yieldConifer),
-  type = "l",
-  lwd  = 2,
-  col  = rainbow(nrow(sim$yieldConifer)),
-  xlab = "Age",
-  ylab = "Volume",
-  main = "Conifer Yield Curves"
-)
-
-legend(
-  "topleft",
-  legend = paste("AU", 1:nrow(sim$yieldConifer)),
-  col    = rainbow(nrow(sim$yieldConifer)),
-  lty    = 1,
-  lwd    = 2
-)
-
-# =========================================================
-# SAVE OUTPUT TABLES
 # =========================================================
 
 data.table::fwrite(
@@ -191,17 +153,9 @@ data.table::fwrite(
 )
 
 data.table::fwrite(
-  sim$ageStructureByAU,
-  "E:/EasternCanadaClassifier/outputs/AU_age_structure.csv"
+  sim$analysisUnitDT,
+  "E:/EasternCanadaClassifier/outputs/analysisUnitDT.csv"
 )
 
-data.table::fwrite(
-  sim$ageSummaryByAU,
-  "E:/EasternCanadaClassifier/outputs/AU_age_summary.csv"
-)
-
-data.table::fwrite(
-  sim$speciesSummaryByAU,
-  "E:/EasternCanadaClassifier/outputs/AU_species_summary.csv"
-)
+cat("\n===== TEST COMPLETED SUCCESSFULLY =====\n")
 
