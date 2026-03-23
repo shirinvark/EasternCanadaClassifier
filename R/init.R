@@ -140,7 +140,7 @@ cat("\n")
   # 5️⃣ Aggregate biomass by pixel and group
   pixelGroups <- cohortDT[
     , .(biomass = sum(B)), 
-    by = .(pixelGroup, group)
+    by = .(pixelGroup, group, age)
   ]
   
   # 6️⃣ Convert to wide format (one column per group)
@@ -356,6 +356,7 @@ cat("\n")
   sim$analysisUnitDT <- pixelWide
   sim$analysisUnitRaster <- analysisUnitRaster
   sim$areaByAU <- areaByAU
+  sim$yieldCurves <- curves
   invisible(sim)
 }
   
