@@ -1,6 +1,67 @@
-## ignore all
+# =========================================================
+# IGNORE EVERYTHING BY DEFAULT
+# =========================================================
 *
 
-## don't ignore
-!CHECKSUMS.txt
+# =========================================================
+# ALLOW CORE PROJECT FILES
+# =========================================================
 !.gitignore
+!README.md
+
+# =========================================================
+# ALLOW R CODE
+# =========================================================
+!R/
+!R/**
+
+# اگر ماژول داری
+!modules/
+!modules/**
+
+# =========================================================
+# ALLOW DATA FOLDER (IMPORTANT)
+# =========================================================
+!data/
+!data/**
+
+# =========================================================
+# ALLOW SHAPEFILES (explicit safety)
+# =========================================================
+!data/*.shp
+!data/*.dbf
+!data/*.shx
+!data/*.prj
+!data/*.cpg
+
+# =========================================================
+# IGNORE LARGE / TEMP / CACHE FILES
+# =========================================================
+
+# Raster & heavy outputs
+*.tif
+*.grd
+*.gri
+*.img
+*.rds
+*.qs
+
+# SpaDES cache / outputs
+cache/
+outputs/
+scratch/
+
+# R session files
+.Rhistory
+.RData
+.Rproj.user/
+
+# Logs
+*.log
+
+# Windows junk
+Thumbs.db
+desktop.ini
+
+# Mac junk
+.DS_Store

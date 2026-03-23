@@ -1,0 +1,4 @@
+borealDeciduous_AB: Popu_tre, Betu_pap
+whiteSpruce_AB: Abie_bal, Picea_gla
+blackSpruce_AB: Pice_mar
+borealPine_AB: Pinu_ban, Pinu_res, Pinu_str

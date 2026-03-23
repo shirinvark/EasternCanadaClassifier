@@ -1,0 +1,7 @@
+Aw: borealDeciduous_AB, whiteSpruce_AB
+AwSw: borealDeciduous_AB, whiteSpruce_AB
+SwAw: borealDeciduous_AB, whiteSpruce_AB
+Sw: borealDeciduous_AB, whiteSpruce_AB
+Sb: borealDeciduous_AB, blackSpruce_AB
+Pj: borealDeciduous_AB, borealPine_AB
+MxPj: borealDeciduous_AB, borealPine_AB
