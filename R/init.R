@@ -115,17 +115,27 @@ Init <- function(sim) {
   })
   
   names(speciesGroups) <- sapply(strsplit(sg_lines, ":"), function(x) trimws(x[1]))
-  cat("Example species per group:\n")
-print(speciesGroups)
-cat("\n")
+  
+  # =========================================================
+  # READ mapSpeciesGroups  👈 اینجا اضافه کن
+  # =========================================================
+  
+  map_file <- "data/mapSpeciesGroups.txt"
+  map_lines <- readLines(map_file)
+  
+  mapSpeciesGroups <- lapply(map_lines, function(x) {
+    parts <- strsplit(x, ":")[[1]]
+    curve_name <- trimws(parts[1])
+    groups <- trimws(strsplit(parts[2], ",")[[1]])
+    return(groups)
+  })
+  
+  names(mapSpeciesGroups) <- sapply(strsplit(map_lines, ":"), function(x) trimws(x[1]))
   # =========================================================
   # COHORT DATA PROCESSING
   # =========================================================
   
   cohortDT <- data.table::copy(cohortData)
-  
-  # 1️⃣ Convert speciesCode to character
-  cohortDT[, speciesCode := as.character(speciesCode)]
   
   # 2️⃣ Create group column
   cohortDT[, group := NA_character_]
@@ -187,22 +197,12 @@ cat("\n")
   
   # Convert age to index (10-year classes)
   age_index <- floor(pixelWide$age / 10) + 1
-  age_index <- pmax(1, pmin(age_index, 21))
-  
+  age_index <- pmax(1, pmin(age_index, nAges))  
   # =========================================================
   # MATCH PIXELS TO CURVES
   # =========================================================
   
   results <- list()
-  curve_to_group <- list(
-    Aw   = "whiteSpruce_AB",
-    AwSw = "whiteSpruce_AB",
-    SwAw = "whiteSpruce_AB",
-    Sw   = "whiteSpruce_AB",
-    Sb   = "blackSpruce_AB",
-    Pj   = "borealPine_AB",
-    MxPj = "borealPine_AB"
-  )
   for (curve_name in names(curves_prop)) {
     
     curve <- curves_prop[[curve_name]]
@@ -210,26 +210,31 @@ cat("\n")
     curve_con_vals <- curve$conifer[age_index]
     curve_dec_vals <- curve$deciduous[age_index]
     # پیدا کن این curve مربوط به کدوم group هست
-    target_group <- curve_to_group[[curve_name]]
-    
+    target_groups <- mapSpeciesGroups[[curve_name]]    
     # بساز نسخه 4 بعدی table
-    curve_dec <- curve_dec_vals
+    curve_dec <- rep(0, length(curve_con_vals))
     curve_sw  <- rep(0, length(curve_con_vals))
     curve_sb  <- rep(0, length(curve_con_vals))
     curve_pine <- rep(0, length(curve_con_vals))
     
-    if (target_group == "whiteSpruce_AB") {
-      curve_sw <- curve_con_vals
-    } else if (target_group == "blackSpruce_AB") {
-      curve_sb <- curve_con_vals
-    } else if (target_group == "borealPine_AB") {
-      curve_pine <- curve_con_vals
+    for (g in target_groups) {
+      if (g == "deciduous") {
+        curve_dec <- curve_dec_vals
+      } else if (g == "whiteSpruce_AB") {
+        curve_sw <- curve_con_vals
+      } else if (g == "blackSpruce_AB") {
+        curve_sb <- curve_con_vals
+      } else if (g == "borealPine_AB") {
+        curve_pine <- curve_con_vals
+      }
     }
+    
     cat("Curve:", curve_name, "\n")
     cat("sw:", head(curve_sw), "\n")
     cat("sb:", head(curve_sb), "\n")
     cat("pine:", head(curve_pine), "\n\n")
-    cat("Curve:", curve_name, "→ group:", target_group, "\n")
+    cat("Curve:", curve_name, "→ groups:", paste(target_groups, collapse = ","), "\n")
+    
     # Distribute conifer proportion across species groups
     
     
