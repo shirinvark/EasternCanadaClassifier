@@ -21,12 +21,18 @@ Init <- function(sim) {
   
   for (f in vol_files) {
     
+    
     lines <- readLines(f)
+    lines <- trimws(lines)
+    
+    # 👇 این خط خیلی مهمه
     cat("Reading file:", f, "\n")
     cat("Number of lines:", length(lines), "\n\n")
     
     # Parse header
     lines <- lines[lines != ""]
+    header_line <- lines[1]
+    
     header <- strsplit(header_line, "\\s+")[[1]]
     
     nCurves <- as.numeric(gsub("#", "", header[1]))
