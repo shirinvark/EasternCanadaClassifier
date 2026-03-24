@@ -26,7 +26,7 @@ Init <- function(sim) {
     cat("Number of lines:", length(lines), "\n\n")
     
     # Parse header
-    header_line <- trimws(lines[1])
+    lines <- lines[lines != ""]
     header <- strsplit(header_line, "\\s+")[[1]]
     
     nCurves <- as.numeric(gsub("#", "", header[1]))
