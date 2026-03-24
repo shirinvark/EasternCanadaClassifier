@@ -219,13 +219,9 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     shp_path <- reproducible::prepInputs(
       url = zip_url,
       destinationPath = "data",
-      fun = "terra::vect",
-      shp_path <- reproducible::prepInputs(
-        url = zip_url,
-        destinationPath = "data",
-        targetFile = "lpr_000b21a_e.shp"
-      )
-      
+      targetFile = "lpr_000b21a_e.shp"
+    )
+  
       sim$canadaJurisdiction <- shp_path
   }
   
