@@ -135,9 +135,13 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
 
 .inputObjects <- function(sim) {
   
+  requireNamespace("terra")
+  requireNamespace("data.table")
+  requireNamespace("reproducible")
+  
   ## ------------------------------------------------
   ## pixelGroupMap (fake if missing)
-  ## -----------------------------------------------
+  ## ------------------------------------------------
   
   if (!("pixelGroupMap" %in% names(sim))) {
     
@@ -173,7 +177,6 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       age = sample(1:120, 200, replace = TRUE),
       B = runif(200, 1, 50)
     )
-    
   }
   
   
@@ -198,5 +201,44 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   }
   
   
+  ## ========================================================
+  ## CANADA JURISDICTION SHAPEFILE (Statistics Canada)
+  ## ========================================================
+  
+  if (!("canadaJurisdiction" %in% names(sim))) {
+    
+    message("Downloading Canada jurisdiction shapefile")
+    
+    zip_url <- "https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/boundary-limites/files-fichiers/lpr_000b21a_e.zip"
+    
+    shp_path <- reproducible::prepInputs(
+      url = zip_url,
+      destinationPath = "data",
+      fun = "terra::vect",
+      archive = "zip",
+      targetFile = ".shp"
+    )
+    
+    sim$canadaJurisdiction <- shp_path
+  }
+  
+  ## ========================================================
+  ## YIELD TABLE (.vol)
+  ## ========================================================
+  
+  if (!("yieldVolFile" %in% names(sim))) {
+    
+    message("Downloading yield table (.vol)")
+    
+    vol_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/AlPac%20AME%20Mixedwood%20VolTabs.vol"
+    
+    vol_file <- reproducible::prepInputs(
+      url = vol_url,
+      destinationPath = "data",
+      fun = NULL  # فقط دانلود، نه پردازش
+    )
+    
+    sim$yieldVolFile <- vol_file
+  }
   return(sim)
 }

@@ -12,17 +12,9 @@ Init <- function(sim) {
   cohortData <- sim$cohortData
   pixelGroupMap <- sim$pixelGroupMap
   
-  url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/AlPac%20AME%20Mixedwood%20VolTabs.vol"
-  dest <- "AlPac_AME_Mixedwood_VolTabs.vol"
-  
-  # Download file if it does not exist locally
-  if (!file.exists(dest)) {
-    download.file(url, dest, mode = "wb")
-  }
-  
   # Read file(s)
-  vol_files <- c(dest)
-  
+  vol_file <- sim$yieldVolFile
+  vol_files <- c(vol_file)  
   # objects to fill
   curves <- list()
   curves_prop <- list()
@@ -162,19 +154,17 @@ Init <- function(sim) {
   )
   
   # 7️⃣ Compute total biomass
-  pixelWide[, total := borealDeciduous_AB + whiteSpruce_AB + 
-              blackSpruce_AB + borealPine_AB]
+  group_cols <- setdiff(names(pixelWide), "pixelGroup")
   
+  pixelWide[, total := rowSums(.SD), .SDcols = group_cols]
   # 8️⃣ Avoid division by zero
   pixelWide[total == 0, total := 1]
-  
+  print(names(pixelWide))
   # 9️⃣ Convert to proportions
-  pixelWide[, `:=`(
-    prop_deciduous = borealDeciduous_AB / total,
-    prop_sw        = whiteSpruce_AB / total,
-    prop_sb        = blackSpruce_AB / total,
-    prop_pine      = borealPine_AB / total
-  )]
+  pixelWide[, prop_deciduous := get("borealDeciduous_AB") / total]
+  pixelWide[, prop_sw        := get("whiteSpruce_AB") / total]
+  pixelWide[, prop_sb        := get("blackSpruce_AB") / total]
+  pixelWide[, prop_pine      := get("borealPine_AB") / total]
   cat("pixelWide columns:\n")
   print(names(pixelWide))
   cat("\n")
