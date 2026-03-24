@@ -1,67 +1,43 @@
 # =========================================================
-# IGNORE EVERYTHING BY DEFAULT
+# R / RStudio
 # =========================================================
-*
+.Rproj.user/
+.Rhistory
+.RData
 
 # =========================================================
-# ALLOW CORE PROJECT FILES
+# OUTPUTS & CACHE
 # =========================================================
-!.gitignore
-!README.md
+outputs/
+maps/
+cache/
+scratch/
 
 # =========================================================
-# ALLOW R CODE
+# RASTERS & HEAVY FILES
 # =========================================================
-!R/
-!R/**
-
-# اگر ماژول داری
-!modules/
-!modules/**
-
-# =========================================================
-# ALLOW DATA FOLDER (IMPORTANT)
-# =========================================================
-!data/
-!data/**
-
-# =========================================================
-# ALLOW SHAPEFILES (explicit safety)
-# =========================================================
-!data/*.shp
-!data/*.dbf
-!data/*.shx
-!data/*.prj
-!data/*.cpg
-
-# =========================================================
-# IGNORE LARGE / TEMP / CACHE FILES
-# =========================================================
-
-# Raster & heavy outputs
 *.tif
+*.tif.aux.xml
 *.grd
 *.gri
 *.img
-*.rds
 *.qs
 
-# SpaDES cache / outputs
-cache/
-outputs/
-scratch/
+# =========================================================
+# LARGE DATA (OPTIONAL)
+# =========================================================
+*.rds
+*.csv
+*.zip
 
-# R session files
-.Rhistory
-.RData
-.Rproj.user/
-
-# Logs
-*.log
-
-# Windows junk
+# =========================================================
+# SYSTEM FILES
+# =========================================================
 Thumbs.db
 desktop.ini
-
-# Mac junk
 .DS_Store
+
+# =========================================================
+# KEEP IMPORTANT PROJECT FILES
+# =========================================================
+# (No need to explicitly allow unless using *)
