@@ -30,9 +30,8 @@ Init <- function(sim) {
     header <- strsplit(header_line, "\\s+")[[1]]
     
     nCurves <- as.numeric(gsub("#", "", header[1]))
-    nAges   <- as.numeric(header[2])    nCurves <- as.numeric(gsub("#", "", header[1]))
-    nAges   <- as.numeric(header[2])
-    
+    nAges   <- as.numeric(header[2])   
+  
     cat("nCurves:", nCurves, " | nAges:", nAges, "\n\n")
     
     # Extract numeric data
