@@ -121,7 +121,7 @@ print(table(sim$analysisUnitDT$bestCurve))
 # =========================================================
 
 terra::plot(
-  sim$analysisUnitRaster,
+  sim$analysisUnitMap,
   col  = terrain.colors(8),
   main = "Analysis Unit Map"
 )

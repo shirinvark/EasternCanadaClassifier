@@ -312,6 +312,13 @@ Init <- function(sim) {
   # Create output raster
   analysisUnitRaster <- pixelGroupMap
   terra::values(analysisUnitRaster) <- new_vals  
+  
+  # =========================================================
+  # APPLY HARVESTABLE MASK
+  # =========================================================
+  
+  hf <- terra::values(sim$harvestableFraction)
+  analysisUnitRaster[hf == 0] <- NA  
   # Define raster categories
   
   class_table <- data.frame(
