@@ -65,6 +65,30 @@ Init <- function(sim) {
   
   cat("Number of curves built:", length(curves), "\n\n")
   
+  # =========================================================
+  # BUILD yield matrices (for outputs)
+  # =========================================================
+  
+  nCurves <- length(curves)
+  nAges <- length(curves[[1]]$conifer)
+  
+  yieldConifer <- matrix(NA, nrow = nCurves, ncol = nAges)
+  yieldDeciduous <- matrix(NA, nrow = nCurves, ncol = nAges)
+  
+  for (i in seq_len(nCurves)) {
+    yieldConifer[i, ]   <- curves[[i]]$conifer
+    yieldDeciduous[i, ] <- curves[[i]]$deciduous
+  }
+  
+  yieldTables <- yieldConifer + yieldDeciduous
+  yieldAges <- seq(0, by = 10, length.out = nAges)
+  
+  sim$yieldConifer   <- yieldConifer
+  sim$yieldDeciduous <- yieldDeciduous
+  sim$yieldTables    <- yieldTables
+  sim$yieldAges      <- yieldAges
+  
+  
   # Convert to proportional form
   for (i in seq_along(curves)) {
     
@@ -120,7 +144,8 @@ Init <- function(sim) {
   # READ mapSpeciesGroups  👈 اینجا اضافه کن
   # =========================================================
   
-  map_file <- "data/mapSpeciesGroups.txt"
+  jur <- "AB"
+  map_file <- file.path("data", jur, "YTF", "mapSpeciesGroups.txt")
   map_lines <- readLines(map_file)
   
   mapSpeciesGroups <- lapply(map_lines, function(x) {
@@ -357,7 +382,7 @@ Init <- function(sim) {
   # =========================================================
   
   sim$analysisUnitDT <- pixelWide
-  sim$analysisUnitRaster <- analysisUnitRaster
+  sim$analysisUnitMap <- analysisUnitRaster
   sim$areaByAU <- areaByAU
   sim$yieldCurves <- curves
   invisible(sim)
