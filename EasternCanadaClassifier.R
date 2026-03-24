@@ -48,6 +48,11 @@ defineModule(sim, list(
       desc = "Raster identifying pixelGroup IDs"
     ),
     expectsInput(
+      "yieldVolFile",
+      objectClass = "character",
+      desc = "Path to .vol yield file"
+    ),
+    expectsInput(
       "harvestableFraction",
       objectClass = "SpatRaster",
       desc = "Fraction of each pixel that is harvestable (from Landbase module)"
@@ -228,15 +233,16 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   
   vol_dest <- file.path("data", "VolTabs.vol")
   
-  if (!file.exists(vol_dest)) {
+  if (is.null(sim$yieldVolFile) || !file.exists(vol_dest)) {
     
-    message("Vol file not found → downloading from Drive...")
+    message("Downloading vol file...")
     
-    vol_url <- "https://drive.google.com/uc?export=download&id=1IbuhzgRWYpCkGoYug7qhbb_dzH1Dc1AJ"
+    vol_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/AB/YTF/AlPac%20AME%20Mixedwood%20VolTabs.vol"
     
     dir.create("data", showWarnings = FALSE)
-    
     download.file(vol_url, vol_dest, mode = "wb")
+    
+    sim$yieldVolFile <- vol_dest
     
   } else {
     
