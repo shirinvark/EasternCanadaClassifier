@@ -225,19 +225,17 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   ## ========================================================
   ## YIELD TABLE (.vol)
   ## ========================================================
-  ## ========================================================
-  ## YIELD TABLE (.vol)
-  ## ========================================================
   
   vol_dest <- file.path("data", "VolTabs.vol")
   
   if (!file.exists(vol_dest)) {
     
-    message("Vol file not found → downloading...")
+    message("Vol file not found → downloading from Drive...")
     
-    vol_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/AB/YTF/AlPac%20AME%20Mixedwood%20VolTabs.vol"
+    vol_url <- "https://drive.google.com/uc?export=download&id=1IbuhzgRWYpCkGoYug7qhbb_dzH1Dc1AJ"
     
     dir.create("data", showWarnings = FALSE)
+    
     download.file(vol_url, vol_dest, mode = "wb")
     
   } else {
@@ -245,8 +243,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     message("Using existing vol file")
   }
   
-
-    sim$yieldVolFile <- vol_dest
+  sim$yieldVolFile <- vol_dest
      
   return(sim)
 }
