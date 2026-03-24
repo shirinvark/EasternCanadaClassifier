@@ -235,7 +235,8 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     vol_file <- reproducible::prepInputs(
       url = vol_url,
       destinationPath = "data",
-      fun = NULL  # فقط دانلود، نه پردازش
+      targetFile = "AlPac AME Mixedwood VolTabs.vol",
+      fun = NULL
     )
     
     sim$yieldVolFile <- vol_file
