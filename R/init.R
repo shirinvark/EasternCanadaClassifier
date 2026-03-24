@@ -168,7 +168,7 @@ Init <- function(sim) {
     cohortDT[speciesCode %in% speciesGroups[[g]], group := g]
   }
   # 4️⃣ Remove species not assigned to any group (e.g. Acer)
-  cohortDT <- cohortDT[!is.na(group)]
+  cohortDT[, group := "Unknown"]
   cat("Group counts:\n")
   print(table(cohortDT$group))
   cat("\n")

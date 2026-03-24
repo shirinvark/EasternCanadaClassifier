@@ -1,0 +1,7 @@
+"file" "checksum" "algorithm" "filesize"
+"lpr_000b21a_e.dbf" "ab3245d9b702a57d" "xxhash64" "4918"
+"lpr_000b21a_e.prj" "d4ce1140d7c7cc34" "xxhash64" "524"
+"lpr_000b21a_e.shp" "882ffc2d16a2d802" "xxhash64" "265901524"
+"lpr_000b21a_e.shx" "9653f5964ea61b89" "xxhash64" "204"
+"lpr_000b21a_e.xml" "32748c7919131cff" "xxhash64" "48085"
+"lpr_000b21a_e.zip" "b7000415961f912b" "xxhash64" "133730024"
