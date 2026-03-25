@@ -46,7 +46,7 @@ Init <- function(sim) {
   
   jur_levels <- levels(jur_raster)[[1]]
   
-  jur_names <- jur_levels$PRNAME[match(unique_jur, jur_levels$ID)]  
+  jur_names <- jur_levels$PRNAME[unique_jur + 1]
   cat("Jurisdictions in this run:\n")
   print(jur_names)
   cat("\n")
