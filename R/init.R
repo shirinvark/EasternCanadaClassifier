@@ -11,7 +11,7 @@ Init <- function(sim) {
 
   cohortData <- sim$cohortData
   pixelGroupMap <- sim$pixelGroupMap
-  
+  jur <- "AB"
   # Read file(s)
   vol_file <- sim$yieldVolFile
   vol_files <- c(vol_file)  
@@ -144,7 +144,7 @@ Init <- function(sim) {
   # READ mapSpeciesGroups  👈 اینجا اضافه کن
   # =========================================================
   
-  jur <- "AB"
+  #jur <- "AB"
   map_file <- file.path("data", jur, "mapSpeciesGroups.txt")
   map_lines <- readLines(map_file)
   
