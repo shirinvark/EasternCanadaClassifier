@@ -29,7 +29,7 @@ Init <- function(sim) {
   jur_raster <- terra::rasterize(
     jur_vect,
     pixelGroupMap,
-    field = "PRNAME"
+    field = "PRUID"
   )
   
   # store in sim
