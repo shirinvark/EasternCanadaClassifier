@@ -43,7 +43,7 @@ Init <- function(sim) {
   jur_factor <- as.factor(jur_raster)
   
   # extract values with labels
-  jur_vals <- terra::values(jur_factor)[,1]
+  jur_vals <- as.vector(terra::values(jur_factor))
   jur_vals <- jur_vals[!is.na(jur_vals)]
   
   # get unique province names directly
