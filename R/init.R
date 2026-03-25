@@ -194,10 +194,17 @@ Init <- function(sim) {
   pixelWide[total == 0, total := 1]
   print(names(pixelWide))
   # 9️⃣ Convert to proportions
-  pixelWide[, prop_deciduous := get("borealDeciduous_AB") / total]
-  pixelWide[, prop_sw        := get("whiteSpruce_AB") / total]
-  pixelWide[, prop_sb        := get("blackSpruce_AB") / total]
-  pixelWide[, prop_pine      := get("borealPine_AB") / total]
+  # make sure columns exist (safer)
+  if (!"borealDeciduous_AB" %in% names(pixelWide)) pixelWide[, borealDeciduous_AB := 0]
+  if (!"whiteSpruce_AB" %in% names(pixelWide)) pixelWide[, whiteSpruce_AB := 0]
+  if (!"blackSpruce_AB" %in% names(pixelWide)) pixelWide[, blackSpruce_AB := 0]
+  if (!"borealPine_AB" %in% names(pixelWide)) pixelWide[, borealPine_AB := 0]
+  
+  # then compute proportions
+  pixelWide[, prop_deciduous := borealDeciduous_AB / total]
+  pixelWide[, prop_sw        := whiteSpruce_AB / total]
+  pixelWide[, prop_sb        := blackSpruce_AB / total]
+  pixelWide[, prop_pine      := borealPine_AB / total]
   cat("pixelWide columns:\n")
   print(names(pixelWide))
   cat("\n")
