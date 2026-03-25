@@ -39,15 +39,19 @@ Init <- function(sim) {
   # EXTRACT jurisdictions present
   # =========================================================
   
-  jur_levels <- levels(jur_raster)[[1]]
+  # convert raster to factor with labels
+  jur_factor <- as.factor(jur_raster)
   
-  jur_vals <- terra::values(jur_raster)
+  # extract values with labels
+  jur_vals <- terra::values(jur_factor)
   jur_vals <- jur_vals[!is.na(jur_vals)]
   
-  unique_ids <- sort(unique(jur_vals))
-  unique_ids <- as.integer(unique_ids)
+  # get unique province names directly
+  jur_names <- unique(jur_vals)
   
-  jur_names <- jur_levels$PRNAME[unique_ids + 1]
+  cat("Jurisdictions in this run:\n")
+  print(jur_names)
+  cat("\n")
   
   cat("Jurisdictions in this run:\n")
   print(jur_names)
