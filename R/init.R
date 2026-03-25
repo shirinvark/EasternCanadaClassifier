@@ -47,15 +47,11 @@ Init <- function(sim) {
   jur_vals <- jur_vals[!is.na(jur_vals)]
   
   # get unique province names directly
-  jur_names <- unique(jur_vals)
-  
+  jur_names <- unique(na.omit(as.character(jur_raster[])))  
   cat("Jurisdictions in this run:\n")
   print(jur_names)
   cat("\n")
   
-  cat("Jurisdictions in this run:\n")
-  print(jur_names)
-  cat("\n")
   for (j_name in jur_names) {
     cat("Processing jurisdiction:", j_name, "\n")
   }
