@@ -41,7 +41,7 @@ Init <- function(sim) {
   
   jur_vals <- terra::values(jur_raster)
   jur_vals <- jur_vals[!is.na(jur_vals)]
-  
+  jur_levels <- levels(jur_raster)[[1]]
   # convert raster values to factor with labels
   jur_factor <- factor(
     jur_vals,
