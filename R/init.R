@@ -280,7 +280,7 @@ Init <- function(sim) {
   # =========================================================
   # PREP AGE INDEX (ONCE)
   # =========================================================
-  
+  browser()
   # extract raster values
   pg_vals  <- terra::values(pixelGroupMap)
   age_vals <- terra::values(sim$standAgeMap)
@@ -374,7 +374,7 @@ Init <- function(sim) {
   
   # Create lookup table
   lookup <- pixelWide[, .(pixelGroup, classID)]
-  browser()
+  #browser()
   
   # Extract raster values
   vals <- terra::values(pixelGroupMap)[,1]  
@@ -394,6 +394,7 @@ Init <- function(sim) {
   new_vals[is.na(new_vals)] <- 0  
   
   # Create output raster
+  names(pixelGroupMap) <- "pixelGroup"
   analysisUnitRaster <- pixelGroupMap
   terra::values(analysisUnitRaster) <- new_vals  
   
