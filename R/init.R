@@ -44,9 +44,10 @@ Init <- function(sim) {
   jur_vals <- terra::values(jur_raster)
   jur_vals <- jur_vals[!is.na(jur_vals)]
   
-  unique_ids <- unique(jur_vals)
+  unique_ids <- sort(unique(jur_vals))
+  unique_ids <- as.integer(unique_ids)
   
-  jur_names <- jur_levels$PRNAME[jur_levels$ID %in% unique_ids]
+  jur_names <- jur_levels$PRNAME[unique_ids + 1]
   
   cat("Jurisdictions in this run:\n")
   print(jur_names)
