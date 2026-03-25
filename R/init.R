@@ -128,7 +128,7 @@ Init <- function(sim) {
   # READ speciesGroups
   # =========================================================
   
-  species_file <- "data/speciesGroups.txt"
+  species_file <- file.path("data", jur, "speciesGroups.txt")
   sg_lines <- readLines(species_file)
   
   speciesGroups <- lapply(sg_lines, function(x) {
@@ -145,7 +145,7 @@ Init <- function(sim) {
   # =========================================================
   
   jur <- "AB"
-  map_file <- file.path("data", jur, "YTF", "mapSpeciesGroups.txt")
+  map_file <- file.path("data", jur, "mapSpeciesGroups.txt")
   map_lines <- readLines(map_file)
   
   mapSpeciesGroups <- lapply(map_lines, function(x) {
