@@ -282,8 +282,8 @@ Init <- function(sim) {
   # =========================================================
   browser()
   # extract raster values
-  pg_vals  <- terra::values(pixelGroupMap)
-  age_vals <- terra::values(sim$standAgeMap)
+  pg_vals  <- terra::values(pixelGroupMap)[,1]
+  age_vals <- terra::values(sim$standAgeMap)[,1]
   
   # بساز جدول pixelGroup → age
   ageDT <- data.table::data.table(
