@@ -11,7 +11,61 @@ Init <- function(sim) {
 
   cohortData <- sim$cohortData
   pixelGroupMap <- sim$pixelGroupMap
-  jur <- if (!is.null(sim$jurisdiction)) sim$jurisdiction else "AB"  # Read file(s)
+  # =========================================================
+  # BUILD jurisdiction raster
+  # =========================================================
+  
+  library(terra)
+  
+  jur_vect <- terra::vect(sim$canadaJurisdiction)
+  
+  # project to match raster
+  jur_vect <- terra::project(jur_vect, crs(pixelGroupMap))
+  
+  # crop to study area
+  jur_vect <- terra::crop(jur_vect, pixelGroupMap)
+  
+  # rasterize
+  jur_raster <- terra::rasterize(
+    jur_vect,
+    pixelGroupMap,
+    field = "PRNAME"
+  )
+  
+  # store in sim
+  sim$jurRaster <- jur_raster
+ 
+  # =========================================================
+  # EXTRACT jurisdictions present
+  # =========================================================
+  
+  jur_vals <- terra::values(jur_raster)
+  jur_vals <- jur_vals[!is.na(jur_vals)]
+  
+  unique_jur <- unique(jur_vals)
+  
+  jur_levels <- levels(jur_raster)[[1]]
+  
+  jur_names <- jur_levels$PRNAME[jur_levels$ID %in% unique_jur]
+  
+  cat("Jurisdictions in this run:\n")
+  print(jur_names)
+  cat("\n")
+  for (j_name in jur_names) {
+    cat("Processing jurisdiction:", j_name, "\n")
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+   jur <- if (!is.null(sim$jurisdiction)) sim$jurisdiction else "AB"  # Read file(s)
   vol_file <- sim$yieldVolFile
   vol_files <- c(vol_file)  
   # objects to fill
