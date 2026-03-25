@@ -37,7 +37,7 @@ Init <- function(sim) {
   # =========================================================
   # EXTRACT jurisdictions present
   # =========================================================
-  browser()
+  #browser()
   names(pixelGroupMap)
   jur_levels <- unique(as.data.frame(jur_vect)[, c("PRUID", "PRNAME")])  
   vals <- terra::values(jur_raster)
@@ -374,11 +374,10 @@ Init <- function(sim) {
   
   # Create lookup table
   lookup <- pixelWide[, .(pixelGroup, classID)]
-  #browser()
+  browser()
   
   # Extract raster values
-  vals <- terra::values(pixelGroupMap)
-  
+  vals <- terra::values(pixelGroupMap)[,1]  
   # Match pixelGroup to classID
   idx <- match(vals, lookup$pixelGroup)
   
