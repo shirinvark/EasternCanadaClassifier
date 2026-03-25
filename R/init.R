@@ -41,18 +41,24 @@ Init <- function(sim) {
   
   jur_levels <- levels(jur_raster)[[1]]
   
-  ids_present <- unique(as.integer(jur_raster[]))
+  # گرفتن مقدار raster به صورت numeric واقعی
+  ids_present <- unique(as.integer(terra::values(jur_raster)))
+  
+  # حذف NA
   ids_present <- ids_present[!is.na(ids_present)]
   
-  jur_names <- jur_levels$PRNAME[ids_present + 1]
+  cat("DEBUG IDs:\n")
+  print(ids_present)
+  
+  cat("DEBUG levels:\n")
+  print(jur_levels$ID)
+  
+  # mapping امن
+  jur_names <- jur_levels$PRNAME[match(ids_present, jur_levels$ID)]
   
   cat("Jurisdictions in this run:\n")
   print(jur_names)
   cat("\n")
-  
-  for (j_name in jur_names) {
-    cat("Processing jurisdiction:", j_name, "\n")
-  }
   
 #####this is temporary hardcoded Sorry
   
