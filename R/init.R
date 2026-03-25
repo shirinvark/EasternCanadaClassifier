@@ -23,8 +23,7 @@ Init <- function(sim) {
   jur_vect <- terra::project(jur_vect, pixelGroupMap)  
   # crop to study area
   jur_vect <- terra::crop(jur_vect, pixelGroupMap)
-  plot(jur_vect)
-  plot(pixelGroupMap, add = TRUE)
+  
   # rasterize
   jur_raster <- terra::rasterize(
     jur_vect,
