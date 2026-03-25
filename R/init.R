@@ -39,22 +39,15 @@ Init <- function(sim) {
   # EXTRACT jurisdictions present
   # =========================================================
   
-  jur_levels <- levels(jur_raster)[[1]]
+  jur_levels <- unique(jur_vect[, c("PRUID", "PRNAME")])
   
-  # گرفتن مقدار raster به صورت numeric واقعی
-  ids_present <- unique(as.integer(terra::values(jur_raster)))
+  vals <- terra::values(jur_raster)
+  vals <- as.vector(vals)
+  vals <- vals[!is.na(vals)]
   
-  # حذف NA
-  ids_present <- ids_present[!is.na(ids_present)]
+  ids_present <- unique(vals)
   
-  cat("DEBUG IDs:\n")
-  print(ids_present)
-  
-  cat("DEBUG levels:\n")
-  print(jur_levels$ID)
-  
-  # mapping امن
-  jur_names <- jur_levels$PRNAME[match(ids_present, jur_levels$ID)]
+  jur_names <- jur_levels$PRNAME[match(ids_present, jur_levels$PRUID)]
   
   cat("Jurisdictions in this run:\n")
   print(jur_names)
