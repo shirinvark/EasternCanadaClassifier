@@ -222,7 +222,11 @@ Init <- function(sim) {
   # =========================================================
   
   cohortDT <- data.table::copy(cohortData)
-  
+  setnames(
+    cohortDT,
+    "pixelGroup.NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1",
+    "pixelGroup"
+  )
   # 2️⃣ Create group column
   cohortDT[, group := NA_character_]
   for (g in names(speciesGroups)) {
