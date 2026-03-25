@@ -367,7 +367,10 @@ Init <- function(sim) {
   # =========================================================
   # APPLY HARVESTABLE MASK
   # =========================================================
+  browser()
   
+  hf <- terra::values(sim$harvestableFraction)
+  analysisUnitRaster[hf == 0] <- NA
   hf <- terra::values(sim$harvestableFraction)
   analysisUnitRaster[hf == 0] <- NA  
   # Define raster categories
