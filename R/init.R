@@ -42,11 +42,19 @@ Init <- function(sim) {
   jur_vals <- terra::values(jur_raster)
   jur_vals <- jur_vals[!is.na(jur_vals)]
   
-  unique_jur <- unique(jur_vals)
+  # convert raster values to factor with labels
+  jur_factor <- factor(
+    jur_vals,
+    levels = jur_levels$ID,
+    labels = jur_levels$PRNAME
+  )
   
-  jur_levels <- levels(jur_raster)[[1]]
+  # extract unique jurisdiction names
+  jur_names <- unique(as.character(jur_factor))
   
-  jur_names <- jur_levels$PRNAME[unique_jur + 1]
+  cat("Jurisdictions in this run:\n")
+  print(jur_names)
+  cat("\n")
   cat("Jurisdictions in this run:\n")
   print(jur_names)
   cat("\n")
