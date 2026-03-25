@@ -341,6 +341,7 @@ Init <- function(sim) {
   
   # Create lookup table
   lookup <- pixelWide[, .(pixelGroup, classID)]
+  browser()
   
   # Extract raster values
   vals <- terra::values(pixelGroupMap)
