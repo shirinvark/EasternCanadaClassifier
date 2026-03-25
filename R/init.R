@@ -339,7 +339,7 @@ Init <- function(sim) {
   
   # Create lookup table
   lookup <- pixelWide[, .(pixelGroup, classID)]
-  browser()
+  #browser()
   
   # Extract raster values
   vals <- terra::values(pixelGroupMap)
@@ -366,7 +366,7 @@ Init <- function(sim) {
   # =========================================================
   # APPLY HARVESTABLE MASK
   # =========================================================
-  browser()
+  #browser()
   
   hf <- terra::values(sim$harvestableFraction)
   analysisUnitRaster[hf == 0] <- NA
