@@ -46,8 +46,7 @@ Init <- function(sim) {
   
   jur_levels <- levels(jur_raster)[[1]]
   
-  jur_names <- jur_levels$PRNAME[jur_levels$ID %in% unique_jur]
-  
+  jur_names <- jur_levels$PRNAME[match(unique_jur, jur_levels$ID)]  
   cat("Jurisdictions in this run:\n")
   print(jur_names)
   cat("\n")
@@ -55,17 +54,10 @@ Init <- function(sim) {
     cat("Processing jurisdiction:", j_name, "\n")
   }
   
+#####this is temporary hardcoded Sorry
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-   jur <- if (!is.null(sim$jurisdiction)) sim$jurisdiction else "AB"  # Read file(s)
+  jur <- "AB"
   vol_file <- sim$yieldVolFile
   vol_files <- c(vol_file)  
   # objects to fill
