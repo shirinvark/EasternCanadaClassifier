@@ -122,20 +122,39 @@ Init <- function(sim) {
     yieldDeciduous[i, ] <- curves[[i]]$deciduous
   }
   
-  yieldTables <- yieldConifer + yieldDeciduous
   yieldAges <- seq(0, by = 10, length.out = nAges)
   
-  sim$yieldConifer   <- yieldConifer
-  sim$yieldDeciduous <- yieldDeciduous
-  sim$yieldTables    <- yieldTables
-  sim$yieldAges      <- yieldAges
+  annualAges <- 1:max(yieldAges)
+  
+  yieldConifer_annual <- t(apply(yieldConifer, 1, function(curve) {
+    approx(
+      x = yieldAges,
+      y = curve,
+      xout = annualAges,
+      rule = 2
+    )$y
+  }))
+  
+  yieldDeciduous_annual <- t(apply(yieldDeciduous, 1, function(curve) {
+    approx(
+      x = yieldAges,
+      y = curve,
+      xout = annualAges,
+      rule = 2
+    )$y
+  }))
+  
+  sim$yieldConifer   <- yieldConifer_annual
+  sim$yieldDeciduous <- yieldDeciduous_annual
+  sim$yieldTables    <- yieldConifer_annual + yieldDeciduous_annual
+  sim$yieldAges      <- annualAges
   
   
   # Convert to proportional form
   for (i in seq_along(curves)) {
     
-    con <- curves[[i]]$conifer
-    dec <- curves[[i]]$deciduous
+    con <- sim$yieldConifer[i, ]
+    dec <- sim$yieldDeciduous[i, ]
     
     total <- con + dec
     total[total == 0] <- 1
@@ -221,10 +240,12 @@ Init <- function(sim) {
   ]
   
   # 6️⃣ Convert to wide format (one column per group)
+  # 6️⃣ Convert to wide format (one row per pixelGroup)
   pixelWide <- data.table::dcast(
     pixelGroups,
     pixelGroup ~ group,
     value.var = "biomass",
+    fun.aggregate = sum,
     fill = 0
   )
   
@@ -258,18 +279,30 @@ Init <- function(sim) {
   # PREP AGE INDEX (ONCE)
   # =========================================================
   
-  # Compute biomass-weighted mean age per pixel
-  ages <- cohortDT[, .(age = weighted.mean(age, B)), by = pixelGroup]  
+  # extract raster values
+  pg_vals  <- terra::values(pixelGroupMap)
+  age_vals <- terra::values(sim$standAgeMap)
   
-  # Merge age into pixel table
-  pixelWide <- merge(pixelWide, ages, by = "pixelGroup", all.x = TRUE)
+  # بساز جدول pixelGroup → age
+  ageDT <- data.table::data.table(
+    pixelGroup = pg_vals,
+    age = age_vals
+  )
   
-  # Replace missing ages with 0
-  pixelWide[is.na(age), age := 0]
+  # حذف NA
+  ageDT <- ageDT[!is.na(pixelGroup) & !is.na(age)]
   
-  # Convert age to index (10-year classes)
-  age_index <- floor(pixelWide$age / 10) + 1
-  age_index <- pmax(1, pmin(age_index, nAges))  
+  # اگر چند پیکسل برای یک pixelGroup بود → میانگین بگیر
+  ageDT <- cohortDT[
+    , .(age = weighted.mean(age, B)),
+    by = pixelGroup
+  ]  
+  # merge با pixelWide
+  pixelWide <- merge(pixelWide, ageDT, by = "pixelGroup", all.x = TRUE)
+  
+  # Convert age to index (annual)
+  age_index <- round(pixelWide$age)
+  age_index <- pmax(1, pmin(age_index, length(sim$yieldAges)))  
   # =========================================================
   # MATCH PIXELS TO CURVES
   # =========================================================
