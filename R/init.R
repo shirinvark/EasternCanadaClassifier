@@ -38,8 +38,7 @@ Init <- function(sim) {
   # EXTRACT jurisdictions present
   # =========================================================
   
-  jur_levels <- unique(jur_vect[, c("PRUID", "PRNAME")])
-  
+  jur_levels <- unique(as.data.frame(jur_vect)[, c("PRUID", "PRNAME")])  
   vals <- terra::values(jur_raster)
   vals <- as.vector(vals)
   vals <- vals[!is.na(vals)]
