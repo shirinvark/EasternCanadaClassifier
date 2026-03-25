@@ -11,8 +11,7 @@ Init <- function(sim) {
 
   cohortData <- sim$cohortData
   pixelGroupMap <- sim$pixelGroupMap
-  jur <- "AB"
-  # Read file(s)
+  jur <- if (!is.null(sim$jurisdiction)) sim$jurisdiction else "AB"  # Read file(s)
   vol_file <- sim$yieldVolFile
   vol_files <- c(vol_file)  
   # objects to fill
