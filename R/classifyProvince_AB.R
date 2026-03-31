@@ -14,9 +14,9 @@ classifyProvince_AB <- function(sim) {
   # =========================================================
   # BUILD jurisdiction raster
   # =========================================================
-  
-  jur_vect <- terra::vect(sim$canadaJurisdiction)
-  jur_vect <- terra::project(jur_vect, pixelGroupMap)
+  terra::crs(pixelGroupMap) <- "EPSG:4326"
+  #jur_vect <- terra::vect(sim$canadaJurisdiction)
+  #jur_vect <- terra::project(jur_vect, pixelGroupMap)
   jur_vect <- terra::crop(jur_vect, pixelGroupMap)
   
   jur_raster <- terra::rasterize(
