@@ -190,7 +190,7 @@ classifyProvince_NL <- function(sim){
   }
   
   yield_by_region <- curves_by_region
-  
+  browser()
   print("Yield loaded:")
   print(lapply(yield_by_region, length))
   # ---------------------------
