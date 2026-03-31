@@ -143,20 +143,61 @@ find_best_curve <- function(p, region_curves, age, mapSpeciesToGroup_NL, cols) {
   return(best_curve)
 }
 
+
+get_region_from_name <- function(name) {
+  if (grepl("_NPen$", name)) return("NPen")
+  if (grepl("_Main$", name)) return("Main")
+  if (grepl("_Long$", name)) return("Long")
+  return(NA)
+}
 ######################################################
 # classifier
 ######################################################
-classifyProvince_NL <- function(sim, jur_id) {
+classifyProvince_NL <- function(sim){    
   
   library(data.table)
   library(terra)
+  # =========================================================
+  # BUILD yield_by_region FROM YLD FILES
+  # =========================================================
   
+  yld_files <- sim$yieldFiles
+  
+  curves_by_region <- list(
+    NPen = list(),
+    Main = list(),
+    Long = list()
+  )
+  
+  for (f in yld_files) {
+    
+    curve_name <- tools::file_path_sans_ext(basename(f))
+    
+    region <- get_region_from_name(curve_name)
+    
+    if (is.na(region)) {
+      warning("Region not detected for: ", curve_name)
+      next
+    }
+    
+    lines <- readLines(f)
+    lines <- trimws(lines)
+    lines <- lines[lines != ""]
+    
+    curve_data <- parse_curve(lines)
+    
+    curves_by_region[[region]][[curve_name]] <- curve_data
+  }
+  
+  yield_by_region <- curves_by_region
+  
+  print("Yield loaded:")
+  print(lapply(yield_by_region, length))
   # ---------------------------
   # inputs
   # ---------------------------
   cohortDT <- as.data.table(sim$cohortData)
-  yield_by_region <- sim$yield_by_region
-  
+
   # ---------------------------
   # species groups
   # ---------------------------
@@ -225,6 +266,9 @@ classifyProvince_NL <- function(sim, jur_id) {
   # ---------------------------
   curve_data <- yield_by_region$NPen[[1]]
   
+  if (is.null(curve_data)) {
+    stop("No curves found in NPen")
+  }  
   print("curve species:")
   print(names(curve_data))
   
@@ -243,8 +287,9 @@ classifyProvince_NL <- function(sim, jur_id) {
   # ---------------------------
   region_curves <- yield_by_region$NPen
   
-  p <- as.numeric(pixelAgeWide[1, ..cols])
-  age_val <- pixelAgeWide$age[1]
+  if (nrow(pixelAgeWide) == 0) {
+    stop("pixelAgeWide is empty")
+  }  age_val <- pixelAgeWide$age[1]
   
   best <- find_best_curve(
     p,
@@ -292,10 +337,19 @@ classifyProvince_NL <- function(sim, jur_id) {
   match_idx <- match(vals, lookup$pixelGroup)
   
   analysis_vals <- lookup$AU_id[match_idx]
-  
+  analysis_vals[is.na(analysis_vals)] <- NA  
   terra::values(analysisUnitMap) <- analysis_vals
   
   print("analysisUnitMap built")
   
-  return(pixelAgeWide)
-}
+  sim$analysisUnitDT <- pixelAgeWide
+  sim$analysisUnitMap <- analysisUnitMap
+  
+  # area summary
+  areaByAU <- as.data.table(terra::freq(analysisUnitMap))
+  setnames(areaByAU, c("value", "count"), c("AU_id", "nPixels"))
+  areaByAU[, area_ha := nPixels * (250 * 250) / 10000]
+  
+  sim$areaByAU <- areaByAU
+  
+  return(sim)}

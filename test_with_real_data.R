@@ -71,13 +71,17 @@ sim <- simInit(
     standAgeMap = standAgeMap,
     harvestableFraction = harvestableFraction
   ),
+  params = list(
+    EasternCanadaClassifier = list(
+      jurisdiction = "NL"
+    )
+  ),
   options = list(
     spades.checkpoint = FALSE,
     spades.save       = FALSE,
     spades.progress   = FALSE
   )
 )
-
 # =========================================================
 # RUN MODEL
 # =========================================================

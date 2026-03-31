@@ -166,18 +166,18 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
 
 
 
-
 .inputObjects <- function(sim) {
   
   requireNamespace("terra")
   requireNamespace("data.table")
   requireNamespace("reproducible")
-  jur <- toupper(P(sim)$jurisdiction)
   
+  jur <- toupper(P(sim)$jurisdiction)
   message("Selected jurisdiction: ", jur)
-  ## ------------------------------------------------
-  ## pixelGroupMap (fake if missing)
-  ## ------------------------------------------------
+  
+  # ========================================================
+  # pixelGroupMap (fake if missing)
+  # ========================================================
   
   if (!("pixelGroupMap" %in% names(sim))) {
     
@@ -194,10 +194,9 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     sim$pixelGroupMap <- r
   }
   
-  
-  ## ------------------------------------------------
-  ## cohortData (fake if missing)
-  ## ------------------------------------------------
+  # ========================================================
+  # cohortData (fake if missing)
+  # ========================================================
   
   if (!("cohortData" %in% names(sim))) {
     
@@ -215,10 +214,9 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     )
   }
   
-  
-  ## ------------------------------------------------
-  ## harvestableFraction (fake if missing)
-  ## ------------------------------------------------
+  # ========================================================
+  # harvestableFraction (fake if missing)
+  # ========================================================
   
   if (!("harvestableFraction" %in% names(sim))) {
     
@@ -236,10 +234,9 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     sim$harvestableFraction <- r
   }
   
-  
-  ## ========================================================
-  ## CANADA JURISDICTION SHAPEFILE (Statistics Canada)
-  ## ========================================================
+  # ========================================================
+  # CANADA JURISDICTION SHAPEFILE
+  # ========================================================
   
   if (!("canadaJurisdiction" %in% names(sim))) {
     
@@ -252,34 +249,60 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       destinationPath = "data",
       targetFile = "lpr_000b21a_e.shp"
     )
-  
-      sim$canadaJurisdiction <- shp_path
+    
+    sim$canadaJurisdiction <- shp_path
   }
   
-  ## ========================================================
-  ## YIELD TABLE (.vol)
-  ## ========================================================
-  vol_dir <- file.path("data", jur, "YTF")
-  dir.create(vol_dir, recursive = TRUE, showWarnings = FALSE)
-  vol_dest <- file.path(vol_dir, "VolTabs.vol")
+  # ========================================================
+  # YIELD FILES (CORE FIX 🔥)
+  # ========================================================
   
-  if (is.null(sim$yieldVolFile) || !file.exists(vol_dest)) {
+  if (jur == "NL") {
     
-    message("Downloading vol file...")
+    message("Loading NL yield (.yld) files")
     
-    vol_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/AB/YTF/AlPac%20AME%20Mixedwood%20VolTabs.vol"
+    yld_dir <- file.path("data", "NL", "YTF")
     
-    dir.create("data", showWarnings = FALSE)
-    download.file(vol_url, vol_dest, mode = "wb")
+    if (!dir.exists(yld_dir)) {
+      stop("Directory not found: ", yld_dir)
+    }
     
-    sim$yieldVolFile <- vol_dest
+    yld_files <- list.files(
+      yld_dir,
+      pattern = "\\.yld$",
+      full.names = TRUE
+    )
+    
+    if (length(yld_files) == 0) {
+      stop("No .yld files found in: ", yld_dir)
+    }
+    
+    sim$yieldFiles <- yld_files
+    
+    message("Found ", length(yld_files), " NL yield files")
     
   } else {
     
-    message("Using existing vol file")
+    message("Downloading .vol yield file for ", jur)
+    
+    vol_dir <- file.path("data", jur, "YTF")
+    dir.create(vol_dir, recursive = TRUE, showWarnings = FALSE)
+    
+    vol_dest <- file.path(vol_dir, "VolTabs.vol")
+    
+    vol_url <- paste0(
+      "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/",
+      jur,
+      "/YTF/VolTabs.vol"
+    )
+    
+    if (!file.exists(vol_dest)) {
+      download.file(vol_url, vol_dest, mode = "wb")
+    }
+    
+    sim$yieldVolFile <- vol_dest
   }
   
-  sim$yieldVolFile <- vol_dest
-     
   return(sim)
 }
+  
