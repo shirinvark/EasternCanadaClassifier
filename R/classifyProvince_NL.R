@@ -182,21 +182,14 @@ classifyProvince_NL <- function(sim){
   yld_files <- sim$yieldFiles
   
   curves_by_region <- list(
-    NPen = list(),
-    Main = list(),
-    Long = list()
+    ALL = list()
   )
   
   for (f in yld_files) {
     
     curve_name <- tools::file_path_sans_ext(basename(f))
     
-    region <- get_region_from_name(curve_name)
-    
-    # 🔥 fallback
-    if (is.na(region)) {
-      region <- "NPen"
-    }
+    region <- "ALL"
     
     lines <- readLines(f)
     lines <- trimws(lines)
@@ -214,7 +207,7 @@ classifyProvince_NL <- function(sim){
   # inputs
   # ---------------------------
   cohortDT <- as.data.table(sim$cohortData)
-
+  
   # ---------------------------
   # species groups
   # ---------------------------
@@ -257,36 +250,53 @@ classifyProvince_NL <- function(sim){
   pg_vals  <- terra::values(sim$pixelGroupMap)[,1]
   reg_vals <- terra::values(sim$ycfRaster)[,1]
   
-  lut <- levels(sim$ycfRaster)[[1]]
-  reg_names <- lut$YCF[match(reg_vals, lut$ID)]
+  # 🔥 تبدیل NaN → NA
+  pg_vals[is.nan(pg_vals)]   <- NA
+  reg_vals[is.nan(reg_vals)] <- NA
+  
+  # 🔥 تبدیل ID → region
+  reg_names <- as.character(reg_vals)
+  
+  reg_names[reg_names == "9"]  <- "NPen"
+  reg_names[reg_names == "8"]  <- "Main"
+  reg_names[reg_names == "7"]  <- "Long"
+  reg_names[reg_names == "11"] <- "West"
+  reg_names[reg_names == "10"] <- "NShore"
+  reg_names[reg_names == "6"]  <- "Central"
+  reg_names[reg_names == "5"]  <- "CentVic"
+  reg_names[reg_names == "4"]  <- "CentRed"
+  reg_names[reg_names == "3"]  <- "BarEast"
+  reg_names[reg_names == "2"]  <- "BarCent"
+  reg_names[reg_names == "1"]  <- "Avalon"
+  reg_names[reg_names == "0"]  <- "Aphid"
+  
+  # NA درست کن
+  reg_names[is.na(reg_vals)] <- NA
   
   reg_names <- sub("NL_", "", reg_names)
   
-  # 🔥 فقط پیکسل‌های معتبر
-  valid <- !is.na(pg_vals) & !is.na(reg_names)
-  
   regionDT <- data.table(
-    pixelGroup = pg_vals[valid],
-    region = reg_names[valid]
+    pixelGroup = pg_vals,
+    region = reg_names
   )
   
-  # 🔥 مهم: majority یا first
-  regionDT <- regionDT[, .(region = region[1]), by = pixelGroup]
+  regionDT <- regionDT[!is.na(pixelGroup)]
   
-  regionDT <- regionDT[!is.na(pixelGroup) & !is.na(region)]
+  regionDT <- regionDT[, .(
+    region = {
+      tbl <- table(region)
+      if (length(tbl) == 0) "NPen"
+      else names(tbl)[which.max(tbl)]
+    }
+  ), by = pixelGroup]
   
-  # اگر چند pixel برای یک pixelGroup بود
-  regionDT <- regionDT[, .(region = region[1]), by = pixelGroup]
-  
-  # merge
   pixelAgeWide <- merge(pixelAgeWide, regionDT, by = "pixelGroup", all.x = TRUE)
-  browser()
-  print("region added:")
-  print(unique(pixelAgeWide$region))
   # ---------------------------
   # proportion
   # ---------------------------
-  cols <- setdiff(names(pixelAgeWide), c("pixelGroup", "age", "totalB", "region"))
+  cols <- names(pixelAgeWide)[sapply(pixelAgeWide, is.numeric)]
+  cols <- setdiff(cols, c("pixelGroup", "age", "totalB"))
+  #browser()
   pixelAgeWide[, totalB := rowSums(.SD), .SDcols = cols]
   pixelAgeWide <- pixelAgeWide[totalB > 0]
   
@@ -313,7 +323,7 @@ classifyProvince_NL <- function(sim){
   # ---------------------------
   # test curve vector
   # ---------------------------
-  curve_data <- yield_by_region$NPen[[1]]
+  curve_data <- yield_by_region$ALL[[1]]
   
   if (is.null(curve_data)) {
     stop("No curves found in NPen")
@@ -334,8 +344,7 @@ classifyProvince_NL <- function(sim){
   # ---------------------------
   # test best curve
   # ---------------------------
-  region_curves <- yield_by_region$NPen
-  
+  region_curves <- yield_by_region$ALL  
   if (nrow(pixelAgeWide) == 0) {
     stop("pixelAgeWide is empty")
   } 
@@ -351,7 +360,12 @@ classifyProvince_NL <- function(sim){
   
   print("best curve test:")
   print(best)
-  
+  region_curve_map <- list(
+    NPen = c("BarNS_sub_all", "Central_Sub_all"),
+    Main = c("NpMainLong_sub_all"),
+    Long = c("NpMainLong_sub_all"),
+    West = c("West_sub_all")
+  )
   # ---------------------------
   # assign best curve to all pixels
   # ---------------------------
@@ -360,11 +374,17 @@ classifyProvince_NL <- function(sim){
     p <- as.numeric(pixelAgeWide[i, cols, with = FALSE])
     age_val <- pixelAgeWide$age[i]
     
-    region_i <- pixelAgeWide$region[i]   # 🔥 این خط مهم
+    region_i <- pixelAgeWide$region[i]
     
-    region_curves <- yield_by_region[[region_i]]   # 🔥 این خط مهم
+    curve_names <- region_curve_map[[region_i]]
     
-    if (is.null(region_curves)) {
+    # fallback
+    if (is.null(curve_names)) {
+      curve_names <- names(yield_by_region$ALL)
+    }
+    
+    region_curves <- yield_by_region$ALL[curve_names]    
+    if (is.null(region_curves) || length(region_curves) == 0) {
       return(NA)
     }
     
