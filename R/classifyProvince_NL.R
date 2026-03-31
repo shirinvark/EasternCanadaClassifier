@@ -158,6 +158,24 @@ classifyProvince_NL <- function(sim){
   library(data.table)
   library(terra)
   # =========================================================
+  # BUILD YCF raster (region)
+  # =========================================================
+  
+  ycf_vect <- terra::vect("data/NL/NL_YCF.shp")
+  
+  ycf_vect <- terra::project(ycf_vect, sim$pixelGroupMap)
+  ycf_vect <- terra::crop(ycf_vect, sim$pixelGroupMap)
+  
+  ycf_vect$YCF <- as.factor(ycf_vect$YCF)
+  
+  ycf_raster <- terra::rasterize(
+    ycf_vect,
+    sim$pixelGroupMap,
+    field = "YCF"
+  )
+  
+  sim$ycfRaster <- ycf_raster
+  # =========================================================
   # BUILD yield_by_region FROM YLD FILES
   # =========================================================
   
@@ -190,7 +208,6 @@ classifyProvince_NL <- function(sim){
   }
   
   yield_by_region <- curves_by_region
-  browser()
   print("Yield loaded:")
   print(lapply(yield_by_region, length))
   # ---------------------------
@@ -233,7 +250,34 @@ classifyProvince_NL <- function(sim){
   pixelAgeWide <- pixelAgeWide[!is.na(pixelGroup) & !is.na(age)]
   
   print("aggregation done")
+  # =========================================================
+  # ADD region to pixelGroup
+  # =========================================================
   
+  pg_vals <- terra::values(sim$pixelGroupMap)[,1]
+  reg_vals <- terra::values(sim$ycfRaster)[,1]
+  
+  lut <- levels(sim$ycfRaster)[[1]]
+  reg_names <- lut$YCF[match(reg_vals, lut$ID)]
+  
+  # remove NL_
+  reg_names <- sub("NL_", "", reg_names)
+  
+  regionDT <- data.table(
+    pixelGroup = pg_vals,
+    region = reg_names
+  )
+  
+  regionDT <- regionDT[!is.na(pixelGroup) & !is.na(region)]
+  
+  # اگر چند pixel برای یک pixelGroup بود
+  regionDT <- regionDT[, .(region = region[1]), by = pixelGroup]
+  
+  # merge
+  pixelAgeWide <- merge(pixelAgeWide, regionDT, by = "pixelGroup", all.x = TRUE)
+  
+  print("region added:")
+  print(unique(pixelAgeWide$region))
   # ---------------------------
   # proportion
   # ---------------------------
@@ -311,17 +355,23 @@ classifyProvince_NL <- function(sim){
     p <- as.numeric(pixelAgeWide[i, cols, with = FALSE])
     age_val <- pixelAgeWide$age[i]
     
+    region_i <- pixelAgeWide$region[i]   # 🔥 این خط مهم
+    
+    region_curves <- yield_by_region[[region_i]]   # 🔥 این خط مهم
+    
+    if (is.null(region_curves)) {
+      return(NA)
+    }
+    
     find_best_curve(
       p,
-      yield_by_region$NPen,
+      region_curves,
       age_val,
       mapSpeciesToGroup_NL,
       cols
     )
     
   }, 1:nrow(pixelAgeWide))]
-  
-  print("all pixels classified")
   
   # ---------------------------
   # build analysisUnitMap
