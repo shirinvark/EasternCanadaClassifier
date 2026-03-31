@@ -142,7 +142,7 @@ classifyProvince_AB <- function(sim) {
   
   # =========================================================
   # READ species groups
-  # =========================================================
+  # ========================================================
   
   species_file <- file.path("data", jur, "speciesGroups.txt")
   sg_lines <- readLines(species_file)

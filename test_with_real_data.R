@@ -1,7 +1,7 @@
 rm(list = ls())
 gc()
 
-# =========================================================
+# ========================================================
 # LOAD LIBRARIES
 # =========================================================
 
@@ -40,15 +40,15 @@ SpaDES.project::getModule(
 # =========================================================
 
 pixelGroupMap <- terra::rast(
-  "E:/EasternCanadaClassifier/maps/pixel_groups.tif"
+  "E:/EasternCanadaClassifier/NLmap/pixelGroupMap.tif"
 )
 
 standAgeMap <- terra::rast(
-  "E:/EasternCanadaClassifier/maps/stand_age_map.tif"
+  "E:/EasternCanadaClassifier/NLmap/standAgeMap.tif"
 )
 
-cohortData <- readRDS(
-  "E:/EasternCanadaClassifier/maps/cohortData.rds"
+cohortData <- data.table::fread(
+  "E:/EasternCanadaClassifier/NLmap/cohortData.csv"
 )
 
 # =========================================================
