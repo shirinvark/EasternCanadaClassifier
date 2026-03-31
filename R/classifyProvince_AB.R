@@ -281,10 +281,12 @@ classifyProvince_AB <- function(sim) {
   lookup <- pixelWide[, .(pixelGroup, classID)]
   
   vals <- terra::values(pixelGroupMap)[, 1]
+  
+  valid_vals <- !is.na(vals) & !is.nan(vals)
   idx <- match(vals, lookup$pixelGroup)
   
-  if (any(is.na(idx))) {
-    warning("Some pixelGroups not matched to lookup")
+  if (any(is.na(idx[valid_vals]))) {
+    warning(sum(is.na(idx[valid_vals])), " non-NA pixelGroups not matched to lookup")
   }
   
   new_vals <- lookup$classID[idx]
