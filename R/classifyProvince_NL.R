@@ -175,9 +175,9 @@ classifyProvince_NL <- function(sim){
     
     region <- get_region_from_name(curve_name)
     
+    # 🔥 fallback
     if (is.na(region)) {
-      warning("Region not detected for: ", curve_name)
-      next
+      region <- "NPen"
     }
     
     lines <- readLines(f)
@@ -291,7 +291,7 @@ classifyProvince_NL <- function(sim){
     stop("pixelAgeWide is empty")
   } 
   age_val <- pixelAgeWide$age[1]
-  
+  p <- as.numeric(pixelAgeWide[1, ..cols])
   best <- find_best_curve(
     p,
     region_curves,
