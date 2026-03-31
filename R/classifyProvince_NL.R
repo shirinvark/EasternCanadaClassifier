@@ -10,7 +10,7 @@ parse_curve <- function(curve_lines) {
   
   for (line in lines) {
     
-    if (grepl("^\\s+[A-Z]{2}v", line)) {
+    if (grepl("^[A-Z]{2}v", trimws(line))) {
       parts <- strsplit(trimws(line), "\\s+")[[1]]
       current_sp <- parts[1]
       
