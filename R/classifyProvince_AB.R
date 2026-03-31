@@ -14,34 +14,40 @@ classifyProvince_AB <- function(sim) {
   # =========================================================
   # BUILD jurisdiction raster
   # =========================================================
-  terra::crs(pixelGroupMap) <- "EPSG:4326"
+  #terra::crs(pixelGroupMap) <- "EPSG:4326"
   #jur_vect <- terra::vect(sim$canadaJurisdiction)
   #jur_vect <- terra::project(jur_vect, pixelGroupMap)
-  jur_vect <- terra::crop(jur_vect, pixelGroupMap)
+ # jur_vect <- terra::crop(jur_vect, pixelGroupMap)
   
-  jur_raster <- terra::rasterize(
-    jur_vect,
-    pixelGroupMap,
-    field = "PRUID"
-  )
+  #jur_raster <- terra::rasterize(
+   # jur_vect,
+    #pixelGroupMap,
+    #field = "PRUID"
+  #)
   
-  sim$jurRaster <- jur_raster
+  #sim$jurRaster <- jur_raster
+  # =========================================================
+  # jurisdiction block REMOVED (not needed for AB)
+  # =========================================================
+  
+  
+  
   
   # =========================================================
   # EXTRACT jurisdictions present
   # =========================================================
   
-  jur_levels <- unique(as.data.frame(jur_vect)[, c("PRUID", "PRNAME")])
-  vals <- terra::values(jur_raster)
-  vals <- as.vector(vals)
-  vals <- vals[!is.na(vals)]
+  #jur_levels <- unique(as.data.frame(jur_vect)[, c("PRUID", "PRNAME")])
+  #vals <- terra::values(jur_raster)
+  #vals <- as.vector(vals)
+  #vals <- vals[!is.na(vals)]
   
-  ids_present <- unique(vals)
-  jur_names <- jur_levels$PRNAME[match(ids_present, jur_levels$PRUID)]
+ # ids_present <- unique(vals)
+  #jur_names <- jur_levels$PRNAME[match(ids_present, jur_levels$PRUID)]
   
-  cat("Jurisdictions in this run:\n")
-  print(jur_names)
-  cat("\n")
+  #cat("Jurisdictions in this run:\n")
+ # print(jur_names)
+  #cat("\n")
   
   # =========================================================
   # READ yield file(s)
