@@ -164,7 +164,7 @@ classifyProvince_NL <- function(sim){
   ycf_vect <- terra::vect("data/NL/NL_YCF.shp")
   
   # 🔥 این ۳ خط رو اضافه کن
-  if (is.na(terra::crs(sim$pixelGroupMap))) {
+  if (terra::crs(sim$pixelGroupMap) == "") {
     terra::crs(sim$pixelGroupMap) <- terra::crs(ycf_vect)
   }
   
