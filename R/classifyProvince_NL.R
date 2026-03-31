@@ -289,7 +289,8 @@ classifyProvince_NL <- function(sim){
   
   if (nrow(pixelAgeWide) == 0) {
     stop("pixelAgeWide is empty")
-  }  age_val <- pixelAgeWide$age[1]
+  } 
+  age_val <- pixelAgeWide$age[1]
   
   best <- find_best_curve(
     p,
