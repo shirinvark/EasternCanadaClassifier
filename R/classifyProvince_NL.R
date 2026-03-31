@@ -4,24 +4,24 @@
 
 parse_curve <- function(curve_lines) {
   
-  lines <- curve_lines[-1]
   res <- list()
   current_sp <- NULL
   
-  for (line in lines) {
+  for (line in curve_lines) {
     
-    if (grepl("^[A-Z]{2}v", trimws(line))) {
-      parts <- strsplit(trimws(line), "\\s+")[[1]]
+    line <- trimws(line)
+    if (line == "") next
+    
+    parts <- strsplit(line, "\\s+")[[1]]
+    
+    # اگر species line بود (مثل BSv)
+    if (grepl("^[A-Z]{2}v$", parts[1])) {
       current_sp <- parts[1]
-      
-      nums <- as.numeric(parts[-1])
-      nums <- nums[!is.na(nums)]
-      
-      res[[current_sp]] <- nums
+      res[[current_sp]] <- numeric()
       
     } else if (!is.null(current_sp)) {
-      parts <- strsplit(trimws(line), "\\s+")[[1]]
-      nums <- as.numeric(parts)
+      
+      nums <- suppressWarnings(as.numeric(parts))
       nums <- nums[!is.na(nums)]
       
       res[[current_sp]] <- c(res[[current_sp]], nums)
