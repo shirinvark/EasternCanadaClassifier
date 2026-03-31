@@ -1,0 +1,7 @@
+BSv: blackSpruce_NL
+WSv: whiteSpruce_NL
+BFv: whiteSpruce_NL
+
+TLv: borealDeciduous_NL
+TAv: borealDeciduous_NL
+YBv: borealDeciduous_NL

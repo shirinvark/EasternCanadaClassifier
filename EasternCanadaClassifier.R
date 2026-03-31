@@ -34,7 +34,14 @@ defineModule(sim, list(
     defineParameter(".seed", "list", list(), NA, NA,
                     "Named list of seeds to use for each event (names)."),
     defineParameter(".useCache", "logical", FALSE, NA, NA,
-                    "Should caching of events or module be used?")
+                    "Should caching of events or module be used?"),
+    defineParameter(
+      "jurisdiction",
+      "character",
+      "AB",  # default
+      NA, NA,
+      "Jurisdiction code (e.g., AB, NL, ON, QC)"
+    ),
   ),
   inputObjects = bindrows(
     expectsInput(
@@ -129,6 +136,23 @@ defineModule(sim, list(
   ))
    )
 
+Init <- function(sim) {
+  
+  jur <- toupper(P(sim)$jurisdiction)
+  
+  fun_name <- paste0("classifyProvince_", jur)
+  
+  if (!exists(fun_name, mode = "function")) {
+    stop("No classifier function found for jurisdiction: ", jur)
+  }
+  
+  sim <- get(fun_name, mode = "function")(sim)
+  
+  return(sim)
+}
+
+
+
 doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   switch(
     eventType,
@@ -148,7 +172,9 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   requireNamespace("terra")
   requireNamespace("data.table")
   requireNamespace("reproducible")
+  jur <- toupper(P(sim)$jurisdiction)
   
+  message("Selected jurisdiction: ", jur)
   ## ------------------------------------------------
   ## pixelGroupMap (fake if missing)
   ## ------------------------------------------------
@@ -233,8 +259,8 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   ## ========================================================
   ## YIELD TABLE (.vol)
   ## ========================================================
-  
-  vol_dest <- file.path("data", "VolTabs.vol")
+  vol_dir <- file.path("data", jur, "YTF")
+  dir.create(vol_dir, recursive = TRUE, showWarnings = FALSE)
   
   if (is.null(sim$yieldVolFile) || !file.exists(vol_dest)) {
     

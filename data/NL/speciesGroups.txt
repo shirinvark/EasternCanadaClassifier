@@ -1,0 +1,5 @@
+borealDeciduous_NL: Popu_tre, Betu_pap, Acer_sah, Popu_bal
+whiteSpruce_NL: Abie_bal, Pice_gla, Pice_rub
+blackSpruce_NL: Pice_mar, Lari_lar
+borealPine_NL: Pinu_ban, Pinu_res, Pinu_str
+Temp_Broad: Acer_rub, Betu_all
