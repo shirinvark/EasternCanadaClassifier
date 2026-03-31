@@ -280,7 +280,7 @@ classifyProvince_NL <- function(sim){
   
   # merge
   pixelAgeWide <- merge(pixelAgeWide, regionDT, by = "pixelGroup", all.x = TRUE)
-  
+  browser()
   print("region added:")
   print(unique(pixelAgeWide$region))
   # ---------------------------
