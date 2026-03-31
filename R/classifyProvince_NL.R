@@ -254,19 +254,24 @@ classifyProvince_NL <- function(sim){
   # ADD region to pixelGroup
   # =========================================================
   
-  pg_vals <- terra::values(sim$pixelGroupMap)[,1]
+  pg_vals  <- terra::values(sim$pixelGroupMap)[,1]
   reg_vals <- terra::values(sim$ycfRaster)[,1]
   
   lut <- levels(sim$ycfRaster)[[1]]
   reg_names <- lut$YCF[match(reg_vals, lut$ID)]
   
-  # remove NL_
   reg_names <- sub("NL_", "", reg_names)
   
+  # 🔥 فقط پیکسل‌های معتبر
+  valid <- !is.na(pg_vals) & !is.na(reg_names)
+  
   regionDT <- data.table(
-    pixelGroup = pg_vals,
-    region = reg_names
+    pixelGroup = pg_vals[valid],
+    region = reg_names[valid]
   )
+  
+  # 🔥 مهم: majority یا first
+  regionDT <- regionDT[, .(region = region[1]), by = pixelGroup]
   
   regionDT <- regionDT[!is.na(pixelGroup) & !is.na(region)]
   
@@ -281,7 +286,7 @@ classifyProvince_NL <- function(sim){
   # ---------------------------
   # proportion
   # ---------------------------
-  cols <- setdiff(names(pixelAgeWide), c("pixelGroup", "age", "totalB"))
+  cols <- setdiff(names(pixelAgeWide), c("pixelGroup", "age", "totalB", "region"))
   pixelAgeWide[, totalB := rowSums(.SD), .SDcols = cols]
   pixelAgeWide <- pixelAgeWide[totalB > 0]
   
