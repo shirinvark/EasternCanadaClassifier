@@ -41,7 +41,7 @@ defineModule(sim, list(
       "AB",  # default
       NA, NA,
       "Jurisdiction code (e.g., AB, NL, ON, QC)"
-    ),
+    )
   ),
   inputObjects = bindrows(
     expectsInput(
@@ -261,6 +261,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   ## ========================================================
   vol_dir <- file.path("data", jur, "YTF")
   dir.create(vol_dir, recursive = TRUE, showWarnings = FALSE)
+  vol_dest <- file.path(vol_dir, "VolTabs.vol")
   
   if (is.null(sim$yieldVolFile) || !file.exists(vol_dest)) {
     

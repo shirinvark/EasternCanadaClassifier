@@ -1,9 +1,29 @@
+# R
 .Rhistory
-.Rproj.user
 .RData
 .Ruserdata
-maps/
+.Rproj.user/
+
+# Outputs & cache
 cache/
+inputs/
 outputs/
 scratch/
+
+# Spatial / big data
+NLmap/
+maps/
+
+# Ignore heavy data only
+data/*.vol
+data/*.shp
+data/*.dbf
+data/*.shx
+data/*.prj
+data/*.tif
+data/*.xml
+# Modules
+modules/
+
+# Other
 *.html
