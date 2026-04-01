@@ -171,7 +171,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   
   ycf_vect <- terra::vect("data/NL/NL_YCF.shp")   # Load YCF shapefile
   
-  # 🔥 این ۳ خط رو اضافه کن
+  # 🔥
   if (terra::crs(sim$pixelGroupMap) == "") {      # If raster has no CRS
     terra::crs(sim$pixelGroupMap) <- terra::crs(ycf_vect)  # Assign CRS
   }
@@ -257,15 +257,11 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   )
   
   pixelAgeWide <- pixelAgeWide[!is.na(pixelGroup) & !is.na(age)]  # Remove NA rows
-  
-  print("aggregation done")
-  # =========================================================
-  # ADD region to pixelGroup
-  # =========================================================
+
   print("aggregation done")   # Debug: confirm aggregation step completed
   
   # =========================================================
-  # ADD region to pixelGroup
+  # ADD region to pixel Group
   # =========================================================
   
   pg_vals  <- terra::values(sim$pixelGroupMap)[,1]   # Extract pixelGroup values from raster
