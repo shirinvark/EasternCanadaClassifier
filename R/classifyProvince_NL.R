@@ -133,13 +133,16 @@ find_best_curve <- function(p, region_curves, age, mapSpeciesToGroup_NL, cols) {
 
 # -----------------------------
 
-get_region_from_name <- function(name) {   # Extract region from curve name
-  if (grepl("_NPen$", name)) return("NPen")
-  if (grepl("_Main$", name)) return("Main")
-  if (grepl("_Long$", name)) return("Long")
+get_region_from_name <- function(name) {
+  
+  if (grepl("BarNS", name)) return("BarNS")
+  if (grepl("Central", name)) return("Central")
+  if (grepl("West", name)) return("West")
+  if (grepl("District", name)) return("District")
+  if (grepl("NpMainLong", name)) return("NPen")  # یا بعداً refine
+  
   return(NA)
 }
-
 ######################################################
 # classifier
 ######################################################
@@ -186,8 +189,9 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     curve_name <- tools::file_path_sans_ext(basename(f))
     
     # 🔥 اینجا اصلاح مهم
-    region <- basename(dirname(f))    
-    # اگر region پیدا نشد → رد کن
+    curve_name <- tools::file_path_sans_ext(basename(f))
+    
+    region <- get_region_from_name(curve_name)    # اگر region پیدا نشد → رد کن
     if (is.na(region)) next
     
     lines <- readLines(f)
