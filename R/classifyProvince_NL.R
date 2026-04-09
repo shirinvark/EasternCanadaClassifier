@@ -236,7 +236,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   speciesGroups <- read_curve_mapping("data/NL/speciesGroups.txt")
   
-  cohortDT[, yld_sp := speciesGroups[speciesCode]]
+  cohortDT[, yld_sp := sapply(speciesCode, function(x) speciesGroups[[x]])]
   cohortDT <- cohortDT[!is.na(yld_sp)]
   
   print(table(is.na(cohortDT$yld_sp)))
