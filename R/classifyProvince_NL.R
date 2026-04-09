@@ -401,8 +401,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     
     region_i <- pixelAgeWide$region[i]
     
-    region_curves <- yield_by_region[[region_i]]
-    
+    region_curves <- yield_by_region[[1]]    
     if (is.null(region_curves) || length(region_curves) == 0) {
       return(NA)
     }
