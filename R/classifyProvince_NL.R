@@ -241,6 +241,8 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     if (is.null(val)) return(NA_character_)
     return(as.character(val))
   })]
+  cat("\n===== DEBUG yld_sp STRUCTURE =====\n")
+  print(str(cohortDT$yld_sp))
   str(cohortDT$yld_sp)
   cohortDT <- cohortDT[!is.na(yld_sp)]
   
