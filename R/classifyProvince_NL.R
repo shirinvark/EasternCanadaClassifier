@@ -406,6 +406,24 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     
     region_i <- pixelAgeWide$region[i]
     
+    region_map <- list(
+      Main    = "NPen",
+      Long    = "NPen",
+      
+      Avalon  = "Central",
+      Aphid   = "Central",
+      CentVic = "Central",
+      CentRed = "Central",
+      
+      BarCent = "NPen",
+      BarEast = "NPen",
+      
+      NShore  = "West"
+    )
+    
+    if (!region_i %in% names(yield_by_region)) {
+      region_i <- region_map[[region_i]]
+    }    
     region_curves <- yield_by_region[[region_i]]
     
     if (is.null(region_curves) || length(region_curves) == 0) {
