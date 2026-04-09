@@ -239,9 +239,8 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   cohortDT[, yld_sp := speciesGroups[speciesCode]]
   cohortDT <- cohortDT[!is.na(yld_sp)]
   
-  print(table(is.na(cohortDT$group)))   # Check missing mappings
-  
-  cohortDT <- cohortDT[!is.na(group)]   # Remove unmapped species
+  print(table(is.na(cohortDT$yld_sp)))
+  cohortDT <- cohortDT[!is.na(yld_sp)]
   
   print("species groups assigned")
   
