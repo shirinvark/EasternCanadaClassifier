@@ -195,30 +195,37 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   
   yld_files <- sim$yieldFiles   # Get list of .yld files
   
-  curves_by_region <- list(     # Initialize container
-    ALL = list()
-  )
+  curves_by_region <- list()
   
-  for (f in yld_files) {        # Loop over files
+  for (f in yld_files) {
     
-    curve_name <- tools::file_path_sans_ext(basename(f))  # Extract name
+    curve_name <- tools::file_path_sans_ext(basename(f))
     
-    region <- "ALL"             # Assign all curves to same region
+    # 🔥 اینجا اصلاح مهم
+    region <- basename(dirname(f))    
+    # اگر region پیدا نشد → رد کن
+    if (is.na(region)) next
     
-    lines <- readLines(f)       # Read file
-    lines <- trimws(lines)      # Trim whitespace
-    lines <- lines[lines != ""] # Remove empty lines
+    lines <- readLines(f)
+    lines <- trimws(lines)
+    lines <- lines[lines != ""]
     
-    curve_data <- parse_curve(lines)   # Parse file
+    curve_data <- parse_curve(lines)
     
-    curves_by_region[[region]][[curve_name]] <- curve_data  # Store curve
+    if (is.null(curves_by_region[[region]])) {
+      curves_by_region[[region]] <- list()
+    }
+    
+    curves_by_region[[region]][[curve_name]] <- curve_data
   }
   
-  yield_by_region <- curves_by_region   # Final structure
+  yield_by_region <- curves_by_region
+  
+  print("Regions found:")
+  print(names(yield_by_region))
   
   print("Yield loaded:")
   print(lapply(yield_by_region, length))
-  
   # ---------------------------
   # inputs
   # ---------------------------
@@ -341,7 +348,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # test curve vector
   # ---------------------------
-  curve_data <- yield_by_region$ALL[[1]]   # Take first curve for testing
+  curve_data <- yield_by_region[[1]][[1]]   # Take first curve for testing
   
   if (is.null(curve_data)) {
     stop("No curves found in NPen")   # Stop if no curve found
@@ -363,14 +370,19 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # test best curve
   # ---------------------------
-  region_curves <- yield_by_region$ALL   # Use all curves
+  # ---------------------------
+  # test best curve
+  # ---------------------------
   
   if (nrow(pixelAgeWide) == 0) {
-    stop("pixelAgeWide is empty")   # Stop if no data
-  } 
+    stop("pixelAgeWide is empty")
+  }
   
-  age_val <- pixelAgeWide$age[1]              # Take first age
-  p <- as.numeric(pixelAgeWide[1, ..cols])    # Take first composition vector
+  region_i <- pixelAgeWide$region[1]
+  region_curves <- yield_by_region[[region_i]]
+  
+  age_val <- pixelAgeWide$age[1]
+  p <- as.numeric(pixelAgeWide[1, ..cols])
   
   best <- find_best_curve(
     p,
@@ -381,37 +393,31 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   )
   
   print("best curve test:")
-  print(best)   # Debug: show best curve
+  print(best)
+ 
   
   # Mapping region to allowed curves
-  region_curve_map <- list(
-    NPen = c("BarNS_sub_all", "Central_Sub_all"),
-    Main = c("NpMainLong_sub_all"),
-    Long = c("NpMainLong_sub_all"),
-    West = c("West_sub_all")
-  )
+  #region_curve_map <- list(
+   # NPen = c("BarNS_sub_all", "Central_Sub_all"),
+    #Main = c("NpMainLong_sub_all"),
+    #Long = c("NpMainLong_sub_all"),
+    #West = c("West_sub_all")
+  #)
   
   # ---------------------------
   # assign best curve to all pixels
   # ---------------------------
   pixelAgeWide[, bestCurve := mapply(function(i) {
     
-    p <- as.numeric(pixelAgeWide[i, cols, with = FALSE])   # Composition vector
-    age_val <- pixelAgeWide$age[i]                         # Age
+    p <- as.numeric(pixelAgeWide[i, cols, with = FALSE])
+    age_val <- pixelAgeWide$age[i]
     
-    region_i <- pixelAgeWide$region[i]                     # Region
+    region_i <- pixelAgeWide$region[i]
     
-    curve_names <- region_curve_map[[region_i]]            # Allowed curves for region
-    
-    # fallback
-    if (is.null(curve_names)) {
-      curve_names <- names(yield_by_region$ALL)   # Use all curves if region not found
-    }
-    
-    region_curves <- yield_by_region$ALL[curve_names]   # Subset curves
+    region_curves <- yield_by_region[[region_i]]
     
     if (is.null(region_curves) || length(region_curves) == 0) {
-      return(NA)   # Return NA if no curves available
+      return(NA)
     }
     
     find_best_curve(
