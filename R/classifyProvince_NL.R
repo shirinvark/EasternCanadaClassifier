@@ -135,11 +135,11 @@ find_best_curve <- function(p, region_curves, age, mapSpeciesToGroup_NL, cols) {
 
 get_region_from_name <- function(name) {
   
-  if (grepl("BarNS", name)) return("BarNS")
+  if (grepl("BarNS", name)) return("NPen")
   if (grepl("Central", name)) return("Central")
   if (grepl("West", name)) return("West")
-  if (grepl("District", name)) return("District")
-  if (grepl("NpMainLong", name)) return("NPen")  # یا بعداً refine
+  if (grepl("District", name)) return("Central")
+  if (grepl("NpMainLong", name)) return("NPen")
   
   return(NA)
 }
@@ -208,7 +208,8 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   }
   
   yield_by_region <- curves_by_region
-  
+  cat("\n===== NUMBER OF CURVES PER REGION =====\n")
+  print(lapply(yield_by_region, length))
   print("Regions found:")
   print(names(yield_by_region))
   
