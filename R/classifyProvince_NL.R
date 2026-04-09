@@ -234,13 +234,10 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # species groups
   # ---------------------------
-  speciesGroups <- read_species_groups("data/NL/speciesGroups.txt")  # Load species groups
+  speciesGroups <- read_curve_mapping("data/NL/speciesGroups.txt")
   
-  cohortDT[, group := NA_character_]   # Initialize group column
-  
-  for (g in names(speciesGroups)) {
-    cohortDT[speciesCode %in% speciesGroups[[g]], group := g]   # Assign group
-  }
+  cohortDT[, yld_sp := speciesGroups[speciesCode]]
+  cohortDT <- cohortDT[!is.na(yld_sp)]
   
   print(table(is.na(cohortDT$group)))   # Check missing mappings
   
@@ -253,12 +250,12 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   pixelAgeGroup <- cohortDT[
     , .(B = sum(B)),                  # Sum biomass
-    by = .(pixelGroup, age, group)
+    by = .(pixelGroup, age, yld_sp)
   ]
   
   pixelAgeWide <- data.table::dcast(   # Convert to wide format
     pixelAgeGroup,
-    pixelGroup + age ~ group,
+    pixelGroup + age ~ yld_sp,
     value.var = "B",
     fill = 0
   )

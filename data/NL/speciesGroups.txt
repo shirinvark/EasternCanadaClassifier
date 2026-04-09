@@ -1,5 +1,10 @@
-borealDeciduous_NL: Popu_tre, Betu_pap, Acer_sah, Popu_bal
-whiteSpruce_NL: Abie_bal, Pice_gla, Pice_rub
-blackSpruce_NL: Pice_mar, Lari_lar
-borealPine_NL: Pinu_ban, Pinu_res, Pinu_str
-Temp_Broad: Acer_rub, Betu_all
+Pice_mar: BSv
+Pice_gla: WSv
+Abie_bal: BFv
+Pinu_stro: WPv
+Lari_lar: TLv
+Popu_tre: TAv
+Betu_pap: WBv
+Betu_all: WBv
+Acer_rub: RMv
+Acer_sah: RMv
