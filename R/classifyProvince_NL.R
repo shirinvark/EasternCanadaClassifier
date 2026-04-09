@@ -71,49 +71,33 @@ read_curve_mapping <- function(file) {   # Read curve species → group mapping
 
 # -----------------------------
 
-get_curve_vector <- function(curve_data, age_index, mapSpeciesToGroup_NL, cols) {  
-  group_vals <- list()   # Initialize group value storage
+get_curve_vector <- function(curve_data, age_index, mapSpeciesToGroup_NL, cols) {
   
-  for (sp in names(curve_data)) {   # Loop through species in curve
+  vals <- rep(0, length(cols))
+  names(vals) <- cols
+  
+  for (sp in names(curve_data)) {
     
-    grp <- mapSpeciesToGroup_NL[[sp]]   # Map species to group
-    if (is.null(grp)) next              # Skip if no mapping
+    # فقط speciesهایی که در cols هستن
+    if (!(sp %in% cols)) next
     
-    vec <- curve_data[[sp]]             # Get growth vector for species
+    vec <- curve_data[[sp]]
     
-    age_index2 <- min(age_index, length(vec))  # Clamp index within bounds
+    age_index2 <- min(age_index, length(vec))
     
-    val <- vec[age_index2]              # Extract value at age
+    val <- vec[age_index2]
+    if (is.na(val)) val <- 0
     
-    if (is.na(val)) val <- 0            # Replace NA with 0
-    
-    # Accumulate values per group
-    if (is.null(group_vals[[grp]])) {
-      group_vals[[grp]] <- val
-    } else {
-      group_vals[[grp]] <- group_vals[[grp]] + val
-    }
+    vals[sp] <- val
   }
   
-  # Build final vector in order of cols
-  vals <- unlist(lapply(cols, function(g) {
-    if (is.null(group_vals[[g]])) {
-      0
-    } else {
-      group_vals[[g]]
-    }
-  }))
-  
-  # Normalize to proportions
+  # normalize
   if (sum(vals) > 0) {
     vals <- vals / sum(vals)
-  } else {
-    vals <- rep(0, length(vals))
   }
   
-  return(vals)   # Return normalized composition vector
+  return(vals)
 }
-
 # -----------------------------
 
 find_best_curve <- function(p, region_curves, age, mapSpeciesToGroup_NL, cols) {
