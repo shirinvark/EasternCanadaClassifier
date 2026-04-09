@@ -406,11 +406,18 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     
     region_i <- pixelAgeWide$region[i]
     
-    region_curves <- yield_by_region[[1]]    
+    region_curves <- yield_by_region[[region_i]]
+    
     if (is.null(region_curves) || length(region_curves) == 0) {
       return(NA)
     }
     
+    # اگر فقط یک curve داشت
+    if (length(region_curves) == 1) {
+      return(names(region_curves)[1])
+    }
+    
+    # اگر چند curve داشت → انتخاب با distance
     find_best_curve(
       p,
       region_curves,
