@@ -163,3 +163,18 @@ data.table::fwrite(
 
 cat("\n===== TEST COMPLETED SUCCESSFULLY =====\n")
 
+#These numbers are class IDs from the raster output (analysisUnitMap).
+#Each number corresponds to a specific yield curve (bestCurve).
+#The raster stores numeric IDs, while the actual curve names are in the attribute table (analysisUnitDT).
+#I can also plot it with labeled curve names instead of numeric IDs if needed.
+
+
+
+
+#
+#The points represent the spatial units (pixel groups), and the colours show the assigned analysis units based on the best-matching growth curves.
+
+#Each colour corresponds to a different growth pattern, grouping areas with similar forest structure and dynamics.
+
+
+

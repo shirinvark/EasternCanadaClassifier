@@ -1,9 +1,11 @@
 BSv: blackSpruce_NL
 WSv: whiteSpruce_NL
-BFv: whiteSpruce_NL
-WPv: borealPine_NL
+BFv: balsamFir_NL
+WPv: temperatePine_NL
 TLv: blackSpruce_NL
-TAv: borealDeciduous_NL
-YBv: borealDeciduous_NL
-WBv: borealDeciduous_NL
-RMv: Temp_Broad
+TAv: borealBroadleaf_NL
+YBv: temperateBroadleaf_NL
+WBv: borealBroadleaf_NL
+RMv: temperateBroadleaf_NL
+RPv: temperatePine_NL
+JPv: borealPine_NL

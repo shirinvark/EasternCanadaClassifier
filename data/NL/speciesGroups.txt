@@ -5,6 +5,10 @@ Pinu_stro: WPv
 Lari_lar: TLv
 Popu_tre: TAv
 Betu_pap: WBv
-Betu_all: WBv
+Betu_all: YBv
 Acer_rub: RMv
 Acer_sah: RMv
+Pice_rub: WSv
+Pinu_ban: JPv
+Pinu_res: RPv
+Popu_bal: TAv
