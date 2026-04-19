@@ -7,5 +7,3 @@ TAv: borealBroadleaf_NL
 YBv: temperateBroadleaf_NL
 WBv: borealBroadleaf_NL
 RMv: temperateBroadleaf_NL
-RPv: temperatePine_NL
-JPv: borealPine_NL

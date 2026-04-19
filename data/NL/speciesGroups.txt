@@ -9,6 +9,6 @@ Betu_all: YBv
 Acer_rub: RMv
 Acer_sah: RMv
 Pice_rub: WSv
-Pinu_ban: JPv
-Pinu_res: RPv
+Pinu_ban: WPv
+Pinu_res: WPv
 Popu_bal: TAv
