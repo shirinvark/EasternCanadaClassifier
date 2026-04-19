@@ -200,6 +200,8 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     
     curve_data <- parse_curve(lines)
     
+    print("DEBUG YLD species:")
+    print(names(curve_data))
     if (is.null(curves_by_region[[region]])) {
       curves_by_region[[region]] <- list()
     }
