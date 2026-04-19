@@ -197,7 +197,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   
   library(data.table)   # Load data.table
   library(terra)        # Load terra
-  
+  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   # =========================================================
   # BUILD YCF raster (region)
   # =========================================================
@@ -276,13 +276,12 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # inputs
   # ---------------------------
   cohortDT <- as.data.table(sim$cohortData)   # Convert cohort data to data.table
-  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
+  #mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   # ---------------------------
   # species groups
   # ---------------------------
   speciesGroups <- read_curve_mapping("data/NL/speciesGroups.txt")
-  #mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
-  
+
   cohortDT[, final_group := sapply(speciesCode, function(x) {
     
     yld <- speciesGroups[[x]]   # species → BSv
@@ -389,8 +388,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # mapping
   # ---------------------------
- # mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")   # Load curve species mapping
-  
+
   # mapping مستقیم species → group
   mapSpeciesToGroup_NL <- mapSpeciesGroups   # Direct mapping
   
