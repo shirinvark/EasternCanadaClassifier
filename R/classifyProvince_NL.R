@@ -293,13 +293,13 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   })]
   
   cohortDT <- cohortDT[!is.na(final_group)]
-  cat("\n===== DEBUG yld_sp STRUCTURE =====\n")
-  print(str(cohortDT$yld_sp))
-  str(cohortDT$yld_sp)
-  cohortDT <- cohortDT[!is.na(yld_sp)]
+  cat("\n===== DEBUG final_group STRUCTURE =====\n")
+  print(str(cohortDT$final_group))
+  str(cohortDT$final_group)
+  cohortDT <- cohortDT[!is.na(final_group)]
   
-  print(table(is.na(cohortDT$yld_sp)))
-  cohortDT <- cohortDT[!is.na(yld_sp)]
+  print(table(is.na(cohortDT$final_group)))
+  cohortDT <- cohortDT[!is.na(final_group)]
   
   print("species groups assigned")
   
