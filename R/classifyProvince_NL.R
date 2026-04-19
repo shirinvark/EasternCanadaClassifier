@@ -1,7 +1,53 @@
 # =============================
 # HELPER FUNCTIONS (NL)
 # ============================
-
+rewrite_yld_curve <- function(curve_data, mapGroups) {
+  
+  # invert mapping (group → YLD members)
+  group_map <- list()
+  
+  for (k in names(mapGroups)) {
+    grp <- mapGroups[[k]]
+    
+    if (is.null(group_map[[grp]])) {
+      group_map[[grp]] <- c()
+    }
+    
+    group_map[[grp]] <- c(group_map[[grp]], k)
+  }
+  
+  # جمع زدن داخل گروه‌ها
+  new_curve <- list()
+  
+  for (grp in names(group_map)) {
+    
+    members <- group_map[[grp]]
+    
+    vecs <- lapply(members, function(m) {
+      v <- curve_data[[m]]
+      if (is.null(v)) return(numeric(0))
+      return(v)
+    })
+    
+    max_len <- max(sapply(vecs, length))
+    
+    vecs <- lapply(vecs, function(v) {
+      c(v, rep(0, max_len - length(v)))
+    })
+    
+    new_curve[[grp]] <- Reduce(`+`, vecs)
+  }
+  
+  # هم‌طول کردن همه گروه‌ها
+  max_len_all <- max(sapply(new_curve, length))
+  
+  new_curve <- lapply(new_curve, function(v) {
+    c(v, rep(0, max_len_all - length(v)))
+  })
+  
+  return(new_curve)
+}
+#--------------------------------
 parse_curve <- function(curve_lines) {  # Function to parse .yld curve lines into species-wise vectors...
   
   res <- list()                        # Initialize output list to store species data
@@ -79,8 +125,8 @@ get_curve_vector <- function(curve_data, age_index, mapSpeciesToGroup_NL, cols) 
   for (sp in names(curve_data)) {
     
     # فقط speciesهایی که در cols هستن
-    if (!(sp %in% cols)) next
-    
+    #if (!(sp %in% cols)) next
+    if (!(sp %in% names(vals))) next
     vec <- curve_data[[sp]]
     
     age_index2 <- min(age_index, length(vec))
@@ -198,10 +244,19 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     lines <- trimws(lines)
     lines <- lines[lines != ""]
     
-    curve_data <- parse_curve(lines)
+    #curve_data <- parse_curve(lines)
+    curve_data_raw <- parse_curve(lines)
     
-    print("DEBUG YLD species:")
+    mapGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
+    cols <- unique(unlist(mapSpeciesGroups))
+    curve_data <- rewrite_yld_curve(curve_data_raw, mapGroups)
+    print("BEFORE REWRITE:")
+    print(names(curve_data_raw))
+    
+    print("AFTER REWRITE:")
     print(names(curve_data))
+    print("COLS:")
+    print(cols)
     if (is.null(curves_by_region[[region]])) {
       curves_by_region[[region]] <- list()
     }
@@ -226,12 +281,19 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # species groups
   # ---------------------------
   speciesGroups <- read_curve_mapping("data/NL/speciesGroups.txt")
+  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   
-  cohortDT[, yld_sp := sapply(speciesCode, function(x) {
-    val <- speciesGroups[[x]]
-    if (is.null(val)) return(NA_character_)
-    return(as.character(val))
+  cohortDT[, final_group := sapply(speciesCode, function(x) {
+    
+    yld <- speciesGroups[[x]]   # species → BSv
+    if (is.null(yld)) return(NA_character_)
+    
+    grp <- mapSpeciesGroups[[yld]]   # BSv → blackSpruce_NL
+    
+    return(as.character(grp))
   })]
+  
+  cohortDT <- cohortDT[!is.na(final_group)]
   cat("\n===== DEBUG yld_sp STRUCTURE =====\n")
   print(str(cohortDT$yld_sp))
   str(cohortDT$yld_sp)
@@ -247,16 +309,17 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   pixelAgeGroup <- cohortDT[
     , .(B = sum(B)),                  # Sum biomass
-    by = .(pixelGroup, age, yld_sp)
+    by = .(pixelGroup, age, final_group)
   ]
   
   pixelAgeWide <- data.table::dcast(   # Convert to wide format
     pixelAgeGroup,
-    pixelGroup + age ~ yld_sp,
+    pixelGroup + age ~ final_group,
     value.var = "B",
     fill = 0
   )
-  
+  print("CHECK FINAL GROUPS:")
+  print(names(pixelAgeWide))
   pixelAgeWide <- pixelAgeWide[!is.na(pixelGroup) & !is.na(age)]  # Remove NA rows
 
   print("aggregation done")   # Debug: confirm aggregation step completed
