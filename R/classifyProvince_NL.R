@@ -389,7 +389,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # mapping
   # ---------------------------
-  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")   # Load curve species mapping
+ # mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")   # Load curve species mapping
   
   # mapping مستقیم species → group
   mapSpeciesToGroup_NL <- mapSpeciesGroups   # Direct mapping
