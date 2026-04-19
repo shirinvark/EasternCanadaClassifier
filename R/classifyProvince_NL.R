@@ -303,7 +303,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   
   print("species groups assigned")
   
-  # ---------------------------
+  # -------------------------
   # aggregation
   # ---------------------------
   pixelAgeGroup <- cohortDT[
