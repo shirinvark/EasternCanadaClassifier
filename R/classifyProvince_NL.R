@@ -276,12 +276,12 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # inputs
   # ---------------------------
   cohortDT <- as.data.table(sim$cohortData)   # Convert cohort data to data.table
-  
+  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   # ---------------------------
   # species groups
   # ---------------------------
   speciesGroups <- read_curve_mapping("data/NL/speciesGroups.txt")
-  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
+  #mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   
   cohortDT[, final_group := sapply(speciesCode, function(x) {
     
