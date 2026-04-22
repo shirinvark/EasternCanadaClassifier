@@ -315,3 +315,4 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   }
   
   return(sim)
+}
