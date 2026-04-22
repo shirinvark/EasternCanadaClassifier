@@ -20,14 +20,19 @@ classifyProvince_ON <- function(sim) {
   process_zone <- function(path, submu) {
     
     dt <- fread(path)
-    
+    cat("\n===== DEBUG BEFORE FILTER =====\n")
+    print(unique(dt$SUBMU))
+    print(unique(dt$SI))
+    print(unique(dt$FU))
     # ---- Filtering ----
     dt <- dt[
       SUBMU == submu &
-        tolower(SI) == "prsnt" &
+        !is.na(SI) &
+        grepl("prsnt", tolower(SI)) &
         FU != "BOG"
     ]
-    
+    cat("\n===== DEBUG AFTER FILTER =====\n")
+    print(dim(dt))
     # ---- Species columns ----
     species_cols <- c("PW","PR","PJ","SB","SW","BF","CE","OC","HE","PO","PB","BW","MH","QR","YB","OH")
     
