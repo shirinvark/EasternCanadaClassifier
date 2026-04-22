@@ -135,14 +135,12 @@ terra::plot(
 # SPECIES COMPOSITION CHECK
 
 # =========================================================
-
+sim$analysisUnitDT[, prop_deciduous := broadleaf_NL]
 boxplot(
   prop_deciduous ~ bestCurve,
   data = sim$analysisUnitDT,
   main = "Deciduous proportion by class",
-  xlab = "Analysis Unit",
-  ylab = "Deciduous proportion",
-  col  = "lightgreen"
+  col = "lightgreen"
 )
 
 # =========================================================
@@ -186,4 +184,12 @@ boxplot(
   main = "Deciduous proportion by class",
   col = "lightgreen"
 )
+sim$analysisUnitDT[, .(
+  mean_bs = mean(blackSpruce_NL),
+  mean_bf = mean(balsamFir_NL),
+  mean_bl = mean(broadleaf_NL)
+), by = bestCurve]
 
+
+prop.table(table(sim$analysisUnitDT$bestCurve))
+sim$analysisUnitDT[, .N, by = .(region, bestCurve)]

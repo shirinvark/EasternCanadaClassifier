@@ -257,6 +257,10 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   # YIELD FILES (CORE FIX 🔥)
   # ========================================================
   
+  # ========================================================
+  # YIELD FILES (UPDATED FOR NL + ON)
+  # ========================================================
+  
   if (jur == "NL") {
     
     message("Loading NL yield (.yld) files")
@@ -281,28 +285,33 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Found ", length(yld_files), " NL yield files")
     
-  } else {
+  } else if (jur == "ON") {
     
-    message("Downloading .vol yield file for ", jur)
+    message("Loading ON yield (YTF) files")
     
-    vol_dir <- file.path("data", jur, "YTF")
-    dir.create(vol_dir, recursive = TRUE, showWarnings = FALSE)
+    ytf_dir <- file.path("data", "ON", "YTF")
     
-    vol_dest <- file.path(vol_dir, "VolTabs.vol")
-    
-    vol_url <- paste0(
-      "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/",
-      jur,
-      "/YTF/VolTabs.vol"
-    )
-    
-    if (!file.exists(vol_dest)) {
-      download.file(vol_url, vol_dest, mode = "wb")
+    if (!dir.exists(ytf_dir)) {
+      stop("Directory not found: ", ytf_dir)
     }
     
-    sim$yieldVolFile <- vol_dest
+    ytf_files <- list.files(
+      ytf_dir,
+      pattern = "\\.(csv|txt)$",
+      full.names = TRUE
+    )
+    
+    if (length(ytf_files) == 0) {
+      stop("No YTF files found in: ", ytf_dir)
+    }
+    
+    sim$yieldFiles <- ytf_files
+    
+    message("Found ", length(ytf_files), " ON YTF files")
+    
+  } else {
+    
+    message("No yield file logic defined for jurisdiction: ", jur)
   }
   
   return(sim)
-}
-  
