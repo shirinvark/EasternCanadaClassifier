@@ -202,7 +202,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # =========================================================
   mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   speciesGroup <- read_curve_mapping(
-    "E:/EasternCanadaClassifier/data/NL/speieGroup.txt"
+    "E:/EasternCanadaClassifier/data/NL/speciesGroups.txt"
   )  
   ycf_vect <- terra::vect("data/NL/NL_YCF.shp")   # Load YCF shapefile
   
