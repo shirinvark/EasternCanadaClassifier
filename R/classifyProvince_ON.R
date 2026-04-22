@@ -7,8 +7,8 @@ classifyProvince_ON <- function(sim) {
   # 0. LOAD MAPPINGS (ONLY ONCE)
   # =========================================================
   
-  speciesGroups    <- read_curve_mapping("speciesGroups_ON.txt")
-  mapSpeciesGroups <- read_curve_mapping("mapSpeciesGroups_ON.txt")
+  speciesGroups <- read_curve_mapping("data/ON/speciesGroups_ON.txt")
+  mapSpeciesGroups <- read_curve_mapping("data/ON/mapSpeciesGroups.txt")
   
   groups    <- unique(unlist(mapSpeciesGroups))
   prop_cols <- groups
