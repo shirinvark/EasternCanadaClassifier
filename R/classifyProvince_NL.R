@@ -200,7 +200,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # =========================================================
   # BUILD YCF raster (region)
   # =========================================================
-  
+  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   ycf_vect <- terra::vect("data/NL/NL_YCF.shp")   # Load YCF shapefile
   
   # 🔥
@@ -275,7 +275,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # inputs
   # ---------------------------
   cohortDT <- as.data.table(sim$cohortData)
-  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
+  #mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   cohortDT[, final_group := sapply(speciesCode, function(x) {
     
     grp <- mapSpeciesGroups[[x]]   # ✅ مستقیم
