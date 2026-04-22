@@ -26,7 +26,7 @@ classifyProvince_ON <- function(sim) {
     print(unique(dt$FU))
     # ---- Filtering ----
     dt <- dt[
-      SUBMU == submu &
+      grepl(submu, SUBMU) &
         !is.na(SI) &
         grepl("prsnt", tolower(SI)) &
         FU != "BOG"
