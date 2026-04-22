@@ -197,7 +197,6 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   
   library(data.table)   # Load data.table
   library(terra)        # Load terra
-  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   # =========================================================
   # BUILD YCF raster (region)
   # =========================================================
@@ -275,19 +274,11 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # inputs
   # ---------------------------
-  cohortDT <- as.data.table(sim$cohortData)   # Convert cohort data to data.table
-  #mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
-  # ---------------------------
-  # species groups
-  # ---------------------------
-  speciesGroups <- read_curve_mapping("data/NL/speciesGroups.txt")
-
   cohortDT[, final_group := sapply(speciesCode, function(x) {
     
-    yld <- speciesGroups[[x]]   # species → BSv
-    if (is.null(yld)) return(NA_character_)
+    grp <- mapSpeciesGroups[[x]]   # ✅ مستقیم
     
-    grp <- mapSpeciesGroups[[yld]]   # BSv → blackSpruce_NL
+    if (is.null(grp)) return(NA_character_)
     
     return(as.character(grp))
   })]

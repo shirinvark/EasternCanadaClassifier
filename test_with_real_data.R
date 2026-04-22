@@ -176,5 +176,14 @@ cat("\n===== TEST COMPLETED SUCCESSFULLY =====\n")
 
 #Each colour corresponds to a different growth pattern, grouping areas with similar forest structure and dynamics.
 
+sim$analysisUnitDT[, prop_deciduous :=
+                     borealBroadleaf_NL + temperateBroadleaf_NL
+]
 
+boxplot(
+  prop_deciduous ~ bestCurve,
+  data = sim$analysisUnitDT,
+  main = "Deciduous proportion by class",
+  col = "lightgreen"
+)
 
