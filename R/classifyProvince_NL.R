@@ -274,6 +274,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # inputs
   # ---------------------------
+  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
   cohortDT[, final_group := sapply(speciesCode, function(x) {
     
     grp <- mapSpeciesGroups[[x]]   # ✅ مستقیم
