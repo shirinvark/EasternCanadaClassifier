@@ -25,8 +25,9 @@ classifyProvince_ON <- function(sim) {
     print(unique(dt$SI))
     print(unique(dt$FU))
     # ---- Filtering ----
+    # اول فقط بر اساس zone فیلتر کن
     dt <- dt[
-      grepl(submu, SUBMU) &
+      tolower(SUBMU) == submu &   # 🔥 FIX
         !is.na(SI) &
         grepl("prsnt", tolower(SI)) &
         FU != "BOG"
@@ -101,11 +102,16 @@ classifyProvince_ON <- function(sim) {
     list(path = "data/ON/YTF/4w_tbl_yield_final.txt", submu = "4w"),
     list(path = "data/ON/YTF/5e_tbl_yield_final.txt", submu = "5e")
   )
-  
-  yield_all <- rbindlist(lapply(zones, function(z) {
+  results_list <- lapply(zones, function(z) {
     process_zone(z$path, z$submu)
-  }))
+  })
   
+  # فقط خروجی‌های غیر NULL نگه دار
+  results_list <- results_list[!sapply(results_list, is.null)]
+  
+  # بعد combine کن
+  yield_all <- rbindlist(results_list, fill = TRUE)
+  yield_by_region <- split(yield_all, yield_all$zone)
   # =========================================================
   # 3. CLASSIFIER
   # =========================================================
@@ -116,34 +122,46 @@ classifyProvince_ON <- function(sim) {
   results <- cohort_wide[, {
     
     # ---- cohort vector ----
-    cohort_vec <- as.numeric(.SD[, ..prop_cols][1])
-    
+    cohort_vec <- cohort_vec / sum(cohort_vec)
+    names(cohort_vec) <- prop_cols    
     # ---- region ----
-    region <- pixel_region[pixelGroup == .BY$pixelGroup, region][1]
-    
+    region <- pixel_region[
+      pixelGroup == .BY$pixelGroup,
+      {
+        tbl <- table(region)
+        names(tbl)[which.max(tbl)]
+      }
+    ]   
     # ---- age ----
-    age <- unique(.SD$age)[1]
-    
+    age <- mean(.SD$age)    
     # ---- matching curves ----
-    curves <- yield_all[
-      zone == region & AC10 == age
-    ]
+    # ---- region safe ----
+    if (is.na(region) || !(region %in% names(yield_by_region))) {
+      return(list(bestAU = NA, distance = NA))
+    }
     
-    # ---- handle missing ----
-    if (nrow(curves) == 0) {
+    curves <- yield_by_region[[region]]
+    
+    # ---- age matching (FIXED) ----
+    curves_local <- copy(curves)
+    
+    curves_local[, age_diff := abs(AC10 - age)]
+    curves_local <- curves_local[age_diff == min(age_diff)]
+
+    # اگر هنوز چیزی نبود
+    if (nrow(curves_local) == 0) {
       return(list(bestAU = NA, distance = NA))
     }
     
     # ---- distance ----
-    dists <- curves[
-      , sqrt(rowSums((.SD - cohort_vec)^2)),
-      .SDcols = prop_cols
-    ]
+    curves_mat <- as.matrix(curves_local[, ..prop_cols])
+    cohort_mat <- matrix(cohort_vec, nrow = nrow(curves_mat), ncol = length(prop_cols), byrow = TRUE)
     
+    dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
     best_idx <- which.min(dists)
     
     list(
-      bestAU   = curves$AU[best_idx],
+      bestAU   = curves_local$AU[best_idx],
       distance = dists[best_idx]
     )
     
