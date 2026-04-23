@@ -27,7 +27,7 @@ classifyProvince_ON <- function(sim) {
     # ---- Filtering ----
     # اول فقط بر اساس zone فیلتر کن
     dt <- dt[
-      tolower(SUBMU) == submu &   # 🔥 FIX
+      grepl(submu, tolower(SUBMU)) &   # 🔥 FIX FINAL
         !is.na(SI) &
         grepl("prsnt", tolower(SI)) &
         FU != "BOG"
