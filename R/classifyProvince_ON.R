@@ -85,9 +85,17 @@ classifyProvince_ON <- function(sim) {
     print(names(speciesGroups))
     
     for (sp in species_cols) {
-      print(sp)
-      print(speciesGroups[[sp]])
-    }
+      
+      sp_group <- speciesGroups[[sp]]
+      
+      if (is.null(sp_group)) {
+        sp_group <- speciesGroups[[tolower(sp)]]
+      }
+      
+      if (is.null(sp_group)) {
+        cat("❌ NO sp_group for:", sp, "\n")
+        next
+      }
       
       final_group <- mapSpeciesGroups[[sp_group]]
       
@@ -96,7 +104,6 @@ classifyProvince_ON <- function(sim) {
         next
       }
       
-      # ✅ همه اینا باید داخل loop باشه
       cat("✔️", sp, "→", sp_group, "→", final_group,
           "| sum =", sum(dt[[sp]], na.rm = TRUE), "\n")
       
@@ -172,8 +179,15 @@ classifyProvince_ON <- function(sim) {
   region_raster <- rasterize(shp, sim$pixelGroupMap, field = "SITEREGION")
   
   # ---- extract values ----
-  pg  <- as.data.table(as.data.frame(sim$pixelGroupMap, xy = FALSE))
-  reg <- as.data.table(as.data.frame(region_raster, xy = FALSE))
+  pg  <- values(sim$pixelGroupMap)
+  reg <- values(region_raster)
+  
+  pixel_region <- data.table(
+    pixelGroup = pg,
+    region     = tolower(reg)
+  )
+  
+  pixel_region <- pixel_region[!is.na(pixelGroup) & !is.na(region)]
   
   pixel_region <- data.table(
     pixelGroup = pg[[1]],
