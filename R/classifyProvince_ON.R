@@ -85,7 +85,7 @@ classifyProvince_ON <- function(sim) {
     print(names(speciesGroups))
     
     for (sp in species_cols) {
-      
+      cat("SP:", sp, "GROUP:", speciesGroups[[sp]], "\n")
       sp_group <- speciesGroups[[sp]]
       
       if (is.null(sp_group)) {
