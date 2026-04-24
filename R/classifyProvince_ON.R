@@ -20,20 +20,47 @@ classifyProvince_ON <- function(sim) {
   process_zone <- function(path, submu) {
     
     dt <- fread(path)
+    
     cat("\n===== DEBUG BEFORE FILTER =====\n")
     print(unique(dt$SUBMU))
     print(unique(dt$SI))
     print(unique(dt$FU))
-    # ---- Filtering ----
-    # اول فقط بر اساس zone فیلتر کن
-    dt <- dt[
-      grepl(submu, tolower(SUBMU)) &   # 🔥 FIX FINAL
-        !is.na(SI) &
-        grepl("prsnt", tolower(SI)) &
-        FU != "BOG"
+    
+    # step 1: subset by region
+    dt_sub <- dt[grepl(tolower(submu), tolower(SUBMU))]
+    
+    # step 2: prepare SI values
+    si_vals <- tolower(dt_sub$SI)
+    si_vals <- si_vals[!is.na(si_vals)]
+    
+    # step 3: choose SI
+    target_si <- if (any(grepl("prsnt", si_vals))) {
+      "prsnt"
+    } else {
+      names(sort(table(si_vals), decreasing = TRUE))[1]
+    }
+    
+    # step 4: final filter
+    dt <- dt_sub[
+      !is.na(SI) &
+        grepl(target_si, tolower(SI)) &
+        tolower(FU) != "bog"
     ]
+    
+    # debug
     cat("\n===== DEBUG AFTER FILTER =====\n")
+    cat("Zone:", submu, "\n")
+    cat("Selected SI:", target_si, "\n")
     print(dim(dt))
+    print(unique(tolower(dt$SI)))
+    
+    # safety
+    if (nrow(dt) == 0) {
+      warning(paste("No data after filtering for zone:", submu))
+      return(NULL)
+    }
+    
+    # ---- ادامه کدت (species processing) ----
     # ---- Species columns ----
     species_cols <- c("PW","PR","PJ","SB","SW","BF","CE","OC","HE","PO","PB","BW","MH","QR","YB","OH")
     
@@ -55,17 +82,37 @@ classifyProvince_ON <- function(sim) {
     }
     
     # ---- Mapping species → groups ----
+    print(names(speciesGroups))
+    
     for (sp in species_cols) {
       
       sp_group <- speciesGroups[[sp]]
-      if (is.null(sp_group)) next
+      
+      if (is.null(sp_group)) {
+        sp_group <- speciesGroups[[tolower(sp)]]
+      }
+      
+      if (is.null(sp_group)) {
+        cat("❌ NO sp_group for:", sp, "\n")
+        next
+      }
       
       final_group <- mapSpeciesGroups[[sp_group]]
-      if (is.null(final_group)) next
+      
+      if (is.null(final_group)) {
+        cat("❌ NO final_group for:", sp_group, "(from", sp, ")\n")
+        next
+      }
+      
+      # ✅ همه اینا باید داخل loop باشه
+      cat("✔️", sp, "→", sp_group, "→", final_group,
+          "| sum =", sum(dt[[sp]], na.rm = TRUE), "\n")
       
       dt[[final_group]] <- dt[[final_group]] + dt[[sp]]
     }
-    
+    cat("\n===== GROUP SUM CHECK =====\n")
+    print(colSums(dt[, ..groups], na.rm = TRUE))
+    print(colSums(dt[, ..groups], na.rm = TRUE))
     # ---- Aggregate to curve level ----
     dt_summary <- dt[, lapply(.SD, sum, na.rm = TRUE),
                      by = .(CURVENO, AC10, FU),
@@ -112,6 +159,51 @@ classifyProvince_ON <- function(sim) {
   # بعد combine کن
   yield_all <- rbindlist(results_list, fill = TRUE)
   yield_by_region <- split(yield_all, yield_all$zone)
+  
+  
+  
+  
+  # =========================================================
+  # 2.5 BUILD pixel_region FROM SHAPEFILE
+  # =========================================================
+  
+  library(terra)
+  library(data.table)
+  
+  # ---- load shapefile ----
+  shp <- vect("E:/EasternCanadaClassifier/ON_selected_regions.shp")
+  
+  # ---- align projection ----
+  shp <- project(shp, sim$pixelGroupMap)
+  
+  # ---- rasterize ----
+  region_raster <- rasterize(shp, sim$pixelGroupMap, field = "SITEREGION")
+  
+  # ---- extract values ----
+  pg  <- as.data.table(as.data.frame(sim$pixelGroupMap, xy = FALSE))
+  reg <- as.data.table(as.data.frame(region_raster, xy = FALSE))
+  
+  pixel_region <- data.table(
+    pixelGroup = pg[[1]],
+    region     = tolower(reg[[1]])
+  )
+  
+  # ---- clean ----
+  pixel_region <- pixel_region[
+    !is.na(pixelGroup) & !is.na(region)
+  ]
+  
+  # ---- debug ----
+  cat("\n===== REGION TABLE =====\n")
+  print(table(pixel_region$region))
+  
+  # ---- assign to sim ----
+  sim$pixel_region <- pixel_region
+  
+  
+  
+  
+  
   # =========================================================
   # 3. CLASSIFIER
   # =========================================================
@@ -122,8 +214,14 @@ classifyProvince_ON <- function(sim) {
   results <- cohort_wide[, {
     
     # ---- cohort vector ----
+    cohort_vec <- as.numeric(.SD[1, ..prop_cols])
+    
+    if (sum(cohort_vec) == 0) {
+      return(list(bestAU = NA, distance = NA))
+    }
+    
     cohort_vec <- cohort_vec / sum(cohort_vec)
-    names(cohort_vec) <- prop_cols    
+    names(cohort_vec) <- prop_cols   
     # ---- region ----
     region <- pixel_region[
       pixelGroup == .BY$pixelGroup,
