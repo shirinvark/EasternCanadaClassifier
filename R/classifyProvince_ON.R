@@ -83,28 +83,18 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Mapping species → groups ----
     print(names(speciesGroups))
-    
+    print(names(mapSpeciesGroups))
     for (sp in species_cols) {
-      cat("SP:", sp, "GROUP:", speciesGroups[[sp]], "\n")
-      sp_group <- speciesGroups[[sp]]
       
-      if (is.null(sp_group)) {
-        sp_group <- speciesGroups[[tolower(sp)]]
-      }
-      
-      if (is.null(sp_group)) {
-        cat("❌ NO sp_group for:", sp, "\n")
-        next
-      }
-      
-      final_group <- mapSpeciesGroups[[sp_group]]
+      key <- trimws(sp)
+      final_group <- mapSpeciesGroups[[key]]
       
       if (is.null(final_group)) {
-        cat("❌ NO final_group for:", sp_group, "(from", sp, ")\n")
+        cat("❌ NO mapping for:", sp, "\n")
         next
       }
       
-      cat("✔️", sp, "→", sp_group, "→", final_group,
+      cat("✔️", sp, "→", final_group,
           "| sum =", sum(dt[[sp]], na.rm = TRUE), "\n")
       
       dt[[final_group]] <- dt[[final_group]] + dt[[sp]]
@@ -187,12 +177,9 @@ classifyProvince_ON <- function(sim) {
     region     = tolower(reg)
   )
   
-  pixel_region <- pixel_region[!is.na(pixelGroup) & !is.na(region)]
-  
-  pixel_region <- data.table(
-    pixelGroup = pg[[1]],
-    region     = tolower(reg[[1]])
-  )
+  pixel_region <- pixel_region[
+    !is.na(pixelGroup) & !is.na(region)
+  ]
   
   # ---- clean ----
   pixel_region <- pixel_region[
@@ -216,11 +203,7 @@ classifyProvince_ON <- function(sim) {
   
   cohort_wide  <- sim$cohort_wide
   pixel_region <- sim$pixel_region
-  setnames(
-    cohort_wide,
-    "pixelGroup.NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1",
-    "pixelGroup"
-  )
+  names(cohort_wide)[1] <- "pixelGroup"
   results <- cohort_wide[, {
     
     # ---- cohort vector ----
