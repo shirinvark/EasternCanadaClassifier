@@ -195,7 +195,7 @@ classifyProvince_ON <- function(sim) {
   
   
   
-  
+  print(names(cohort_wide))
   
   # =========================================================
   # 3. CLASSIFIER
@@ -220,7 +220,7 @@ classifyProvince_ON <- function(sim) {
     value.var = "B",
     fill = 0
   )
-  
+ 
   # normalize to proportions
   group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
   
@@ -230,13 +230,15 @@ classifyProvince_ON <- function(sim) {
               .SDcols = group_cols]
   
   cohort_wide <- cohort_wide[total > 0]
-  cohort_wide  <- sim$cohort_wide
+  #cohort_wide  <- sim$cohort_wide
   pixel_region <- sim$pixel_region
-  setnames(
-    cohort_wide,
-    names(cohort_wide)[1],
-    "pixelGroup"
-  )  
+  pg_col <- grep("^pixelGroup", names(cohort_wide), value = TRUE)
+  
+  if (length(pg_col) == 0) {
+    stop("❌ pixelGroup column not found in cohort_wide")
+  }
+  
+  setnames(cohort_wide, pg_col, "pixelGroup")
   results <- cohort_wide[, {
     
     # ---- cohort vector ----
