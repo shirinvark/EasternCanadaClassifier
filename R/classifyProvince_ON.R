@@ -216,7 +216,11 @@ classifyProvince_ON <- function(sim) {
   
   cohort_wide  <- sim$cohort_wide
   pixel_region <- sim$pixel_region
-  
+  setnames(
+    cohort_wide,
+    "pixelGroup.NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1",
+    "pixelGroup"
+  )
   results <- cohort_wide[, {
     
     # ---- cohort vector ----
