@@ -200,7 +200,36 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   # 3. CLASSIFIER
   # =========================================================
+  cohortDT <- as.data.table(sim$cohortData)
   
+  # group species to analysis units
+  cohortDT[, final_group := speciesGroups[[speciesCode]]]
+  
+  # remove unmapped
+  cohortDT <- cohortDT[!is.na(final_group)]
+  
+  # aggregate biomass
+  cohort_group <- cohortDT[, .(
+    B = sum(B, na.rm = TRUE)
+  ), by = .(pixelGroup, age, final_group)]
+  
+  # convert to wide
+  cohort_wide <- dcast(
+    cohort_group,
+    pixelGroup + age ~ final_group,
+    value.var = "B",
+    fill = 0
+  )
+  
+  # normalize to proportions
+  group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
+  
+  cohort_wide[, total := rowSums(.SD), .SDcols = group_cols]
+  
+  cohort_wide[, (group_cols) := lapply(.SD, function(x) x / total),
+              .SDcols = group_cols]
+  
+  cohort_wide <- cohort_wide[total > 0]
   cohort_wide  <- sim$cohort_wide
   pixel_region <- sim$pixel_region
   setnames(
