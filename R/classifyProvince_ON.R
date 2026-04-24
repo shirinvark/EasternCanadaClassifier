@@ -214,8 +214,7 @@ classifyProvince_ON <- function(sim) {
   results <- cohort_wide[, {
     
     # ---- cohort vector ----
-    cohort_vec <- as.numeric(.SD[1, ..prop_cols])
-    
+    cohort_vec <- as.numeric(.SD[1, prop_cols, with = FALSE])    
     if (sum(cohort_vec) == 0) {
       return(list(bestAU = NA, distance = NA))
     }
