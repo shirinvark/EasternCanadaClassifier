@@ -207,7 +207,8 @@ classifyProvince_ON <- function(sim) {
     cohort_wide,
     names(cohort_wide)[1],
     "pixelGroup"
-  )  results <- cohort_wide[, {
+  )  
+  results <- cohort_wide[, {
     
     # ---- cohort vector ----
     cohort_vec <- as.numeric(.SD[1, prop_cols, with = FALSE])    
