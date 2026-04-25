@@ -201,6 +201,7 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   cohortDT <- as.data.table(sim$cohortData)
   cohortDT[, speciesCode := as.character(speciesCode)]
+  browser() 
   pg_col <- grep("^pixelGroup", names(cohortDT), value = TRUE)
   
   if (length(pg_col) != 1) {
