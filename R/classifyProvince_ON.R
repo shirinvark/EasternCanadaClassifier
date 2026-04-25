@@ -201,18 +201,33 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   cohortDT <- as.data.table(sim$cohortData)
   cohortDT[, speciesCode := as.character(speciesCode)]
+  pg_col <- grep("^pixelGroup", names(cohortDT), value = TRUE)
+  
+  if (length(pg_col) != 1) {
+    stop("❌ pixelGroup column not found or duplicated in cohortDT")
+  }
+  
+  setnames(cohortDT, pg_col, "pixelGroup")
   
   # group species to analysis units
   #cohortDT[, final_group := speciesGroups[[speciesCode]]]
-  cohortDT[, final_group := speciesGroups[speciesCode]]
-  # remove unmapped
+  cohortDT[, final_group := speciesGroups[[speciesCode]], by = speciesCode]  # remove unmapped
   cohortDT <- cohortDT[!is.na(final_group)]
   
   # aggregate biomass
   cohort_group <- cohortDT[, .(
     B = sum(B, na.rm = TRUE)
   ), by = .(pixelGroup, age, final_group)]
+  #####
+  # اسم ستون pixelGroup رو تمیز کن
   
+  
+  
+  
+  
+  
+  
+  print(names(cohortDT))
   # convert to wide
   cohort_wide <- dcast(
     cohort_group,
