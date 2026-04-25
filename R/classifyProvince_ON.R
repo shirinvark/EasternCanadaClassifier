@@ -195,16 +195,16 @@ classifyProvince_ON <- function(sim) {
   
   
   
-  print(names(cohort_wide))
-  
+
   # =========================================================
   # 3. CLASSIFIER
   # =========================================================
   cohortDT <- as.data.table(sim$cohortData)
+  cohortDT[, speciesCode := as.character(speciesCode)]
   
   # group species to analysis units
-  cohortDT[, final_group := speciesGroups[[speciesCode]]]
-  
+  #cohortDT[, final_group := speciesGroups[[speciesCode]]]
+  cohortDT[, final_group := speciesGroups[speciesCode]]
   # remove unmapped
   cohortDT <- cohortDT[!is.na(final_group)]
   
@@ -220,7 +220,18 @@ classifyProvince_ON <- function(sim) {
     value.var = "B",
     fill = 0
   )
- 
+  print(names(cohort_wide))
+  # force pixelGroup name
+  pg_col <- names(cohort_wide)[grepl("pixelgroup", names(cohort_wide), ignore.case = TRUE)]
+  
+  if (length(pg_col) != 1) {
+    stop("❌ Could not uniquely identify pixelGroup column")
+  }
+  
+  setnames(cohort_wide, pg_col, "pixelGroup")
+  if (!"pixelGroup" %in% names(cohort_wide)) {
+    stop("❌ pixelGroup column still missing in cohort_wide")
+  }
   # normalize to proportions
   group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
   
