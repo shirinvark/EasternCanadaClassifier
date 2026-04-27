@@ -186,7 +186,8 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     r <- terra::rast(
       nrows = 10, ncols = 10,
       xmin = 0, xmax = 1000,
-      ymin = 0, ymax = 1000
+      ymin = 0, ymax = 1000,
+      crs = "EPSG:4326"   # 🔥 این خط مهمه
     )
     
     terra::values(r) <- sample(1:20, 100, replace = TRUE)
