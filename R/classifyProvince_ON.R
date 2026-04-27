@@ -169,13 +169,24 @@ classifyProvince_ON <- function(sim) {
   region_raster <- rasterize(shp, sim$pixelGroupMap, field = "SITEREGION")
   
   # ---- extract values ----
-  pg  <- values(sim$pixelGroupMap)
-  reg <- values(region_raster)
+  # ---- extract values ----
+  pg  <- as.data.table(values(sim$pixelGroupMap))
+  reg <- as.data.table(values(region_raster))
   
-  pixel_region <- data.table(
-    pixelGroup = pg,
-    region     = tolower(reg)
-  )
+  # ---- rename columns ----
+  setnames(pg, names(pg), "pixelGroup")
+  setnames(reg, names(reg), "region")
+  
+  # ---- combine ----
+  pixel_region <- cbind(pg, reg)
+  
+  # ---- clean ----
+  pixel_region <- pixel_region[
+    !is.na(pixelGroup) & !is.na(region)
+  ]
+  
+  # ---- lower case ----
+  pixel_region[, region := tolower(region)]
   
   pixel_region <- pixel_region[
     !is.na(pixelGroup) & !is.na(region)
@@ -195,15 +206,14 @@ classifyProvince_ON <- function(sim) {
   
   
   
-
+  
   # =========================================================
   # 3. CLASSIFIER
   # =========================================================
   cohortDT <- as.data.table(sim$cohortData)
   cohortDT[, speciesCode := as.character(speciesCode)]
   browser() 
-  pg_col <- grep("^pixelGroup", names(cohortDT), value = TRUE)
-  
+  pg_col <- grep("pixelgroup", names(cohortDT), ignore.case = TRUE, value = TRUE)  
   if (length(pg_col) != 1) {
     stop("❌ pixelGroup column not found or duplicated in cohortDT")
   }
@@ -262,7 +272,11 @@ classifyProvince_ON <- function(sim) {
   pg_col <- grep("^pixelGroup", names(cohort_wide), value = TRUE)
   
   if (length(pg_col) == 0) {
-    stop("❌ pixelGroup column not found in cohort_wide")
+    stop("❌ pixelGroup column not found")
+  }
+  
+  if (length(pg_col) > 1) {
+    pg_col <- pg_col[1]   # 🔥 اولی رو بگیر
   }
   
   setnames(cohort_wide, pg_col, "pixelGroup")
@@ -277,13 +291,14 @@ classifyProvince_ON <- function(sim) {
     cohort_vec <- cohort_vec / sum(cohort_vec)
     names(cohort_vec) <- prop_cols   
     # ---- region ----
-    region <- pixel_region[
-      pixelGroup == .BY$pixelGroup,
-      {
-        tbl <- table(region)
-        names(tbl)[which.max(tbl)]
-      }
-    ]   
+    region_vals <- pixel_region[pixelGroup == .BY$pixelGroup, region]
+    
+    if (length(region_vals) == 0) {
+      region <- "3e"   # 🔥 fallback موقت
+    } else {
+      tbl <- table(region_vals)
+      region <- names(tbl)[which.max(tbl)]
+    } 
     # ---- age ----
     age <- mean(.SD$age)    
     # ---- matching curves ----
@@ -299,7 +314,7 @@ classifyProvince_ON <- function(sim) {
     
     curves_local[, age_diff := abs(AC10 - age)]
     curves_local <- curves_local[age_diff == min(age_diff)]
-
+    
     # اگر هنوز چیزی نبود
     if (nrow(curves_local) == 0) {
       return(list(bestAU = NA, distance = NA))
