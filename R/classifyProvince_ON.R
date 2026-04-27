@@ -11,7 +11,7 @@ classifyProvince_ON <- function(sim) {
   mapSpeciesGroups <- read_curve_mapping("data/ON/mapSpeciesGroups.txt")
   
   groups    <- unique(unlist(mapSpeciesGroups))
-  prop_cols <- groups
+  #prop_cols <- groups
   
   # =========================================================
   # 1. PROCESS ZONE FUNCTION
@@ -66,7 +66,7 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Convert to numeric ----
     dt[, (species_cols) := lapply(.SD, function(x) {
-      x[x == "." | x == ""] <- NA
+      x[x == "." | x == "" | is.na(x)] <- NA
       as.numeric(x)
     }), .SDcols = species_cols]
     
@@ -180,17 +180,16 @@ classifyProvince_ON <- function(sim) {
   # ---- combine ----
   pixel_region <- cbind(pg, reg)
   
-  # ---- clean ----
+  # اگر region کامل NA بود → fallback
+  if (all(is.na(pixel_region$region))) {
+    pixel_region[, region := "3e"]
+  }
+  
   pixel_region <- pixel_region[
-    !is.na(pixelGroup) & !is.na(region)
+    !is.na(pixelGroup)
   ]
   
-  # ---- lower case ----
   pixel_region[, region := tolower(region)]
-  
-  pixel_region <- pixel_region[
-    !is.na(pixelGroup) & !is.na(region)
-  ]
   
   # ---- clean ----
   pixel_region <- pixel_region[
@@ -261,6 +260,10 @@ classifyProvince_ON <- function(sim) {
   # normalize to proportions
   group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
   prop_cols <- intersect(groups, group_cols)
+  
+  if (length(prop_cols) == 0) {
+    stop("❌ No matching species groups between cohort and yield")
+  }
   cohort_wide[, total := rowSums(.SD), .SDcols = group_cols]
   
   cohort_wide[, (group_cols) := lapply(.SD, function(x) x / total),
@@ -269,17 +272,7 @@ classifyProvince_ON <- function(sim) {
   cohort_wide <- cohort_wide[total > 0]
   #cohort_wide  <- sim$cohort_wide
   pixel_region <- sim$pixel_region
-  pg_col <- grep("^pixelGroup", names(cohort_wide), value = TRUE)
   
-  if (length(pg_col) == 0) {
-    stop("❌ pixelGroup column not found")
-  }
-  
-  if (length(pg_col) > 1) {
-    pg_col <- pg_col[1]   # 🔥 اولی رو بگیر
-  }
-  
-  setnames(cohort_wide, pg_col, "pixelGroup")
   results <- cohort_wide[, {
     
     # ---- cohort vector ----
@@ -293,12 +286,12 @@ classifyProvince_ON <- function(sim) {
     # ---- region ----
     region_vals <- pixel_region[pixelGroup == .BY$pixelGroup, region]
     
-    if (length(region_vals) == 0) {
-      region <- "3e"   # 🔥 fallback موقت
+    if (length(region_vals) == 0 || all(is.na(region_vals))) {
+      region <- "3e"
     } else {
       tbl <- table(region_vals)
       region <- names(tbl)[which.max(tbl)]
-    } 
+    }
     # ---- age ----
     age <- mean(.SD$age)    
     # ---- matching curves ----
@@ -338,7 +331,21 @@ classifyProvince_ON <- function(sim) {
   # 4. SAVE OUTPUT
   # =========================================================
   
+  # =========================================================
+  # FINAL OUTPUTS
+  # =========================================================
+  
+  # classification already exists
   sim$classification <- results
   
+  # 🔥 pixelGroup → AU mapping
+  sim$pixelGroupToAU <- results[, .(
+    pixelGroup,
+    analysisUnit = bestAU
+  )]
+  
+  # 🔥 area per AU
+  sim$areaByAU <- sim$pixelGroupToAU[, .N, by = analysisUnit]
+  setnames(sim$areaByAU, "N", "nPixels")
   return(sim)
 }
