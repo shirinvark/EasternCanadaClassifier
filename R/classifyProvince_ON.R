@@ -18,7 +18,7 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   
   process_zone <- function(path, submu) {
-    
+    browser()
     dt <- fread(path)
     
     cat("\n===== DEBUG BEFORE FILTER =====\n")
