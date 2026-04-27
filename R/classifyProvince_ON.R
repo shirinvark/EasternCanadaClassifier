@@ -158,7 +158,6 @@ classifyProvince_ON <- function(sim) {
   # ---- load shapefile (CORRECT WAY) ----
   shp_path <- file.path(
     getPaths()$modulePath,
-    "EasternCanadaClassifier",
     "data/ON/ON_regions.shp"
   )
   
