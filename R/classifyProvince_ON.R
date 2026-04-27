@@ -155,43 +155,41 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
+  # ---- load shapefile (CORRECT WAY) ----
+  shp_path <- file.path(
+    getPaths()$modulePath,
+    "EasternCanadaClassifier",
+    "data/ON/ON_regions.shp"
+  )
   
-  library(terra)
-  library(data.table)
+  if (!file.exists(shp_path)) {
+    stop("❌ ON_regions.shp not found in module data/ON/")
+  }
   
-  # ---- load shapefile ----
-  shp <- vect("E:/EasternCanadaClassifier/ON_selected_regions.shp")
+  shp <- terra::vect(shp_path)
   
-  # ---- align projection ----
-  shp <- project(shp, sim$pixelGroupMap)
+  # ---- align raster with shapefile ----
+  terra::ext(sim$pixelGroupMap) <- terra::ext(shp)
+  terra::crs(sim$pixelGroupMap) <- terra::crs(shp)
   
   # ---- rasterize ----
-  region_raster <- rasterize(shp, sim$pixelGroupMap, field = "SITEREGION")
+  region_raster <- terra::rasterize(
+    shp,
+    sim$pixelGroupMap,
+    field = "SITEREGION"
+  )
   
-  # ---- extract values ----
-  # ---- extract values ----
-  pg  <- as.data.table(values(sim$pixelGroupMap))
-  reg <- as.data.table(values(region_raster))
+  # ---- extract ----
+  pg  <- as.data.table(terra::values(sim$pixelGroupMap))
+  reg <- as.data.table(terra::values(region_raster))
   
-  # ---- rename columns ----
   setnames(pg, names(pg), "pixelGroup")
   setnames(reg, names(reg), "region")
   
-  # ---- combine ----
   pixel_region <- cbind(pg, reg)
   
-  # اگر region کامل NA بود → fallback
-  if (all(is.na(pixel_region$region))) {
-    pixel_region[, region := "3e"]
-  }
+  pixel_region[, region := tolower(as.character(region))]
   
-  pixel_region <- pixel_region[
-    !is.na(pixelGroup)
-  ]
-  
-  pixel_region[, region := tolower(region)]
-  
-  # ---- clean ----
   pixel_region <- pixel_region[
     !is.na(pixelGroup) & !is.na(region)
   ]
@@ -200,11 +198,7 @@ classifyProvince_ON <- function(sim) {
   cat("\n===== REGION TABLE =====\n")
   print(table(pixel_region$region))
   
-  # ---- assign to sim ----
   sim$pixel_region <- pixel_region
-  
-  
-  
   
   # =========================================================
   # 3. CLASSIFIER
