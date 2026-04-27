@@ -260,7 +260,7 @@ classifyProvince_ON <- function(sim) {
   }
   # normalize to proportions
   group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
-  
+  prop_cols <- intersect(groups, group_cols)
   cohort_wide[, total := rowSums(.SD), .SDcols = group_cols]
   
   cohort_wide[, (group_cols) := lapply(.SD, function(x) x / total),
