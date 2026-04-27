@@ -157,8 +157,8 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   # ---- load shapefile (CORRECT WAY) ----
   shp_path <- file.path(
-    getPaths()$modulePath,
-    "data/ON/ON_regions.shp"
+    getPaths()$inputPath,
+    "ON/ON_regions.shp"
   )
   
   if (!file.exists(shp_path)) {
