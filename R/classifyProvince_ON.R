@@ -207,7 +207,7 @@ classifyProvince_ON <- function(sim) {
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
-    field = "SITEREGION"
+    field = which(names(shp) == "SITEREGION")
   )
   
   # ---- extract values ----
