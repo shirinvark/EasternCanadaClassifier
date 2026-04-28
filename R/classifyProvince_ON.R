@@ -164,46 +164,13 @@ classifyProvince_ON <- function(sim) {
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
   
-  library(terra)
+  shp_path <- file.path(getPaths()$inputPath, "ON/ON_selected_regions.shp")
   
-  on_dir  <- file.path(getPaths()$inputPath, "ON")
-  dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
-  
-    zip_path <- file.path(on_dir, "ON_selected_regions.zip")
-  
-  # ---- دانلود از Google Drive با کوکی (بدون لاگین) ----
-  if (!file.exists(zip_path)) {
-    
-    file_id <- "1qvyH95onJNZKLZ_HZ8TF8A4R-1REJO1m"
-    
-    cmd <- paste0(
-      "wget --quiet --save-cookies cookies.txt --keep-session-cookies ",
-      "--no-check-certificate ",
-      "'https://docs.google.com/uc?export=download&id=", file_id, "' -O- ",
-      "| sed -rn \"s/.*confirm=([0-9A-Za-z_]+).*/\\1/p\" ",
-      "| xargs -I{} wget --load-cookies cookies.txt ",
-      "'https://docs.google.com/uc?export=download&confirm={}&id=", file_id, "' ",
-      "-O '", zip_path, "'"
-    )
-    
-    system(cmd)
-  }
-    cat("ZIP PATH:\n", zip_path, "\n")
-    cat("FILE EXISTS:", file.exists(zip_path), "\n")
-    cat("FILE SIZE:", file.info(zip_path)$size, "\n")
-    print(list.files(on_dir, full.names = TRUE))
-  # ---- unzip تمیز ----
-  unzip(zip_path, exdir = on_dir)
-  
-  # ---- پیدا کردن shapefile در هر عمقی ----
-  shp_files <- list.files(on_dir, pattern = "\\.shp$", full.names = TRUE, recursive = TRUE)
-  
-  if (length(shp_files) == 0) {
-    stop("❌ No .shp file found after unzip")
-  }
-  
-  shp_path <- shp_files[1]
   cat("Using shapefile:\n", shp_path, "\n")
+  
+  if (!file.exists(shp_path)) {
+    stop("❌ shapefile not found in inputs/ON/")
+  }
   
   shp <- terra::vect(shp_path)
 
