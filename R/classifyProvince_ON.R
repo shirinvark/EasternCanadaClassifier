@@ -156,15 +156,38 @@ classifyProvince_ON <- function(sim) {
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
   # ---- load shapefile (CORRECT WAY) ----
-  shp_path <- file.path(
-    getPaths()$inputPath,
-    "ON/ON_selected_regions.shp"
-  )
+  # =========================================================
+  # 2.5 BUILD pixel_region FROM SHAPEFILE
+  # =========================================================
   
+  library(terra)
+  
+  on_dir <- file.path(getPaths()$inputPath, "ON")
+  dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
+  
+  zip_path <- file.path(on_dir, "ON_regions.zip")
+  shp_path <- file.path(on_dir, "ON_selected_regions.shp")
+  
+  # ---- download if not exists ----
   if (!file.exists(shp_path)) {
-    stop("❌ ON_regions.shp not found in module data/ON/")
+    
+    cat("Downloading Ontario shapefile from Google Drive...\n")
+    
+    download.file(
+      url = "https://drive.google.com/uc?export=download&id=1ySCrwWIif-xSD39tdEyBZmNdRdMi3Vi2",
+      destfile = zip_path,
+      mode = "wb"
+    )
+    
+    unzip(zip_path, exdir = on_dir)
   }
   
+  # ---- check ----
+  if (!file.exists(shp_path)) {
+    stop("❌ Shapefile not found after download")
+  }
+  
+  # ---- load ----
   shp <- terra::vect(shp_path)
   
   # ---- align raster with shapefile ----
