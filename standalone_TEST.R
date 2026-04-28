@@ -64,3 +64,4 @@ sim <- spades(sim)
 print(head(sim$cohortData))      # fake cohort
 print(head(sim$pixelGroupToAU))  # mapping
 print(head(sim$areaByAU))        # area summary
+
