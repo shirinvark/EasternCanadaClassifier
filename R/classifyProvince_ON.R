@@ -18,7 +18,7 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   
   process_zone <- function(path, submu) {
-    browser()
+    #browser()
     dt <- fread(path)
     
     cat("\n===== DEBUG BEFORE FILTER =====\n")
@@ -246,7 +246,7 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   cohortDT <- as.data.table(sim$cohortData)
   cohortDT[, speciesCode := as.character(speciesCode)]
-  browser() 
+ # browser() 
   pg_col <- grep("pixelgroup", names(cohortDT), ignore.case = TRUE, value = TRUE)  
   if (length(pg_col) != 1) {
     stop("❌ pixelGroup column not found or duplicated in cohortDT")
