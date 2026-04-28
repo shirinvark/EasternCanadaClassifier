@@ -165,45 +165,42 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   
   library(terra)
+  library(googledrive)
   
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
   
   zip_path <- file.path(on_dir, "ON_regions.zip")
   
-  # ⚠️ اسم shapefile داخل zip ممکنه فرق داشته باشه
-  # پس بعد از unzip چک می‌کنیم
-  shp_path <- file.path(on_dir, "ON_selected_regions.shp")
-  
   # ---- download if not exists ----
-  if (!file.exists(shp_path)) {
+  if (!file.exists(zip_path)) {
     
-    cat("Downloading Ontario shapefile...\n")
+    cat("Downloading Ontario shapefile from Google Drive...\n")
     
-    download.file(
-      url = "https://drive.google.com/uc?export=download&id=1NGIk43bbiYqFLuv-ZC-sex0bMcwTwj2y",
-      destfile = zip_path,
-      mode = "wb"
+    drive_download(
+      as_id("1NGIk43bbiYqFLuv-ZC-sex0bMcwTwj2y"),
+      path = zip_path,
+      overwrite = TRUE
     )
-    
-    unzip(zip_path, exdir = on_dir)
   }
   
-  # ---- اگر اسم فرق داشت ----
-  if (!file.exists(shp_path)) {
-    files <- list.files(on_dir, pattern = "\\.shp$", full.names = TRUE)
-    
-    if (length(files) == 0) {
-      stop("❌ No .shp file found after unzip")
-    }
-    
-    shp_path <- files[1]  # اولین shapefile رو بگیر
+  # ---- unzip ----
+  unzip(zip_path, exdir = on_dir)
+  
+  # ---- find shapefile ----
+  shp_files <- list.files(on_dir, pattern = "\\.shp$", full.names = TRUE)
+  
+  if (length(shp_files) == 0) {
+    stop("❌ No .shp file found after unzip")
   }
+  
+  shp_path <- shp_files[1]
   
   cat("Using shapefile:\n", shp_path, "\n")
   
   # ---- load ----
   shp <- terra::vect(shp_path)
+
   # ---- align raster with shapefile ----
   terra::ext(sim$pixelGroupMap) <- terra::ext(shp)
   terra::crs(sim$pixelGroupMap) <- terra::crs(shp)
