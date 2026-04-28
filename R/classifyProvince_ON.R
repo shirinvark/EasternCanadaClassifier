@@ -204,7 +204,9 @@ classifyProvince_ON <- function(sim) {
   shp <- terra::project(shp, terra::crs(sim$pixelGroupMap))  
   # ---- align extent (خیلی مهم) ----
   #shp <- terra::crop(shp, terra::ext(sim$pixelGroupMap))
-  
+  cat("\n===== EXTENT CHECK =====\n")
+  print(ext(sim$pixelGroupMap))
+  print(ext(shp))
   # ---- rasterize ----
   region_field <- which(names(shp) == "SITEREGION")
   
