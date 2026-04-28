@@ -4,14 +4,52 @@ classifyProvince_ON <- function(sim) {
   message("Running Ontario classifier")
   
   # ========================================================
-  # 0. LOAD MAPPINGS (ONLY ONCE)
+  # === DOWNLOAD DATA FROM GITHUB ===
   # =========================================================
   
-  speciesGroups <- read_curve_mapping("data/ON/speciesGroups_ON.txt")
-  mapSpeciesGroups <- read_curve_mapping("data/ON/mapSpeciesGroups.txt")
+  
+  on_dir <- file.path(getPaths()$inputPath, "ON")
+  dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
+  
+  ytf_dir <- file.path(on_dir, "YTF")
+  dir.create(ytf_dir, recursive = TRUE, showWarnings = FALSE)
+  
+  base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/ON/"
+  
+  # ---- mapping files ----
+  mapping_files <- c(
+    "speciesGroups_ON.txt",
+    "mapSpeciesGroups.txt"
+  )
+  
+  for (f in mapping_files) {
+    dest <- file.path(on_dir, f)
+    if (!file.exists(dest)) {
+      download.file(paste0(base_url, f), destfile = dest, mode = "wb")
+    }
+  }
+  
+  # ---- yield tables ----
+  ytf_files <- c(
+    "3e_tbl_yield_final.csv",
+    "3w_tbl_yield_final.txt",
+    "4e_5e_tbl_yield_final.txt",
+    "4s_3s_tbl_yield_final.csv",
+    "4w_tbl_yield_final.txt",
+    "5e_tbl_yield_final.txt"
+  )
+  
+  for (f in ytf_files) {
+    dest <- file.path(ytf_dir, f)
+    if (!file.exists(dest)) {
+      download.file(paste0(base_url, "YTF/", f), destfile = dest, mode = "wb")
+    }
+  }
+  speciesGroups <- read_curve_mapping(file.path(on_dir, "speciesGroups_ON.txt"))
+  mapSpeciesGroups <- read_curve_mapping(file.path(on_dir, "mapSpeciesGroups.txt"))
   
   groups    <- unique(unlist(mapSpeciesGroups))
-  #prop_cols <- groups
+  
   
   # =========================================================
   # 1. PROCESS ZONE FUNCTION
@@ -131,12 +169,12 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   
   zones <- list(
-    list(path = "data/ON/YTF/3e_tbl_yield_final.csv", submu = "3e"),
-    list(path = "data/ON/YTF/3w_tbl_yield_final.txt", submu = "3w"),
-    list(path = "data/ON/YTF/4e_5e_tbl_yield_final.txt", submu = "4e"),
-    list(path = "data/ON/YTF/4s_3s_tbl_yield_final.csv", submu = "4s"),
-    list(path = "data/ON/YTF/4w_tbl_yield_final.txt", submu = "4w"),
-    list(path = "data/ON/YTF/5e_tbl_yield_final.txt", submu = "5e")
+    list(path = file.path(ytf_dir, "3e_tbl_yield_final.csv"), submu = "3e"),
+    list(path = file.path(ytf_dir, "3w_tbl_yield_final.txt"), submu = "3w"),
+    list(path = file.path(ytf_dir, "4e_5e_tbl_yield_final.txt"), submu = "4e"),
+    list(path = file.path(ytf_dir, "4s_3s_tbl_yield_final.csv"), submu = "4s"),
+    list(path = file.path(ytf_dir, "4w_tbl_yield_final.txt"), submu = "4w"),
+    list(path = file.path(ytf_dir, "5e_tbl_yield_final.txt"), submu = "5e")
   )
   results_list <- lapply(zones, function(z) {
     process_zone(z$path, z$submu)
