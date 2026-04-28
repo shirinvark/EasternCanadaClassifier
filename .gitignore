@@ -34,7 +34,7 @@ data/*
 !data/ON/YTF/
 !data/ON/YTF/*
 !data/ON/YTF/
-!data/ON/combined_regions.zip/*
+!data/ON/combined_regions.zip
 # =========================================================
 # Modules (downloaded)
 # =========================================================
