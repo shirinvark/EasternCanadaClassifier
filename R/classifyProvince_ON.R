@@ -200,14 +200,19 @@ classifyProvince_ON <- function(sim) {
   # BUILD pixel_region (MISSING PART - FIX)
   # =========================================================
   
-  # ---- project shapefile to raster CRS ----
+  # ---- project ----
   shp <- terra::project(shp, terra::crs(sim$pixelGroupMap))
-  shp <- terra::crop(shp, sim$pixelGroupMap)
+  
+  # ---- align extent (خیلی مهم) ----
+  shp <- terra::crop(shp, terra::ext(sim$pixelGroupMap))
+  
   # ---- rasterize ----
+  region_field <- which(names(shp) == "SITEREGION")
+  
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
-    field = which(names(shp) == "SITEREGION")
+    field = region_field
   )
   
   # ---- extract values ----
