@@ -211,7 +211,8 @@ classifyProvince_ON <- function(sim) {
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
-    field = region_field
+    field = region_field,
+    touches = TRUE
   )
   
   # ---- extract values ----
