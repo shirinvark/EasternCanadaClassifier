@@ -204,6 +204,43 @@ classifyProvince_ON <- function(sim) {
   
   shp <- terra::vect(shp_path)
   
+  
+  # =========================================================
+  # BUILD pixel_region (MISSING PART - FIX)
+  # =========================================================
+  
+  # ---- project shapefile to raster CRS ----
+  shp <- terra::project(shp, terra::crs(sim$pixelGroupMap))
+  
+  # ---- rasterize ----
+  region_raster <- terra::rasterize(
+    shp,
+    sim$pixelGroupMap,
+    field = "SITEREGION"
+  )
+  
+  # ---- extract values ----
+  pg  <- as.data.table(terra::values(sim$pixelGroupMap))
+  reg <- as.data.table(terra::values(region_raster))
+  
+  setnames(pg, names(pg), "pixelGroup")
+  setnames(reg, names(reg), "region")
+  
+  pixel_region <- cbind(pg, reg)
+  
+  # ---- clean ----
+  pixel_region[, region := tolower(as.character(region))]
+  
+  pixel_region <- pixel_region[
+    !is.na(pixelGroup) & !is.na(region)
+  ]
+  
+  # ---- save in sim ----
+  sim$pixel_region <- pixel_region
+  
+  # ---- debug ----
+  cat("\n===== REGION TABLE =====\n")
+  print(table(pixel_region$region))
   # =========================================================
   # 3. CLASSIFIER
   # =========================================================
