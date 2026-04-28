@@ -165,50 +165,43 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   
   library(terra)
-  library(googledrive)
   
-  # مسیر ذخیره
-  on_dir <- file.path(getPaths()$inputPath, "ON")
+  on_dir  <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
   
   zip_path <- file.path(on_dir, "ON_regions.zip")
   
-  # ---- دانلود از Google Drive ----
+  # ---- دانلود از Google Drive با کوکی (بدون لاگین) ----
   if (!file.exists(zip_path)) {
     
-    cat("Downloading shapefile from Google Drive...\n")
+    file_id <- "1qvyH95onJNZKLZ_HZ8TF8A4R-1REJO1m"
     
-    drive_download(
-      as_id("1qvyH95onJNZKLZ_HZ8TF8A4R-1REJO1m"),
-      path = zip_path,
-      overwrite = TRUE
+    cmd <- paste0(
+      "wget --quiet --save-cookies cookies.txt --keep-session-cookies ",
+      "--no-check-certificate ",
+      "'https://docs.google.com/uc?export=download&id=", file_id, "' -O- ",
+      "| sed -rn \"s/.*confirm=([0-9A-Za-z_]+).*/\\1/p\" ",
+      "| xargs -I{} wget --load-cookies cookies.txt ",
+      "'https://docs.google.com/uc?export=download&confirm={}&id=", file_id, "' ",
+      "-O '", zip_path, "'"
     )
+    
+    system(cmd)
   }
   
-  # ---- پاک کردن unzip قبلی ----
-  files_before <- list.files(on_dir, full.names = TRUE)
-  unlink(files_before[!grepl("\\.zip$", files_before)])
-  
-  # ---- unzip ----
+  # ---- unzip تمیز ----
   unzip(zip_path, exdir = on_dir)
   
-  # ---- پیدا کردن shapefile ----
-  shp_files <- list.files(
-    on_dir,
-    pattern = "\\.shp$",
-    full.names = TRUE,
-    recursive = TRUE
-  )
+  # ---- پیدا کردن shapefile در هر عمقی ----
+  shp_files <- list.files(on_dir, pattern = "\\.shp$", full.names = TRUE, recursive = TRUE)
   
   if (length(shp_files) == 0) {
     stop("❌ No .shp file found after unzip")
   }
   
   shp_path <- shp_files[1]
-  
   cat("Using shapefile:\n", shp_path, "\n")
   
-  # ---- load ----
   shp <- terra::vect(shp_path)
 
   # ---- align raster with shapefile ----
