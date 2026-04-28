@@ -310,55 +310,50 @@ classifyProvince_ON <- function(sim) {
   
   results <- cohort_wide[, {
     
-    # ---- cohort vector ----
-    cohort_vec <- as.numeric(.SD[1, prop_cols, with = FALSE])    
+    cohort_vec <- as.numeric(.SD[1, prop_cols, with = FALSE])
+    
     if (sum(cohort_vec) == 0) {
-      return(list(bestAU = NA, distance = NA))
-    }
-    
-    cohort_vec <- cohort_vec / sum(cohort_vec)
-    names(cohort_vec) <- prop_cols   
-    # ---- region ----
-    region_vals <- pixel_region[pixelGroup == .BY$pixelGroup, region]
-    
-    if (length(region_vals) == 0 || all(is.na(region_vals))) {
-      region <- "3e"
+      list(bestAU = NA, distance = NA)
     } else {
-      tbl <- table(region_vals)
-      region <- names(tbl)[which.max(tbl)]
+      
+      cohort_vec <- cohort_vec / sum(cohort_vec)
+      
+      region_vals <- pixel_region[pixelGroup == .BY$pixelGroup, region]
+      
+      region <- if (length(region_vals) == 0) {
+        "3e"
+      } else {
+        names(which.max(table(region_vals)))
+      }
+      
+      if (!(region %in% names(yield_by_region))) {
+        list(bestAU = NA, distance = NA)
+      } else {
+        
+        curves <- yield_by_region[[region]]
+        
+        age <- mean(.SD$age)
+        
+        curves[, age_diff := abs(AC10 - age)]
+        curves <- curves[age_diff == min(age_diff)]
+        
+        if (nrow(curves) == 0) {
+          list(bestAU = NA, distance = NA)
+        } else {
+          
+          curves_mat <- as.matrix(curves[, ..prop_cols])
+          cohort_mat <- matrix(cohort_vec, nrow = nrow(curves_mat), byrow = TRUE)
+          
+          dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
+          best_idx <- which.min(dists)
+          
+          list(
+            bestAU   = curves$AU[best_idx],
+            distance = dists[best_idx]
+          )
+        }
+      }
     }
-    # ---- age ----
-    age <- mean(.SD$age)    
-    # ---- matching curves ----
-    # ---- region safe ----
-    if (is.na(region) || !(region %in% names(yield_by_region))) {
-      return(list(bestAU = NA, distance = NA))
-    }
-    
-    curves <- yield_by_region[[region]]
-    
-    # ---- age matching (FIXED) ----
-    curves_local <- copy(curves)
-    
-    curves_local[, age_diff := abs(AC10 - age)]
-    curves_local <- curves_local[age_diff == min(age_diff)]
-    
-    # اگر هنوز چیزی نبود
-    if (nrow(curves_local) == 0) {
-      return(list(bestAU = NA, distance = NA))
-    }
-    
-    # ---- distance ----
-    curves_mat <- as.matrix(curves_local[, ..prop_cols])
-    cohort_mat <- matrix(cohort_vec, nrow = nrow(curves_mat), ncol = length(prop_cols), byrow = TRUE)
-    
-    dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
-    best_idx <- which.min(dists)
-    
-    list(
-      bestAU   = curves_local$AU[best_idx],
-      distance = dists[best_idx]
-    )
     
   }, by = pixelGroup]
   
