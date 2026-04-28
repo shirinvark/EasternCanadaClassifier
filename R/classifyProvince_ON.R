@@ -164,47 +164,45 @@ classifyProvince_ON <- function(sim) {
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
   
-  shp_path <- file.path(getPaths()$inputPath, "ON/ON_selected_regions.shp")
+  library(terra)
   
-  cat("Using shapefile:\n", shp_path, "\n")
+  on_dir <- file.path(getPaths()$inputPath, "ON")
+  dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
+  
+  base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/ON/"
+  
+  files <- c(
+    "ON_selected_regions.shp",
+    "ON_selected_regions.dbf",
+    "ON_selected_regions.shx",
+    "ON_selected_regions.prj"
+  )
+  
+  # ---- download ----
+  for (f in files) {
+    
+    dest <- file.path(on_dir, f)
+    
+    if (!file.exists(dest)) {
+      
+      cat("Downloading:", f, "\n")
+      
+      download.file(
+        paste0(base_url, f),
+        destfile = dest,
+        mode = "wb"
+      )
+    }
+  }
+  
+  # ---- load ----
+  shp_path <- file.path(on_dir, "ON_selected_regions.shp")
   
   if (!file.exists(shp_path)) {
-    stop("❌ shapefile not found in inputs/ON/")
+    stop("❌ shapefile not found after download")
   }
   
   shp <- terra::vect(shp_path)
-
-  # ---- align raster with shapefile ----
-  terra::ext(sim$pixelGroupMap) <- terra::ext(shp)
-  terra::crs(sim$pixelGroupMap) <- terra::crs(shp)
-  
-  # ---- rasterize ----
-  region_raster <- terra::rasterize(
-    shp,
-    sim$pixelGroupMap,
-    field = "SITEREGION"
-  )
-  
-  # ---- extract ----
-  pg  <- as.data.table(terra::values(sim$pixelGroupMap))
-  reg <- as.data.table(terra::values(region_raster))
-  
-  setnames(pg, names(pg), "pixelGroup")
-  setnames(reg, names(reg), "region")
-  
-  pixel_region <- cbind(pg, reg)
-  
-  pixel_region[, region := tolower(as.character(region))]
-  
-  pixel_region <- pixel_region[
-    !is.na(pixelGroup) & !is.na(region)
-  ]
-  
-  # ---- debug ----
-  cat("\n===== REGION TABLE =====\n")
-  print(table(pixel_region$region))
-  
-  sim$pixel_region <- pixel_region
   
   # =========================================================
   # 3. CLASSIFIER
