@@ -188,7 +188,15 @@ classifyProvince_ON <- function(sim) {
   unzip(zip_path, exdir = on_dir)
   
   # ---- find shapefile ----
-  shp_files <- list.files(on_dir, pattern = "\\.shp$", full.names = TRUE)
+  unzip(zip_path, exdir = on_dir)
+  
+  # ---- پیدا کردن shapefile در هر عمقی ----
+  shp_files <- list.files(
+    on_dir,
+    pattern = "\\.shp$",
+    full.names = TRUE,
+    recursive = TRUE
+  )
   
   if (length(shp_files) == 0) {
     stop("❌ No .shp file found after unzip")
@@ -198,7 +206,6 @@ classifyProvince_ON <- function(sim) {
   
   cat("Using shapefile:\n", shp_path, "\n")
   
-  # ---- load ----
   shp <- terra::vect(shp_path)
 
   # ---- align raster with shapefile ----
