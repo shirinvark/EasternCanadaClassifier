@@ -191,7 +191,11 @@ classifyProvince_ON <- function(sim) {
   
   shp <- terra::vect(shp_path)
   
+  cat("\n===== SHP PATH =====\n")
+  print(shp_path)
   
+  cat("\n===== SHP FIELDS =====\n")
+  print(names(shp))
   # =========================================================
   # BUILD pixel_region (MISSING PART - FIX)
   # =========================================================
