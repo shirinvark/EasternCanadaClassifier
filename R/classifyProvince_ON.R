@@ -188,7 +188,10 @@ classifyProvince_ON <- function(sim) {
     
     system(cmd)
   }
-  
+    cat("ZIP PATH:\n", zip_path, "\n")
+    cat("FILE EXISTS:", file.exists(zip_path), "\n")
+    cat("FILE SIZE:", file.info(zip_path)$size, "\n")
+    print(list.files(on_dir, full.names = TRUE))
   # ---- unzip تمیز ----
   unzip(zip_path, exdir = on_dir)
   
