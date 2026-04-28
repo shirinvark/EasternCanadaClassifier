@@ -164,42 +164,29 @@ classifyProvince_ON <- function(sim) {
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
   
-  library(terra)
-  
   on_dir <- file.path(getPaths()$inputPath, "ON")
-  dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
+  dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
   
-  base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/ON/"
-  
-  files <- c(
-    "ON_selected_regions.shp",
-    "ON_selected_regions.dbf",
-    "ON_selected_regions.shx",
-    "ON_selected_regions.prj"
-  )
-  
-  # ---- download ----
-  for (f in files) {
-    
-    dest <- file.path(on_dir, f)
-    
-    if (!file.exists(dest)) {
-      
-      cat("Downloading:", f, "\n")
-      
-      download.file(
-        paste0(base_url, f),
-        destfile = dest,
-        mode = "wb"
-      )
-    }
-  }
-  
-  # ---- load ----
   shp_path <- file.path(on_dir, "ON_selected_regions.shp")
   
   if (!file.exists(shp_path)) {
-    stop("❌ shapefile not found after download")
+    
+    base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/ON/"
+    
+    files <- c(
+      "ON_selected_regions.shp",
+      "ON_selected_regions.dbf",
+      "ON_selected_regions.shx",
+      "ON_selected_regions.prj"
+    )
+    
+    for (f in files) {
+      download.file(
+        paste0(base_url, f),
+        destfile = file.path(on_dir, f),
+        mode = "wb"
+      )
+    }
   }
   
   shp <- terra::vect(shp_path)
