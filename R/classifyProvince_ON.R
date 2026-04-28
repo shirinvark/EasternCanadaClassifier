@@ -211,7 +211,7 @@ classifyProvince_ON <- function(sim) {
   
   # ---- project shapefile to raster CRS ----
   shp <- terra::project(shp, terra::crs(sim$pixelGroupMap))
-  
+  shp <- terra::crop(shp, sim$pixelGroupMap)
   # ---- rasterize ----
   region_raster <- terra::rasterize(
     shp,
