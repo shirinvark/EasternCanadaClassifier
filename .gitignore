@@ -31,7 +31,10 @@ data/*
 !data/ON/
 !data/ON/speciesGroups_ON.txt
 !data/ON/mapSpeciesGroups.txt
-
+!data/ON/YTF/
+!data/ON/YTF/*
+!data/ON/YTF/
+!data/ON/combined_regions.zip/*
 # =========================================================
 # Modules (downloaded)
 # =========================================================
