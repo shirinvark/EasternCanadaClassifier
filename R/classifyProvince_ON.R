@@ -149,7 +149,7 @@ classifyProvince_ON <- function(sim) {
   yield_all <- rbindlist(results_list, fill = TRUE)
   yield_by_region <- split(yield_all, yield_all$zone)
   
-  
+  sim$yield_by_region <- yield_by_region
   
   
   # =========================================================
@@ -330,8 +330,7 @@ classifyProvince_ON <- function(sim) {
         list(bestAU = NA, distance = NA)
       } else {
         
-        curves <- yield_by_region[[region]]
-        
+        curves <- sim$yield_by_region[[region]]        
         age <- mean(.SD$age)
         
         curves[, age_diff := abs(AC10 - age)]
