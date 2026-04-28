@@ -167,30 +167,32 @@ classifyProvince_ON <- function(sim) {
   library(terra)
   library(googledrive)
   
+  # مسیر ذخیره
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
   
   zip_path <- file.path(on_dir, "ON_regions.zip")
   
-  # ---- download if not exists ----
+  # ---- دانلود از Google Drive ----
   if (!file.exists(zip_path)) {
     
-    cat("Downloading Ontario shapefile from Google Drive...\n")
+    cat("Downloading shapefile from Google Drive...\n")
     
     drive_download(
-      as_id("1NGIk43bbiYqFLuv-ZC-sex0bMcwTwj2y"),
+      as_id("1qvyH95onJNZKLZ_HZ8TF8A4R-1REJO1m"),
       path = zip_path,
       overwrite = TRUE
     )
   }
   
+  # ---- پاک کردن unzip قبلی ----
+  files_before <- list.files(on_dir, full.names = TRUE)
+  unlink(files_before[!grepl("\\.zip$", files_before)])
+  
   # ---- unzip ----
   unzip(zip_path, exdir = on_dir)
   
-  # ---- find shapefile ----
-  unzip(zip_path, exdir = on_dir)
-  
-  # ---- پیدا کردن shapefile در هر عمقی ----
+  # ---- پیدا کردن shapefile ----
   shp_files <- list.files(
     on_dir,
     pattern = "\\.shp$",
@@ -206,6 +208,7 @@ classifyProvince_ON <- function(sim) {
   
   cat("Using shapefile:\n", shp_path, "\n")
   
+  # ---- load ----
   shp <- terra::vect(shp_path)
 
   # ---- align raster with shapefile ----
