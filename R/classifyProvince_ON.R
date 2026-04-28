@@ -169,7 +169,7 @@ classifyProvince_ON <- function(sim) {
   on_dir  <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, showWarnings = FALSE, recursive = TRUE)
   
-  zip_path <- file.path(on_dir, "ON_regions.zip")
+    zip_path <- file.path(on_dir, "ON_selected_regions.zip")
   
   # ---- دانلود از Google Drive با کوکی (بدون لاگین) ----
   if (!file.exists(zip_path)) {
