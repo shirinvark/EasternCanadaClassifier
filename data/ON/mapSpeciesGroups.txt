@@ -1,19 +1,18 @@
 SB: blackSpruce_ON
 SW: spruce_ON
-
 BF: balsamFir_ON
 
 PJ: pine_ON
 PR: pine_ON
 PW: pine_ON
 
-PO: broadleaf_ON
-BW: broadleaf_ON
-YB: broadleaf_ON
-MH: broadleaf_ON
-QR: broadleaf_ON
 CE: broadleaf_ON
 OC: broadleaf_ON
 HE: broadleaf_ON
+PO: broadleaf_ON
 PB: broadleaf_ON
+BW: broadleaf_ON
+MH: broadleaf_ON
+QR: broadleaf_ON
+YB: broadleaf_ON
 OH: broadleaf_ON
