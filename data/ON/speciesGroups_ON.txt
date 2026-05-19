@@ -5,12 +5,14 @@ Pice_rub: spruce_ON
 
 Abie_bal: balsamFir_ON
 
-Pinu_ban: pine_ON
-Pinu_res: pine_ON
-Pinu_str: pine_ON
+Pinu_ban: pine_boreal_ON
+
+Pinu_res: pine_Temperate_ON
+Pinu_str: pine_Temperate_ON
 
 Lari_lar: otherConifer_ON
 Thuj_occ: otherConifer_ON
+Tsug_can: otherConifer_ON
 
 Popu_tre: broadleaf_boreal_ON
 Popu_bal: broadleaf_boreal_ON
@@ -20,3 +22,4 @@ Betu_all: broadleaf_temperate_ON
 Acer_sah: broadleaf_temperate_ON
 Acer_rub: broadleaf_temperate_ON
 Quer_rub: broadleaf_temperate_ON
+Fagu_gra: broadleaf_temperate_ON

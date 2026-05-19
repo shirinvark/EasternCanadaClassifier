@@ -160,7 +160,7 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Add zone ----
     dt_summary[, zone := submu]
-    
+   
     return(dt_summary)
   }
   
@@ -189,7 +189,11 @@ classifyProvince_ON <- function(sim) {
   
   sim$yield_by_region <- yield_by_region
   
+  if (is.null(sim$rawYieldTables)) {
+    sim$rawYieldTables <- list()
+  }
   
+  sim$rawYieldTables$ON <- yield_by_region
   # =========================================================
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
@@ -408,9 +412,50 @@ classifyProvince_ON <- function(sim) {
     pixelGroup,
     analysisUnit = bestAU
   )]
-  
+  sim$AUtoCurve <- unique(
+    results[, .(
+      AU = bestAU,
+      curveID = bestAU
+    )]
+  )
   # 🔥 area per AU
   sim$areaByAU <- sim$pixelGroupToAU[, .N, by = analysisUnit]
   setnames(sim$areaByAU, "N", "nPixels")
+  
+  # -------------------------------------------------------
+  # 🔥 COMPUTE pixel-level effective area (hectares)
+  # -------------------------------------------------------
+  
+  # cell area (ha)
+  cellArea_ha <- prod(terra::res(sim$pixelGroupMap)) / 10000
+  
+  # harvestable fraction raster → vector
+  hf <- as.vector(terra::values(sim$harvestableFraction))
+  
+  # pixelGroup raster → vector
+  pg <- as.vector(terra::values(sim$pixelGroupMap))
+  
+  # build table
+  pixel_area_dt <- data.table(
+    pixelGroup = pg,
+    harvestableFraction = hf
+  )
+  
+  # remove NA
+  pixel_area_dt <- pixel_area_dt[!is.na(pixelGroup)]
+  
+  # join with AU mapping
+  pixel_area_dt <- merge(
+    pixel_area_dt,
+    sim$pixelGroupToAU,
+    by = "pixelGroup",
+    all.x = TRUE
+  )
+  
+  # compute effective area
+  pixel_area_dt[, effectiveArea := harvestableFraction * cellArea_ha]
+  
+  # save in sim
+  sim$pixelAreaDT <- pixel_area_dt
   return(sim)
 }

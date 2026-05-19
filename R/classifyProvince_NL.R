@@ -267,6 +267,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   }
   
   yield_by_region <- curves_by_region
+  sim$rawYieldTables$NL <- yield_by_region
   cat("\n===== NUMBER OF CURVES PER REGION =====\n")
   print(lapply(yield_by_region, length))
   print("Regions found:")
@@ -528,7 +529,14 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   
   sim$analysisUnitDT <- pixelAgeWide   # Store detailed table
   sim$analysisUnitMap <- analysisUnitMap   # Store raster
-  
+  sim$AUtoCurve <- unique(
+    pixelAgeWide[
+      , .(
+        AU = AU_id,
+        curveID = bestCurve
+      )
+    ]
+  )
   # ---------------------------
   # area summary
   # ---------------------------
