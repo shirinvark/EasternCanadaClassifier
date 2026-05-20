@@ -248,7 +248,14 @@ standardizeYieldTables <- function(sim,
         
         for (sp_col in volume_cols) {
           
-          grp <- mapSpeciesGroups[[sp_col]]
+          if (!is.null(mapSpeciesGroups[[sp_col]])) {
+            
+            grp <- mapSpeciesGroups[[sp_col]]
+            
+          } else {
+            
+            grp <- sp_col
+          }
           
           reduced_dt[[grp]] <-
             reduced_dt[[grp]] +
