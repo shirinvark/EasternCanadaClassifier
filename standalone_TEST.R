@@ -65,3 +65,65 @@ print(head(sim$cohortData))      # fake cohort
 print(head(sim$pixelGroupToAU))  # mapping
 print(head(sim$areaByAU))        # area summary
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# =========================================================
+# LOAD STANDARDIZE FUNCTIONS
+# =========================================================
+
+source(
+  "E:/EasternCanadaClassifier/R/standardizeYieldCurve.R"
+)
+
+source(
+  "E:/EasternCanadaClassifier/R/standardizeYieldTables.R"
+)
+
+# ========================================================
+# CHECK
+# =========================================================
+
+exists("standardizeYieldCurve")
+
+exists("standardizeYieldTables")
+
+# =========================================================
+# RUN STANDARDIZATION
+# =========================================================
+
+yt <- standardizeYieldTables(sim)
+
+# =========================================================
+# CHECK OUTPUT
+# =========================================================
+
+names(yt)
+
+names(yt$ON)
+
+names(yt$ON$`3e`)
+
+head(yt$ON$`3e`[[1]])
+

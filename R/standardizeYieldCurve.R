@@ -31,7 +31,7 @@ standardizeYieldCurve <- function(
     volumes,
     maxAge = 200
 ){
-  # -------------------------------------------------------
+  # ------------------------------------------------------
   # assumptions:
   # - ages are sorted
   # - ages are unique

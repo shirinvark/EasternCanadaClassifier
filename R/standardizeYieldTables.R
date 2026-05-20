@@ -157,7 +157,7 @@ standardizeYieldTables <- function(sim,
         curve_dt <- curve_dt[
           order(get(age_col))
         ]
-        # -------------------------------------------------
+        # ------------------------------------------------
         # standardize each species column separately
         # -------------------------------------------------
         
