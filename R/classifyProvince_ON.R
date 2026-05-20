@@ -50,7 +50,9 @@ classifyProvince_ON <- function(sim) {
   
   groups    <- unique(unlist(mapSpeciesGroups))
   
-  
+  groups <- groups[!is.na(groups)]
+  groups <- groups[groups != ""]
+  print(groups)
   # =========================================================
   # 1. PROCESS ZONE FUNCTION
   # =========================================================
@@ -335,7 +337,7 @@ classifyProvince_ON <- function(sim) {
   # normalize to proportions
   group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
   prop_cols <- intersect(groups, group_cols)
-  
+  prop_cols <- prop_cols[!is.na(prop_cols)]
   if (length(prop_cols) == 0) {
     stop("❌ No matching species groups between cohort and yield")
   }
