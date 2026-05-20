@@ -138,20 +138,6 @@ standardizeYieldTables <- function(sim,
           exclude_cols
         )
         
-        # -------------------------------------------------
-        # exclude non-volume numeric columns
-        # -------------------------------------------------
-        
-        exclude_cols <- c(
-          "CURVENO",
-          age_col,
-          "total"
-        )
-        
-        volume_cols <- setdiff(
-          numeric_cols,
-          exclude_cols
-        )
         
         # -------------------------------------------------
         # -------------------------------------------------
