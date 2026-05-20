@@ -148,10 +148,6 @@ Init <- function(sim) {
   
   sim <- get(fun_name, mode = "function")(sim)
   
-  sim$yieldTables <- standardizeYieldTables(
-    sim = sim
-  )
-  
   return(sim)
 }
 
