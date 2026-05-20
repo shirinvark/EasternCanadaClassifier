@@ -258,7 +258,7 @@ classifyProvince_ON <- function(sim) {
     field = "SITEREGION",
     touches = TRUE
   )
-  
+  print(unique(terra::values(region_raster)))
   # ---- extract values ----
   pg  <- as.data.table(terra::values(sim$pixelGroupMap))
   reg <- as.data.table(terra::values(region_raster))
@@ -267,10 +267,12 @@ classifyProvince_ON <- function(sim) {
   setnames(reg, names(reg), "region")
   
   pixel_region <- cbind(pg, reg)
-  
+  ########################################################
+  ####it is temporary and just for fake data
+  pixel_region[, region := "3e"]
   # ---- clean ----
-  pixel_region[, region := tolower(as.character(region))]
-  
+  #pixel_region[, region := tolower(as.character(region))]
+ ##############################################################3 
   pixel_region <- pixel_region[
     !is.na(pixelGroup) & !is.na(region)
   ]
