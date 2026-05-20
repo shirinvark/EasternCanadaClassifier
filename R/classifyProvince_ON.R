@@ -269,6 +269,7 @@ classifyProvince_ON <- function(sim) {
   pixel_region <- cbind(pg, reg)
   ########################################################
   ####it is temporary and just for fake data
+  pixel_region[, region := as.character(region)]
   pixel_region[, region := "3e"]
   # ---- clean ----
   #pixel_region[, region := tolower(as.character(region))]
@@ -383,8 +384,12 @@ classifyProvince_ON <- function(sim) {
         } else {
           
           curves_mat <- as.matrix(curves[, ..prop_cols])
-          cohort_mat <- matrix(cohort_vec, nrow = nrow(curves_mat), byrow = TRUE)
-          
+          cohort_mat <- matrix(
+            cohort_vec,
+            nrow = nrow(curves_mat),
+            ncol = length(cohort_vec),
+            byrow = TRUE
+          )          
           dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
           best_idx <- which.min(dists)
           
