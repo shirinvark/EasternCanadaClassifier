@@ -163,8 +163,17 @@ standardizeYieldTables <- function(sim,
         
         species_tables <- list()
         
-        for (sp_col in volume_cols) {
+        if (nrow(curve_dt) < 2) {
           
+          message(
+            "Skipping curve with <2 rows: ",
+            cid
+          )
+          
+          next
+        }
+        
+        for (sp_col in volume_cols) {
           yt_standard <- standardizeYieldCurve(
             ages = curve_dt[[age_col]],
             volumes = curve_dt[[sp_col]],
