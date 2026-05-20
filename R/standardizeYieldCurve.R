@@ -1,6 +1,6 @@
 # =========================================================
 # STANDARDIZE YIELD CURVE
-# ---------------------------------------------------------
+# ------------------------------------------------------
 # Converts yield tables with irregular age classes
 # (e.g. 5-year, 10-year, mixed intervals)
 # into a standardized annual time-step format.
