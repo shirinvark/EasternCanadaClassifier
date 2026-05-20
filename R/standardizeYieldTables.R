@@ -25,6 +25,16 @@
 standardizeYieldTables <- function(sim,
                                    maxAge = 200) {
   
+  print("===== START STANDARDIZE =====")
+  
+  print(names(sim$rawYieldTables))
+  
+  print(names(sim$rawYieldTables$ON))
+  
+  print(class(sim$rawYieldTables$ON$`3e`))
+  
+  print(head(sim$rawYieldTables$ON$`3e`))
+  
   # -------------------------------------------------------
   # raw processed yield tables
   # -------------------------------------------------------
@@ -76,14 +86,38 @@ standardizeYieldTables <- function(sim,
         curve_dt <- region_tables[
           CURVENO == cid
         ]
+        print("===== DEBUG STANDARDIZE =====")
         
+        print(jur)
+        
+        print(reg)
+        
+        print(cid)
+        
+        print(class(curve_dt))
+        
+        print(dim(curve_dt))
+        
+        print(names(curve_dt))
+        
+        print(head(curve_dt))
         # -------------------------------------------------
         # first column assumed to be ages
         # -------------------------------------------------
         
-        age_col <- names(curve_dt)[
-          grepl("age", names(curve_dt), ignore.case = TRUE)
-        ][1]        
+        age_candidates <- names(curve_dt)[
+          grepl(
+            "age|ac10",
+            names(curve_dt),
+            ignore.case = TRUE
+          )
+        ]
+        
+        age_col <- age_candidates[1]
+        
+        if (is.na(age_col)) {
+          stop("No age column found")
+        }       
         # -------------------------------------------------
         # numeric columns
         # -------------------------------------------------
@@ -91,6 +125,18 @@ standardizeYieldTables <- function(sim,
         numeric_cols <- names(curve_dt)[
           sapply(curve_dt, is.numeric)
         ]
+        
+        exclude_cols <- c(
+          "CURVENO",
+          age_col,
+          "total",
+          "age_diff"
+        )
+        
+        volume_cols <- setdiff(
+          numeric_cols,
+          exclude_cols
+        )
         
         # -------------------------------------------------
         # exclude non-volume numeric columns

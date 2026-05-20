@@ -47,7 +47,7 @@ classifyProvince_ON <- function(sim) {
   }
   speciesGroups <- read_curve_mapping(file.path(on_dir, "speciesGroups_ON.txt"))
   mapSpeciesGroups <- read_curve_mapping(file.path(on_dir, "mapSpeciesGroups.txt"))
-  
+  sim$mapSpeciesGroups <- mapSpeciesGroups
   groups    <- unique(unlist(mapSpeciesGroups))
   
   groups <- groups[!is.na(groups)]
