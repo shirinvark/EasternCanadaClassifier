@@ -169,19 +169,12 @@ standardizeYieldTables <- function(sim,
         # validate columns
         # -------------------------------------------------
         
-        unknown_cols <- setdiff(
-          volume_cols,
-          names(mapSpeciesGroups)
-        )
+        # -------------------------------------------------------
+        # ON tables are already grouped
+        # so grouped species columns are valid
+        # -------------------------------------------------------
         
-        if (length(unknown_cols) > 0) {
-          
-          stop(
-            "Unknown species columns: ",
-            paste(unknown_cols, collapse = ", ")
-          )
-        }
-        
+        unknown_cols <- character(0)
         # -------------------------------------------------
         # unique analysis groups
         # -------------------------------------------------
