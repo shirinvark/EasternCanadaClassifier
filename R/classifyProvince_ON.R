@@ -252,12 +252,10 @@ classifyProvince_ON <- function(sim) {
   print(ext(sim$pixelGroupMap))
   print(ext(shp))
   # ---- rasterize ----
-  region_field <- which(names(shp) == "SITEREGION")
-  
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
-    field = region_field,
+    field = "SITEREGION",
     touches = TRUE
   )
   
