@@ -21,9 +21,9 @@
 # Linear interpolation is used between observed
 # yield table ages.
 #
-# rule = 2:
-# Extends the last observed volume value beyond
-# the maximum supplied age up to maxAge.
+# rule = 1:
+# values outside observed age range become NA
+# and are later converted to 0
 # =========================================================
 
 standardizeYieldCurve <- function(
@@ -42,8 +42,14 @@ standardizeYieldCurve <- function(
     y = volumes,
     xout = 1:maxAge,
     method = "linear",
-    rule = 2
+    rule = 1
   )$y
+  # -------------------------------------------------------
+  # replace ages outside observed range with 0
+  # -------------------------------------------------------
+  
+  annual[is.na(annual)] <- 0
+  
   # -------------------------------------------------------
   # prevent negative interpolated values
   # -------------------------------------------------------
