@@ -202,74 +202,23 @@ standardizeYieldTables <- function(sim,
         
         
         # -------------------------------------------------
-        # map species columns to analysis groups
+        # -------------------------------------------------
+        # remove all-zero species columns
         # -------------------------------------------------
         
-        mapSpeciesGroups <- sim$mapSpeciesGroups        
-        # -------------------------------------------------
-        # validate columns
-        # -------------------------------------------------
-        
-        # -------------------------------------------------------
-        # ON tables are already grouped
-        # so grouped species columns are valid
-        # -------------------------------------------------------
-        
-        unknown_cols <- character(0)
-        # -------------------------------------------------
-        # unique analysis groups
-        # -------------------------------------------------
-        
-        group_names <- unique(
-          unname(mapSpeciesGroups)
-        )
-        
-        # -------------------------------------------------
-        # initialize reduced table
-        # -------------------------------------------------
-        
-        reduced_dt <- data.table(
-          age = yt_standard$age
-        )
-        
-        for (grp in group_names) {
-          
-          reduced_dt[[grp]] <- 0
-        }
-        
-        # -------------------------------------------------
-        # aggregate species into groups
-        # -------------------------------------------------
-        
-        for (sp_col in volume_cols) {
-          
-          if (!is.null(mapSpeciesGroups[[sp_col]])) {
-            
-            grp <- mapSpeciesGroups[[sp_col]]
-            
-          } else {
-            
-            grp <- sp_col
-          }
-          
-          reduced_dt[[grp]] <-
-            reduced_dt[[grp]] +
-            yt_standard[[sp_col]]
-        }
-        
-        # -------------------------------------------------
-        # remove all-zero groups
-        # -------------------------------------------------
-        
-        keep_species <- names(reduced_dt)[
-          names(reduced_dt) != "age" &
+        keep_species <- names(yt_standard)[
+          names(yt_standard) != "age" &
             sapply(
-              reduced_dt[, !("age"), with = FALSE],
+              yt_standard[
+                ,
+                setdiff(names(yt_standard), "age"),
+                with = FALSE
+              ],
               function(x) any(x > 0)
             )
         ]
         
-        reduced_dt <- reduced_dt[
+        reduced_dt <- yt_standard[
           ,
           c("age", keep_species),
           with = FALSE
