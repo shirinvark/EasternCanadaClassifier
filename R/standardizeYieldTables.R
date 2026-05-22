@@ -23,7 +23,7 @@
 # =========================================================
 
 standardizeYieldTables <- function(sim,
-                                   maxAge = 200) {
+                                   maxAge = 250) {
   
   print("===== START STANDARDIZE =====")
   
