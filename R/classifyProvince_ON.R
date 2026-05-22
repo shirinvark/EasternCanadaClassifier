@@ -114,7 +114,7 @@ classifyProvince_ON <- function(sim) {
     dt[, total := rowSums(.SD, na.rm = TRUE), .SDcols = species_cols]
     dt <- dt[total > 0]
     
-    dt[, (species_cols) := lapply(.SD, function(x) x / total), .SDcols = species_cols]
+   # dt[, (species_cols) := lapply(.SD, function(x) x / total), .SDcols = species_cols]
     
     # ---- Initialize group columns ----
     for (g in groups) {
@@ -151,8 +151,8 @@ classifyProvince_ON <- function(sim) {
     dt_summary[, total := rowSums(.SD), .SDcols = groups]
     dt_summary <- dt_summary[total > 0]
     
-    dt_summary[, (groups) := lapply(.SD, function(x) x / total),
-               .SDcols = groups]
+  #  dt_summary[, (groups) := lapply(.SD, function(x) x / total),
+      #         .SDcols = groups]
     
     # ---- Remove NA ----
     dt_summary <- dt_summary[complete.cases(dt_summary[, ..groups])]
