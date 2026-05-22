@@ -1,3 +1,4 @@
+
 Pice_mar: blackSpruce_ON
 
 Pice_gla: spruce_ON
@@ -7,8 +8,8 @@ Abie_bal: balsamFir_ON
 
 Pinu_ban: pine_boreal_ON
 
-Pinu_res: pine_Temperate_ON
-Pinu_str: pine_Temperate_ON
+Pinu_res: pine_temperate_ON
+Pinu_str: pine_temperate_ON
 
 Lari_lar: otherConifer_ON
 Thuj_occ: otherConifer_ON
