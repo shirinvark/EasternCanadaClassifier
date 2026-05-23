@@ -511,10 +511,19 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   pixelGroupMap <- sim$pixelGroupMap   # Base raster
   
-  lookup <- pixelAgeWide[, .(pixelGroup, bestCurve)]   # Lookup table
-  
+ # lookup <- pixelAgeWide[, .(pixelGroup, bestCurve)]   # Lookup table
+  lookup <- unique(
+    pixelAgeWide[
+      , .(pixelGroup, bestCurve)
+    ]
+  )
   lookup[, AU_id := as.numeric(as.factor(bestCurve))]   # Convert curves to numeric IDs
-  
+  pixelAgeWide <- merge(
+    pixelAgeWide,
+    lookup,
+    by = c("pixelGroup", "bestCurve"),
+    all.x = TRUE
+  )
   analysisUnitMap <- pixelGroupMap   # Initialize output raster
   vals <- terra::values(pixelGroupMap)   # Extract pixel values
   

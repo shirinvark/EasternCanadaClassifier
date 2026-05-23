@@ -40,7 +40,7 @@ sim <- simInit(
   
   params = list(
     EasternCanadaClassifier = list(
-      jurisdiction = "ON"
+      jurisdiction = "NL"
     )
   ),
   
@@ -125,5 +125,57 @@ names(yt$ON)
 
 names(yt$ON$`3e`)
 
-head(yt$ON$`3e`[[1]])
+max(
+  sim$rawYieldTables$ON$`3e`[
+    CURVENO == 1
+  ]$AC10
+)
 
+
+raw <- sim$rawYieldTables$ON$`3e`[
+  CURVENO == 1
+]
+
+plot(
+  yt$ON$`3e`[[1]]$age,
+  yt$ON$`3e`[[1]]$pine_boreal_ON,
+  type = "l",
+  lwd = 2
+)
+
+points(
+  raw$AC10,
+  raw$pine_boreal_ON,
+  pch = 16
+)
+
+
+
+all(
+  diff(yt$ON$`3e`[[1]]$age) == 1
+)
+
+
+tmp <- copy(yt$ON$`3e`[[1]])
+
+tmp[
+  ,
+  total := rowSums(.SD),
+  .SDcols = setdiff(names(tmp), "age")
+]
+
+plot(
+  tmp$age,
+  tmp$total,
+  type = "l",
+  lwd = 2
+)
+
+
+all(
+  diff(yt$ON$`3e`[[1]]$age) == 1
+)
+tail(
+  diff(tmp$total),
+  20
+)
