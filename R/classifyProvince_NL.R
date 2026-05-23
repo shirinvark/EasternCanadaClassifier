@@ -482,7 +482,14 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     )
     
     if (!region_i %in% names(yield_by_region)) {
-      region_i <- region_map[[region_i]]
+      
+      mapped_region <- region_map[[region_i]]
+      
+      if (is.null(mapped_region)) {
+        return(NA)
+      }
+      
+      region_i <- mapped_region
     }    
     region_curves <- yield_by_region[[region_i]]
     
