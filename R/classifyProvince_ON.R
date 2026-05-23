@@ -426,7 +426,11 @@ classifyProvince_ON <- function(sim) {
     )]
   )
   # 🔥 area per AU
-  sim$areaByAU <- sim$pixelGroupToAU[, .N, by = analysisUnit]
+  sim$areaByAU <- sim$pixelGroupToAU[
+    ,
+    .N,
+    by = .(AU = analysisUnit)
+  ]
   setnames(sim$areaByAU, "N", "nPixels")
   
   # -------------------------------------------------------

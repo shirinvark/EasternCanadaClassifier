@@ -40,7 +40,7 @@ sim <- simInit(
   
   params = list(
     EasternCanadaClassifier = list(
-      jurisdiction = "NL"
+      jurisdiction = "ON"
     )
   ),
   
@@ -119,6 +119,8 @@ yt <- standardizeYieldTables(sim)
 # CHECK OUTPUT
 # =========================================================
 
+
+#ON
 names(yt)
 
 names(yt$ON)
@@ -205,3 +207,23 @@ plot(
   type = "l",
   lwd = 2
 )
+tmp <- copy(
+  yt$NL$NPen$BarNS_sub_all
+)
+
+tmp[
+  ,
+  total := rowSums(
+    .SD
+  ),
+  .SDcols = setdiff(names(tmp), "age")
+]
+plot(
+  tmp$age,
+  tmp$total,
+  type = "l",
+  lwd = 2
+)
+tmp[
+  which.max(total)
+]
