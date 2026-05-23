@@ -150,16 +150,19 @@ standardizeYieldTables <- function(sim,
           # remove zero columns
           # -------------------------------------------------
           
-          keep_species <- names(yt_standard)[
-            names(yt_standard) != "age" &
-              sapply(
-                yt_standard[
-                  ,
-                  setdiff(names(yt_standard), "age"),
-                  with = FALSE
-                ],
-                function(x) any(x > 0)
-              )
+          species_cols <- setdiff(
+            names(yt_standard),
+            "age"
+          )
+          
+          keep_species <- species_cols[
+            sapply(
+              yt_standard[
+                ,
+                ..species_cols
+              ],
+              function(x) any(x > 0)
+            )
           ]
           
           reduced_dt <- yt_standard[

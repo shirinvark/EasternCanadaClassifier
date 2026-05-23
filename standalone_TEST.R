@@ -179,3 +179,29 @@ tail(
   diff(tmp$total),
   20
 )
+
+
+
+
+
+
+
+####NL
+names(yt)
+
+names(yt$NL)
+
+names(yt$NL$NPen)
+head(
+  yt$NL$NPen$BarNS_sub_all
+)
+
+tail(
+  yt$NL$NPen$BarNS_sub_all
+)
+plot(
+  yt$NL$NPen$BarNS_sub_all$age,
+  yt$NL$NPen$BarNS_sub_all$blackSpruce_NL,
+  type = "l",
+  lwd = 2
+)
