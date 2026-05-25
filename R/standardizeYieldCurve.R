@@ -32,7 +32,7 @@
 standardizeYieldCurve <- function(
     ages,
     volumes,
-    maxAge = 250
+    maxAge = 200
 ){
   # ------------------------------------------------------
   # assumptions:
