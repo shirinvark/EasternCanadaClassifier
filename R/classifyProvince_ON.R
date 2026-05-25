@@ -378,7 +378,7 @@ classifyProvince_ON <- function(sim) {
         
         curves[, age_diff := abs(AC10 - age)]
         curves <- curves[age_diff == min(age_diff)]
-        
+        curves[, age_diff := NULL]
         if (nrow(curves) == 0) {
           list(bestAU = NA, distance = NA)
         } else {
