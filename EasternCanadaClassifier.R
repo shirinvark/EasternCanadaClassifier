@@ -290,7 +290,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading ON yield (YTF) files")
     
-    ytf_dir <- file.path("data", "ON", "YTF")
+    ytf_dir <- file.path(
+      getPaths()$inputPath,
+      "ON",
+      "YTF"
+    )
     
     if (!dir.exists(ytf_dir)) {
       stop("Directory not found: ", ytf_dir)
