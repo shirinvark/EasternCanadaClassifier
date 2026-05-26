@@ -228,7 +228,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     terra::crs(sim$pixelGroupMap) <- terra::crs(ycf_vect)  # Assign CRS
   }
   ####just for now
-  ycf_vect <- terra::project(ycf_vect, sim$pixelGroupMap)  # Reproject to match raster
+  #ycf_vect <- terra::project(ycf_vect, sim$pixelGroupMap)  # Reproject to match raster
   #ycf_vect <- terra::crop(ycf_vect, sim$pixelGroupMap)     # Crop to extent
   
   ycf_vect$YCF <- as.factor(ycf_vect$YCF)   # Ensure YCF is factor
