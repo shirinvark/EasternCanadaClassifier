@@ -23,7 +23,7 @@
 # =========================================================
 
 standardizeYieldTables <- function(sim,
-                                   maxAge = 250) {
+                                   maxAge = 255) {
   
   print("===== START STANDARDIZE =====")
   
@@ -165,11 +165,7 @@ standardizeYieldTables <- function(sim,
             )
           ]
           
-          reduced_dt <- yt_standard[
-            ,
-            c("age", keep_species),
-            with = FALSE
-          ]
+          reduced_dt <- yt_standard
           
           # -------------------------------------------------
           # store
@@ -316,24 +312,28 @@ standardizeYieldTables <- function(sim,
         # remove all-zero species columns
         # -------------------------------------------------
         
-        keep_species <- names(yt_standard)[
-          names(yt_standard) != "age" &
-            sapply(
-              yt_standard[
-                ,
-                setdiff(names(yt_standard), "age"),
-                with = FALSE
-              ],
-              function(x) any(x > 0)
-            )
+        # remove all-zero species columns
+        
+        species_cols <- setdiff(
+          names(yt_standard),
+          "age"
+        )
+        
+        keep_species <- species_cols[
+          sapply(
+            yt_standard[
+              ,
+              ..species_cols
+            ],
+            function(x) any(x > 0)
+          )
         ]
         
         reduced_dt <- yt_standard[
           ,
           c("age", keep_species),
           with = FALSE
-        ]
-        # -------------------------------------------------
+        ]        # -------------------------------------------------
         # -------------------------------------------------
         
        # yt_standard <- standardizeYieldCurve(
