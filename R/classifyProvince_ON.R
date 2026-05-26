@@ -456,7 +456,10 @@ classifyProvince_ON <- function(sim) {
     pixelGroup = pg,
     harvestableFraction = hf
   )
-  
+  pixel_area_dt <- unique(
+    pixel_area_dt,
+    by = "pixelGroup"
+  )
   # remove NA
   pixel_area_dt <- pixel_area_dt[!is.na(pixelGroup)]
   
