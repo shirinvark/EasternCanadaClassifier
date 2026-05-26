@@ -279,7 +279,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading NL yield (.yld) files")
     
-    yld_dir <- file.path("data", "NL", "YTF")
+    yld_dir <- "modules/EasternCanadaClassifier/data/NL/YTF"
     
     if (!dir.exists(yld_dir)) {
       stop("Directory not found: ", yld_dir)
@@ -303,11 +303,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading ON yield (YTF) files")
     
-    ytf_dir <- file.path(
-      getPaths()$inputPath,
-      "ON",
-      "YTF"
-    )
+    ytf_dir <- "modules/EasternCanadaClassifier/inputs/ON/YTF"
     
     if (!dir.exists(ytf_dir)) {
       stop("Directory not found: ", ytf_dir)
