@@ -54,7 +54,9 @@ parse_curve <- function(curve_lines) {  # Function to parse .yld curve lines int
   current_sp <- NULL                   # Variable to track current species
   
   for (line in curve_lines) {          # Loop through each line of the file
-    
+    if (grepl("^\\*Y", line) && length(res) > 0) {
+      break
+    }
     line <- trimws(line)               # Remove leading/trailing whitespace
     if (line == "") next               # Skip empty lines
     
