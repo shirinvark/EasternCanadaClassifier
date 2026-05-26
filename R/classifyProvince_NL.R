@@ -301,8 +301,8 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     data.table::setalloccol(dt_curve)
     for (sp in names(curve_data)) {
       
-      #dt_curve[[sp]] <- curve_data[[sp]]
-      dt_curve[[sp]] <- rev(curve_data[[sp]])
+      dt_curve[[sp]] <- curve_data[[sp]]
+     # dt_curve[[sp]] <- rev(curve_data[[sp]])
     }
     
     dt_curve[, AU := curve_name]
