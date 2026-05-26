@@ -417,6 +417,7 @@ classifyProvince_ON <- function(sim) {
           cat("\n===== COHORT MAT =====\n")
           print(dim(cohort_mat))
           print(head(cohort_mat))
+          browser()
           dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
           best_idx <- which.min(dists)
           
