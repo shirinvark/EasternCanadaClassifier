@@ -311,6 +311,8 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     #dt_curve[, AU := curve_name]
     
     #dt_curve[, zone := region]
+    data.table::setDT(dt_curve)
+    data.table::setalloccol(dt_curve)
     data.table::set(
       dt_curve,
       j = "AU",
