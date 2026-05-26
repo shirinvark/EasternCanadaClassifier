@@ -483,7 +483,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # ---------------------------
   # test best curve
-  # ---------------------------
+  # -------------
   
   if (nrow(pixelAgeWide) == 0) {
     stop("pixelAgeWide is empty")
