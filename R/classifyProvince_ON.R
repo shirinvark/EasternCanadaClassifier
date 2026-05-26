@@ -407,8 +407,10 @@ classifyProvince_ON <- function(sim) {
           ]
           
           
-          rm(..prop_cols)
-          curves_mat <- as.matrix(curves[, ..prop_cols])
+          curves_mat <- as.matrix(
+            curves[, prop_cols, with = FALSE]
+          )
+          
           cohort_mat <- matrix(
             cohort_vec,
             nrow = nrow(curves_mat),
