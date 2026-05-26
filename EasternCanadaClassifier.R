@@ -154,13 +154,26 @@ Init <- function(sim) {
 
 
 doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
+  
   switch(
+    
     eventType,
+    
     init = {
+      
       sim <- Init(sim)
+      
+      # ===================================================
+      # build standardized annual yield tables
+      # ===================================================
+      
+      sim$yieldTables <- standardizeYieldTables(sim)
+      
     },
+    
     warning(noEventWarning(sim))
   )
+  
   invisible(sim)
 }
 
