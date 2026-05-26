@@ -303,7 +303,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading ON yield (YTF) files")
     
-    ytf_dir <- "modules/EasternCanadaClassifier/inputs/ON/YTF"
+    ytf_dir <- "modules/EasternCanadaClassifier/data/ON/YTF"
     
     if (!dir.exists(ytf_dir)) {
       stop("Directory not found: ", ytf_dir)
