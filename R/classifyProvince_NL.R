@@ -48,7 +48,7 @@ rewrite_yld_curve <- function(curve_data, mapGroups) {
   return(new_curve)
 }
 #--------------------------------
-parse_curve <- function(curve_lines) {  # Function to parse .yld curve lines into species-wise vectors.
+parse_curve <- function(curve_lines) {  # Function to parse .yld curve lines into species-wise vectors.3  ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷
   
   res <- list()                        # Initialize output list to store species data
   current_sp <- NULL                   # Variable to track current species

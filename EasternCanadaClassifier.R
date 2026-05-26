@@ -321,12 +321,18 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     module_path <- getOption("spades.modulePath")
     
-    yld_dir <- file.path(
-      currentModule(sim),
-      "data",
-      "NL",
-      "YTF"
+    yld_dir <- normalizePath(
+      file.path(
+        getOption("spades.modulePath"),
+        "data",
+        "NL",
+        "YTF"
+      ),
+      mustWork = FALSE
     )
+    
+    print(yld_dir)
+    dir.exists(yld_dir)
     
     if (!dir.exists(yld_dir)) {
       stop("Directory not found: ", yld_dir)
