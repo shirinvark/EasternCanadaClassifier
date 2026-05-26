@@ -394,7 +394,12 @@ classifyProvince_ON <- function(sim) {
             nrow = nrow(curves_mat),
             ncol = length(cohort_vec),
             byrow = TRUE
-          )          
+          )  
+          print(prop_cols)
+          
+          print(head(curves_mat))
+          
+          print(cohort_mat)
           dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
           best_idx <- which.min(dists)
           
