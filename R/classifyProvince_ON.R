@@ -215,7 +215,7 @@ classifyProvince_ON <- function(sim) {
   
   shp_path <- file.path(
     on_dir,
-    "ON_selected_regions.shp"
+    "combined_regions.shp"
   )
   
   if (!file.exists(shp_path)) {
