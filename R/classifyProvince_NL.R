@@ -492,6 +492,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   age_val <- pixelAgeWide$age[1]
   p <- as.numeric(pixelAgeWide[1, ..cols])
   
+  print(cols)
   best <- find_best_curve(
     p,
     region_curves,
