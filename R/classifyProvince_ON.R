@@ -211,26 +211,31 @@ classifyProvince_ON <- function(sim) {
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
   
-  shp_path <- file.path(on_dir, "ON_selected_regions.shp")
+  zip_path <- file.path(on_dir, "combined_regions.zip")
+  
+  shp_path <- file.path(
+    on_dir,
+    "ON_selected_regions.shp"
+  )
   
   if (!file.exists(shp_path)) {
     
-    base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/ON/"
-    
-    files <- c(
-      "ON_selected_regions.shp",
-      "ON_selected_regions.dbf",
-      "ON_selected_regions.shx",
-      "ON_selected_regions.prj"
+    zip_url <- paste0(
+      "https://raw.githubusercontent.com/",
+      "shirinvark/EasternCanadaClassifier/main/",
+      "data/ON/combined_regions.zip"
     )
     
-    for (f in files) {
-      download.file(
-        paste0(base_url, f),
-        destfile = file.path(on_dir, f),
-        mode = "wb"
-      )
-    }
+    download.file(
+      zip_url,
+      destfile = zip_path,
+      mode = "wb"
+    )
+    
+    unzip(
+      zip_path,
+      exdir = on_dir
+    )
   }
   
   shp <- terra::vect(shp_path)
