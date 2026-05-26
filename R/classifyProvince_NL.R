@@ -269,6 +269,9 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     
     #curve_data <- parse_curve(lines)
     curve_data_raw <- parse_curve(lines)
+    print(curve_data_raw[[1]])
+    print(head(curve_data_raw[[1]]))
+    print(tail(curve_data_raw[[1]]))
     
     mapGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
     cols <- unique(unlist(mapSpeciesGroups))
