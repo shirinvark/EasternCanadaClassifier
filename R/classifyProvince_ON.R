@@ -388,6 +388,26 @@ classifyProvince_ON <- function(sim) {
           list(bestAU = NA, distance = NA)
         } else {
           
+          curves[
+            ,
+            total_prop := rowSums(
+              .SD,
+              na.rm = TRUE
+            ),
+            .SDcols = prop_cols
+          ]
+          
+          curves[
+            ,
+            (prop_cols) := lapply(
+              .SD,
+              function(x) x / total_prop
+            ),
+            .SDcols = prop_cols
+          ]
+          
+          
+          
           curves_mat <- as.matrix(curves[, ..prop_cols])
           cohort_mat <- matrix(
             cohort_vec,
@@ -395,29 +415,7 @@ classifyProvince_ON <- function(sim) {
             ncol = length(cohort_vec),
             byrow = TRUE
           )  
-          print(prop_cols)
-          
-          print(head(curves_mat))
-          
-          print(cohort_mat)
-          cat("\n===== DEBUG =====\n")
-          
-          print(prop_cols)
-          
-          cat("\n===== CURVES =====\n")
-          print(head(curves))
-          
-          cat("\n===== COHORT VEC =====\n")
-          print(cohort_vec)
-          
-          cat("\n===== CURVES MAT =====\n")
-          print(dim(curves_mat))
-          print(head(curves_mat))
-          
-          cat("\n===== COHORT MAT =====\n")
-          print(dim(cohort_mat))
-          print(head(cohort_mat))
-          browser()
+        
           dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
           best_idx <- which.min(dists)
           
