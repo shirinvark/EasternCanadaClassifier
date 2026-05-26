@@ -217,14 +217,54 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     message("Creating fake cohortData")
     
     sim$cohortData <- data.table::data.table(
-      pixelGroup = sample(1:20, 200, replace = TRUE),
-      speciesCode = sample(
-        c("Abie_bal","Pice_mar","Pinu_ban","Pinu_res","Pinu_str","Acer_sah"),
-        200,
-        replace = TRUE
+      
+      pixelGroup = c(
+        1,1,1,
+        2,2,2,
+        3,3,3,
+        4,4,4,
+        5,5,5,
+        6,6,6
       ),
-      age = sample(1:120, 200, replace = TRUE),
-      B = runif(200, 1, 50)
+      
+      speciesCode = c(
+        
+        # black spruce dominated
+        "Pice_mar","Abie_bal","Pinu_ban",
+        
+        # pine dominated
+        "Pinu_res","Pinu_str","Acer_sah",
+        
+        # cedar / hemlock
+        "Thuj_occ","Tsug_can","Acer_sah",
+        
+        # boreal broadleaf
+        "Betu_pap","Popu_tre","Pice_mar",
+        
+        # mixedwood
+        "Pice_gla","Abie_bal","Betu_all",
+        
+        # tolerant hardwood
+        "Acer_sah","Quer_rub","Fagu_gra"
+      ),
+      
+      age = c(
+        80,80,80,
+        60,60,60,
+        120,120,120,
+        50,50,50,
+        70,70,70,
+        100,100,100
+      ),
+      
+      B = c(
+        70,20,10,
+        50,40,10,
+        60,30,10,
+        40,40,20,
+        40,30,30,
+        50,30,20
+      )
     )
   }
   
