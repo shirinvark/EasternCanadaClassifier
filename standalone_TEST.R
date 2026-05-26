@@ -40,7 +40,7 @@ sim <- simInit(
   
   params = list(
     EasternCanadaClassifier = list(
-      jurisdiction = "ON"
+      jurisdiction = "NL"
     )
   ),
   
@@ -64,30 +64,6 @@ sim <- spades(sim)
 print(head(sim$cohortData))      # fake cohort
 print(head(sim$pixelGroupToAU))  # mapping
 print(head(sim$areaByAU))        # area summary
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # =========================================================
 # LOAD STANDARDIZE FUNCTIONS
@@ -118,112 +94,248 @@ yt <- standardizeYieldTables(sim)
 # =========================================================
 # CHECK OUTPUT
 # =========================================================
+sim$rawYieldTables$ON$`3e`[
+  ,
+  list(
+    max_otherConifer =
+      max(otherConifer_ON, na.rm = TRUE)
+  ),
+  by = FU
+][
+  order(-max_otherConifer)
+]
 
 
-#ON
-names(yt)
 
-names(yt$ON)
-
-names(yt$ON$`3e`)
-
-max(
-  sim$rawYieldTables$ON$`3e`[
-    CURVENO == 1
-  ]$AC10
+lapply(
+  sim$rawYieldTables$ON,
+  function(x) {
+    
+    x[
+      ,
+      .(
+        max_otherConifer =
+          max(otherConifer_ON, na.rm = TRUE)
+      ),
+      by = FU
+    ][
+      order(-max_otherConifer)
+    ]
+    
+  }
 )
 
 
-raw <- sim$rawYieldTables$ON$`3e`[
+
+
+#####
+curve_dt <- sim$rawYieldTables$ON$`3e`[
   CURVENO == 1
 ]
-
+curve_dt[
+  ,
+  grouped_total :=
+    blackSpruce_ON +
+    spruce_ON +
+    balsamFir_ON +
+    pine_boreal_ON +
+    pine_temperate_ON +
+    otherConifer_ON +
+    broadleaf_boreal_ON +
+    broadleaf_temperate_ON
+]
 plot(
-  yt$ON$`3e`[[1]]$age,
-  yt$ON$`3e`[[1]]$pine_boreal_ON,
-  type = "l",
-  lwd = 2
-)
-
-points(
-  raw$AC10,
-  raw$pine_boreal_ON,
+  curve_dt$AC10,
+  curve_dt$grouped_total,
+  type = "b",
   pch = 16
 )
+curve_dt[
+  ,
+  .(
+    AC10,
+    grouped_total
+  )
+]
 
 
 
-all(
-  diff(yt$ON$`3e`[[1]]$age) == 1
+
+
+
+
+curve_dt <- sim$rawYieldTables$ON$`3e`[
+  CURVENO == 1
+]
+curve_dt[
+  ,
+  raw_total :=
+    blackSpruce_ON +
+    spruce_ON +
+    balsamFir_ON +
+    pine_boreal_ON +
+    pine_temperate_ON +
+    otherConifer_ON +
+    broadleaf_boreal_ON +
+    broadleaf_temperate_ON
+]
+tmp <- yt$ON$`3e`[[1]]
+tmp[
+  ,
+  interp_total :=
+    blackSpruce_ON +
+    spruce_ON +
+    balsamFir_ON +
+    pine_boreal_ON +
+    pine_temperate_ON +
+    otherConifer_ON +
+    broadleaf_boreal_ON +
+    broadleaf_temperate_ON
+]
+tmp_check <- tmp[
+  age %in% curve_dt$AC10
+]
+data.table(
+  age = curve_dt$AC10,
+  raw_total = curve_dt$raw_total,
+  interp_total = tmp_check$interp_total,
+  difference =
+    curve_dt$raw_total -
+    tmp_check$interp_total
 )
 
 
-tmp <- copy(yt$ON$`3e`[[1]])
 
-tmp[
+
+
+
+
+
+##NL
+sim$rawYieldTables$NL$NPen[
   ,
-  total := rowSums(.SD),
-  .SDcols = setdiff(names(tmp), "age")
+  list(
+    max_otherConifer =
+      max(otherConifer_NL, na.rm = TRUE)
+  ),
+  by = CURVENO
+][
+  order(-max_otherConifer)
+]
+
+curve_dt <- sim$rawYieldTables$NL$NPen[
+  CURVENO == "BarNS_sub_all"
+]
+
+curve_dt[
+  ,
+  total :=
+    blackSpruce_NL +
+    balsamFir_NL +
+    tamarack_NL +
+    otherConifer_NL +
+    broadleaf_NL
 ]
 
 plot(
-  tmp$age,
-  tmp$total,
-  type = "l",
-  lwd = 2
+  curve_dt$AC10,
+  curve_dt$total,
+  type = "l"
+)
+std <- yt$NL$NPen$BarNS_sub_all
+
+std[
+  ,
+  total_std :=
+    blackSpruce_NL +
+    balsamFir_NL +
+    tamarack_NL +
+    otherConifer_NL +
+    broadleaf_NL
+]
+
+plot(
+  curve_dt$AC10,
+  curve_dt$total,
+  type = "l"
+)
+
+lines(
+  std$age,
+  std$total_std,
+  lty = 2
 )
 
 
-all(
-  diff(yt$ON$`3e`[[1]]$age) == 1
+head(
+  yt$NL$NPen$BarNS_sub_all,
+  20
 )
+
 tail(
-  diff(tmp$total),
+  yt$NL$NPen$BarNS_sub_all,
   20
 )
 
 
-
-
-
-
-
-####NL
-names(yt)
-
-names(yt$NL)
-
-names(yt$NL$NPen)
-head(
-  yt$NL$NPen$BarNS_sub_all
-)
-
-tail(
-  yt$NL$NPen$BarNS_sub_all
-)
 plot(
   yt$NL$NPen$BarNS_sub_all$age,
-  yt$NL$NPen$BarNS_sub_all$blackSpruce_NL,
-  type = "l",
-  lwd = 2
-)
-tmp <- copy(
-  yt$NL$NPen$BarNS_sub_all
+  rowSums(
+    yt$NL$NPen$BarNS_sub_all[
+      ,
+      .(
+        blackSpruce_NL,
+        balsamFir_NL,
+        tamarack_NL,
+        otherConifer_NL,
+        broadleaf_NL
+      )
+    ]
+  ),
+  type = "l"
 )
 
-tmp[
+
+curve_dt <- sim$rawYieldTables$NL$NPen[
+  CURVENO == "BarNS_sub_all"
+]
+
+curve_dt[
   ,
-  total := rowSums(
-    .SD
-  ),
-  .SDcols = setdiff(names(tmp), "age")
+  total_grouped :=
+    blackSpruce_NL +
+    balsamFir_NL +
+    tamarack_NL +
+    otherConifer_NL +
+    broadleaf_NL
 ]
-plot(
-  tmp$age,
-  tmp$total,
-  type = "l",
-  lwd = 2
+std <- yt$NL$NPen$BarNS_sub_all
+
+std[
+  ,
+  total_std :=
+    blackSpruce_NL +
+    balsamFir_NL +
+    tamarack_NL +
+    otherConifer_NL +
+    broadleaf_NL
+]
+merge(
+  curve_dt[
+    ,
+    .(
+      age = AC10,
+      total_grouped
+    )
+  ],
+  
+  std[
+    age %in% curve_dt$AC10,
+    .(
+      age,
+      total_std
+    )
+  ],
+  
+  by = "age"
 )
-tmp[
-  which.max(total)
-]
