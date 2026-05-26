@@ -293,7 +293,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
       CURVENO = curve_name,
       AC10 = ages
     )
-    
+    data.table::setalloccol(dt_curve)
     for (sp in names(curve_data)) {
       
       dt_curve[[sp]] <- curve_data[[sp]]
