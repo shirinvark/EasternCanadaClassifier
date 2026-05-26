@@ -146,35 +146,50 @@ get_curve_vector <- function(curve_data, age_index, mapSpeciesToGroup_NL, cols) 
 }
 # -----------------------------
 
-find_best_curve <- function(p, region_curves, age, mapSpeciesToGroup_NL, cols) {
+find_best_curve <- function(
+    p,
+    region_curves,
+    age,
+    mapSpeciesToGroup_NL,
+    cols
+) {
   
-  age_index <- round(age / 10) + 1   # Convert age to index (10-year steps)
+  curve_ids <- unique(region_curves$CURVENO)
   
-  best_curve <- NA                   # Initialize best curve
-  best_diff  <- Inf                  # Initialize best distance
+  best_curve <- NA
+  best_diff  <- Inf
   
-  for (curve_name in names(region_curves)) {   # Loop through curves
+  for (curve_name in curve_ids) {
     
-    curve_data <- region_curves[[curve_name]]  # Get curve data
+    curve_data <- region_curves[
+      CURVENO == curve_name
+    ]
     
-    age_index2 <- min(age_index, length(curve_data[[1]]))  # Safe index
+    age_diff <- abs(curve_data$AC10 - age)
     
-    y <- get_curve_vector(           # Get curve composition vector
-      curve_data,
-      age_index = age_index2,
-      mapSpeciesToGroup_NL = mapSpeciesToGroup_NL,
-      cols = cols
+    row_i <- which.min(age_diff)
+    
+    y <- as.numeric(
+      curve_data[
+        row_i,
+        ..cols
+      ]
     )
     
-    diff <- sqrt(sum((p - y)^2))     # Euclidean distance
+    if (sum(y) > 0) {
+      y <- y / sum(y)
+    }
     
-    if (diff < best_diff) {          # Update best match
+    diff <- sqrt(sum((p - y)^2))
+    
+    if (diff < best_diff) {
+      
       best_diff  <- diff
       best_curve <- curve_name
     }
   }
   
-  return(best_curve)   # Return best curve name
+  return(best_curve)
 }
 
 # -----------------------------
@@ -259,11 +274,46 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     print(names(curve_data))
     print("COLS:")
     print(cols)
-    if (is.null(curves_by_region[[region]])) {
-      curves_by_region[[region]] <- list()
+   # if (is.null(curves_by_region[[region]])) {
+    #  curves_by_region[[region]] <- list()
+    #}
+    
+    #curves_by_region[[region]][[curve_name]] <- curve_data
+    n_age <- length(curve_data[[1]])
+    
+    ages <- seq(
+      0,
+      by = 10,
+      length.out = n_age
+    )
+    
+    dt_curve <- data.table(
+      CURVENO = curve_name,
+      AC10 = ages
+    )
+    
+    for (sp in names(curve_data)) {
+      
+      dt_curve[[sp]] <- curve_data[[sp]]
+      
     }
     
-    curves_by_region[[region]][[curve_name]] <- curve_data
+    dt_curve[, AU := curve_name]
+    
+    dt_curve[, zone := region]
+    
+    if (is.null(curves_by_region[[region]])) {
+      
+      curves_by_region[[region]] <- dt_curve
+      
+    } else {
+      
+      curves_by_region[[region]] <- rbind(
+        curves_by_region[[region]],
+        dt_curve,
+        fill = TRUE
+      )
+    }
   }
   
   yield_by_region <- curves_by_region
@@ -400,8 +450,12 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # ---------------------------
   # test curve vector
   # ---------------------------
-  curve_data <- yield_by_region[[1]][[1]]   # Take first curve for testing
+ # curve_data <- yield_by_region[[1]][[1]]   # Take first curve for testing
+  curve_data <- yield_by_region[[1]]
   
+  curve_data <- curve_data[
+    CURVENO == unique(curve_data$CURVENO)[1]
+  ]
   if (is.null(curve_data)) {
     stop("No curves found in NPen")   # Stop if no curve found
   }  
