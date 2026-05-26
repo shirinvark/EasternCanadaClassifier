@@ -40,7 +40,7 @@ sim <- simInit(
   
   params = list(
     EasternCanadaClassifier = list(
-      jurisdiction = "NL"
+      jurisdiction = "ON"
     )
   ),
   
@@ -51,7 +51,7 @@ sim <- simInit(
   )
 )
 
-# =========================================================
+# ======================================================
 # RUN
 # =======================================================
 
@@ -66,30 +66,7 @@ print(head(sim$pixelGroupToAU))  # mapping
 print(head(sim$areaByAU))        # area summary
 
 # =========================================================
-# LOAD STANDARDIZE FUNCTIONS
-# =========================================================
 
-source(
-  "E:/EasternCanadaClassifier/R/standardizeYieldCurve.R"
-)
-
-source(
-  "E:/EasternCanadaClassifier/R/standardizeYieldTables.R"
-)
-
-# ========================================================
-# CHECK
-# =========================================================
-
-exists("standardizeYieldCurve")
-
-exists("standardizeYieldTables")
-
-# =========================================================
-# RUN STANDARDIZATION
-# =========================================================
-
-yt <- standardizeYieldTables(sim)
 
 # =========================================================
 # CHECK OUTPUT
@@ -179,18 +156,18 @@ curve_dt[
     broadleaf_boreal_ON +
     broadleaf_temperate_ON
 ]
-tmp <- yt$ON$`3e`[[1]]
+yt <- sim$yieldTables
+tmp <- yt$ON$`3e`[["1"]]
+species_cols <- setdiff(
+  names(tmp),
+  "age"
+)
+
 tmp[
   ,
   interp_total :=
-    blackSpruce_ON +
-    spruce_ON +
-    balsamFir_ON +
-    pine_boreal_ON +
-    pine_temperate_ON +
-    otherConifer_ON +
-    broadleaf_boreal_ON +
-    broadleaf_temperate_ON
+    rowSums(.SD),
+  .SDcols = species_cols
 ]
 tmp_check <- tmp[
   age %in% curve_dt$AC10
@@ -204,6 +181,111 @@ data.table(
     tmp_check$interp_total
 )
 
+names(sim$rawYieldTables$ON)
+
+lapply(
+  sim$rawYieldTables$ON,
+  function(x) unique(x$SUBMU)
+)
+length(unique(sim$rawYieldTables$ON$`3e`$CURVENO))
+table(sim$rawYieldTables$ON$`3e`$CURVENO)[1:10]
+unique(sim$cohortData$speciesCode)
+tmp <- sim$yieldTables$ON$`3e`[[1]]
+
+head(tmp)
+
+curve_check <- sim$rawYieldTables$ON$`3e`
+
+species_cols <- c(
+  "blackSpruce_ON",
+  "spruce_ON",
+  "balsamFir_ON",
+  "pine_ON",
+  "broadleaf_ON"
+)
+
+curve_check[
+  ,
+  total := rowSums(.SD, na.rm = TRUE),
+  .SDcols = species_cols
+]
+
+summary(curve_check$total)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -212,6 +294,7 @@ data.table(
 
 
 ##NL
+yt <- sim$yieldTables
 sim$rawYieldTables$NL$NPen[
   ,
   list(
@@ -339,3 +422,4 @@ merge(
   
   by = "age"
 )
+

@@ -241,7 +241,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         # boreal broadleaf
         "Betu_pap","Popu_tre","Pice_mar",
         
-        # mixedwood
+        # mixedwood...
         "Pice_gla","Abie_bal","Betu_all",
         
         # tolerant hardwood
