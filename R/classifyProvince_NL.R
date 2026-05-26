@@ -301,11 +301,8 @@ classifyProvince_NL <- function(sim){    # Main classifier function
       
     }
     
-    data.table::set(
-      dt_curve,
-      j = "AU",
-      value = curve_name
-    )    
+    dt_curve[, AU := curve_name]
+    
     dt_curve[, zone := region]
     
     if (is.null(curves_by_region[[region]])) {
