@@ -319,16 +319,15 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading NL yield (.yld) files")
     
-    module_path <- getOption("spades.modulePath")
+    project_path <- dirname(
+      getOption("spades.modulePath")
+    )
     
-    yld_dir <- normalizePath(
-      file.path(
-        getOption("spades.modulePath"),
-        "data",
-        "NL",
-        "YTF"
-      ),
-      mustWork = FALSE
+    yld_dir <- file.path(
+      project_path,
+      "data",
+      "NL",
+      "YTF"
     )
     
     print(yld_dir)
