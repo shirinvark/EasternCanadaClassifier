@@ -552,10 +552,14 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     }
     
     # اگر فقط یک curve داشت
-    if (length(region_curves) == 1) {
-      return(names(region_curves)[1])
+   # if (length(region_curves) == 1) {
+     # return(names(region_curves)[1])
+    #}
+    if (uniqueN(region_curves$CURVENO) == 1) {
+      
+      return(unique(region_curves$CURVENO))
+      
     }
-    
     # اگر چند curve داشت → انتخاب با distance
     find_best_curve(
       p,
