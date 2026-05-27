@@ -389,7 +389,10 @@ classifyProvince_ON <- function(sim) {
         list(bestAU = NA, distance = NA)
       } else {
         
-        curves <- sim$yield_by_region[[region]]        
+        #curves <- sim$yield_by_region[[region]] 
+        curves <- copy(
+          sim$yield_by_region[[region]]
+        )
         age <- mean(.SD$age)
         
         curves[, age_diff := abs(AC10 - age)]
