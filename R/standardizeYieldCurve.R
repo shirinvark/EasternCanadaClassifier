@@ -16,9 +16,10 @@ standardizeYieldCurve <- function(
     y = volumes,
     xout = 1:maxAge,
     method = "linear",
-    rule = 2
+    rule = 1
   )$y
   
+  annual[is.na(annual)] <- 0
   # ------------------------------------------------------
   # ages before first observed age are zero
   # ------------------------------------------------------
