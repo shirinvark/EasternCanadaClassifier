@@ -689,7 +689,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
       ,
       .(
         pixelGroup,
-        analysisUnit = AU
+        analysisUnit = bestCurve
       )
     ]
   )
