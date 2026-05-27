@@ -211,9 +211,31 @@ get_region_from_name <- function(name) {
 ######################################################
 
 classifyProvince_NL <- function(sim){    # Main classifier function
+
+  # =========================================================
+  # standalone pixelGroupMap
+  # =========================================================
   
-  library(data.table)   # Load data.table
-  library(terra)        # Load terra
+  if (is.null(sim$pixelGroupMap)) {
+    
+    message("Building standalone pixelGroupMap")
+    
+    ycf_vect <- terra::vect(
+      "data/NL/NL_YCF.shp"
+    )
+    
+    sim$pixelGroupMap <- terra::rast(
+      ext(ycf_vect),
+      resolution = 250,
+      crs = terra::crs(ycf_vect)
+    )
+    
+    terra::values(sim$pixelGroupMap) <- 1
+    
+  }
+  
+  
+  
   # =========================================================
   # BUILD YCF raster (region)
   # =========================================================
@@ -224,9 +246,9 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   ycf_vect <- terra::vect("data/NL/NL_YCF.shp")   # Load YCF shapefile
   
   # 🔥
-  if (terra::crs(sim$pixelGroupMap) == "") {      # If raster has no CRS
-    terra::crs(sim$pixelGroupMap) <- terra::crs(ycf_vect)  # Assign CRS
-  }
+  #if (terra::crs(sim$pixelGroupMap) == "") {      # If raster has no CRS
+   # terra::crs(sim$pixelGroupMap) <- terra::crs(ycf_vect)  # Assign CRS
+  #}
   ####just for now
   ycf_vect <- terra::project(ycf_vect, sim$pixelGroupMap)  # Reproject to match raster
   ycf_vect <- terra::crop(ycf_vect, sim$pixelGroupMap)     # Crop to extent
