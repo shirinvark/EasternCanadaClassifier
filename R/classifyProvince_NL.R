@@ -235,8 +235,9 @@ classifyProvince_NL <- function(sim){    # Main classifier function
       crs = terra::crs(ycf_vect)
     )
     
-    terra::values(sim$pixelGroupMap) <- 1
-    
+    #terra::values(sim$pixelGroupMap) <- 1
+    terra::values(sim$pixelGroupMap) <-
+      1:terra::ncell(sim$pixelGroupMap)
   }
   
   
