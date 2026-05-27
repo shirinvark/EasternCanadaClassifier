@@ -671,6 +671,13 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     by = c("pixelGroup", "bestCurve"),
     all.x = TRUE
   )
+  vals <- sample(
+    unique(pixelAgeWide$pixelGroup),
+    terra::ncell(pixelGroupMap),
+    replace = TRUE
+  )
+  
+  terra::values(pixelGroupMap) <- vals
   analysisUnitMap <- pixelGroupMap   # Initialize output raster
   vals <- terra::values(pixelGroupMap)   # Extract pixel values
   
@@ -682,13 +689,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   terra::values(analysisUnitMap) <- analysis_vals   # Write values to raster
   
   print("analysisUnitMap built")   # Debug
-  vals <- sample(
-    unique(pixelAgeWide$pixelGroup),
-    terra::ncell(pixelGroupMap),
-    replace = TRUE
-  )
   
-  terra::values(pixelGroupMap) <- vals
   sim$analysisUnitDT <- pixelAgeWide # Store detailed table
   sim$pixelGroupToAU <- unique(
     sim$analysisUnitDT[
