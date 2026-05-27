@@ -352,11 +352,14 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       
       yld_dir <- file.path(
         modulePath(sim),
+        "EasternCanadaClassifier",
         "data",
         "NL",
         "YTF"
       )
     }
+    
+    print(yld_dir)
     
     print(yld_dir)
     
