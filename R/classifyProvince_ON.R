@@ -143,6 +143,17 @@ classifyProvince_ON <- function(sim) {
     print(colSums(dt[, ..groups], na.rm = TRUE))
     print(colSums(dt[, ..groups], na.rm = TRUE))
     # ---- Aggregate to curve level ----
+    
+    print(head(
+      dt[, c("AC10", species_cols), with = FALSE]
+    ))
+    
+    print(
+      rowSums(
+        dt[, species_cols, with = FALSE],
+        na.rm = TRUE
+      )[1:20]
+    )
     dt_summary <- dt[, lapply(.SD, sum, na.rm = TRUE),
                      by = .(CURVENO, AC10, FU),
                      .SDcols = groups]
