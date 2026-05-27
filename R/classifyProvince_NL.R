@@ -457,7 +457,9 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     pixelGroup = pg_vals,   # Pixel group IDs
     region = reg_names      # Region names
   )
+  print(head(regionDT, 50))
   
+  print(table(regionDT$region))
   regionDT <- regionDT[!is.na(pixelGroup)]   # Remove rows with NA pixelGroup
   
   regionDT <- regionDT[, .(
