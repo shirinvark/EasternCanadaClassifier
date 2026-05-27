@@ -318,7 +318,9 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     print(head(curve_data_raw[[1]]))
     print(tail(curve_data_raw[[1]]))
     
-    mapGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
+    mapGroups <- read_curve_mapping(
+      "modules/EasternCanadaClassifier/data/NL/mapSpeciesGroups.txt"
+    )
     cols <- unique(unlist(mapSpeciesGroups))
     curve_data <- rewrite_yld_curve(curve_data_raw, mapGroups)
     print("BEFORE REWRITE:")
