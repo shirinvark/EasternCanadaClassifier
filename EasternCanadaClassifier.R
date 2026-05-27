@@ -334,48 +334,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading NL yield (.yld) files")
     
-    # ---------------------------------------------------
-    # first try project-level data path
-    # ---------------------------------------------------
-    
-    yld_dir <- file.path(
-      dataPath(sim),
-      "NL",
-      "YTF"
-    )
-    
-    # ---------------------------------------------------
-    # fallback to module-local data folder
-    # ---------------------------------------------------
+    yld_dir <- "modules/EasternCanadaClassifier/data/NL/YTF"
     
     if (!dir.exists(yld_dir)) {
-      
-      yld_dir <- file.path(
-        modulePath(sim),
-        "EasternCanadaClassifier",
-        "data",
-        "NL",
-        "YTF"
-      )
+      stop("Directory not found: ", yld_dir)
     }
-    
-    print(yld_dir)
-    
-    print(yld_dir)
-    
-    # ---------------------------------------------------
-    # final validation
-    # ---------------------------------------------------
-    
-    if (!dir.exists(yld_dir)) {
-      
-      stop(
-        "NL YTF directory not found:\n",
-        yld_dir
-      )
-    }
-    
-   
     
     yld_files <- list.files(
       yld_dir,
