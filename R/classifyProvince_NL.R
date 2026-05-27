@@ -237,9 +237,19 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     )
     
     #terra::values(sim$pixelGroupMap) <- 1
-    terra::values(sim$pixelGroupMap) <-
-      1:terra::ncell(sim$pixelGroupMap)
-  }
+    vals <- terra::values(sim$pixelGroupMap)
+    
+    vals[] <- NA
+    
+    valid_cells <- which(
+      !is.na(
+        terra::values(ycf_raster)[,1]
+      )
+    )
+    
+    vals[valid_cells] <- seq_along(valid_cells)
+    
+    terra::values(sim$pixelGroupMap) <- vals
   
   
   
