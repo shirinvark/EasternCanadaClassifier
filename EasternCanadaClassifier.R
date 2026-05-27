@@ -219,12 +219,17 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     sim$cohortData <- data.table::data.table(
       
       pixelGroup = c(
-        1,1,1,
-        2,2,2,
-        3,3,3,
-        4,4,4,
-        5,5,5,
-        6,6,6
+        100,100,100,
+        
+        50000,50000,50000,
+        
+        150000,150000,150000,
+        
+        300000,300000,300000,
+        
+        600000,600000,600000,
+        
+        900000,900000,900000
       ),
       
       speciesCode = c(
@@ -241,7 +246,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         # boreal broadleaf
         "Betu_pap","Popu_tre","Pice_mar",
         
-        # mixedwood...
+        # mixedwood
         "Pice_gla","Abie_bal","Betu_all",
         
         # tolerant hardwood
