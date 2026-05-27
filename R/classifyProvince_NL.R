@@ -217,8 +217,9 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # =========================================================
   
   fakeExtent <- all(
-    terra::ext(sim$pixelGroupMap) ==
-      c(0,1000,0,1000)
+    as.vector(
+      terra::ext(sim$pixelGroupMap)
+    ) == c(0,1000,0,1000)
   )
   
   if (fakeExtent) { 
