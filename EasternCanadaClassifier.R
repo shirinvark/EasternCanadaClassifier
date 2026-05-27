@@ -41,6 +41,13 @@ defineModule(sim, list(
       "AB",  # default
       NA, NA,
       "Jurisdiction code (e.g., AB, NL, ON, QC)"
+    ),
+    defineParameter(
+      "maxYieldAge",
+      "numeric",
+      255,
+      NA, NA,
+      "Maximum age used for standardized yield tables"
     )
   ),
   inputObjects = bindrows(
@@ -167,8 +174,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       # build standardized annual yield tables
       # ===================================================
       
-      sim$yieldTables <- standardizeYieldTables(sim)
-      
+    #  sim$yieldTables <- standardizeYieldTables(sim)
+      sim$yieldTables <- standardizeYieldTables(
+        sim,
+        maxAge = P(sim)$maxYieldAge
+      )
     },
     
     warning(noEventWarning(sim))

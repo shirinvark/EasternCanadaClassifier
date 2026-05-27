@@ -22,8 +22,10 @@
 # should occur upstream in EasternCanadaClassifier.
 # =========================================================
 
-standardizeYieldTables <- function(sim,
-                                   maxAge = 255) {
+standardizeYieldTables <- function(
+    sim,
+    maxAge
+) {
   
   print("===== START STANDARDIZE =====")
   
