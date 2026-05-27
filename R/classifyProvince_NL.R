@@ -469,7 +469,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   ), by = pixelGroup]
   
   pixelAgeWide <- merge(pixelAgeWide, regionDT, by = "pixelGroup", all.x = TRUE)   # Attach region to data
-  
+  print(pixelAgeWide[, .(pixelGroup, region)])
   # ---------------------------
   # proportion
   # ---------------------------
