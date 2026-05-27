@@ -447,6 +447,9 @@ classifyProvince_ON <- function(sim) {
     pixelGroup,
     analysisUnit = bestAU
   )]
+  print(names(results))
+  
+  print(head(results))
   sim$AUtoCurve <- unique(
     results[, .(
       AU = bestAU,
