@@ -445,9 +445,10 @@ classifyProvince_ON <- function(sim) {
           
           dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
           best_idx <- which.min(dists)
-          
+          best_curve <- curves$CURVENO[best_idx]
           list(
             bestAU   = curves$AU[best_idx],
+            CURVENO  = best_curve,
             distance = dists[best_idx]
           )
         }
@@ -475,12 +476,16 @@ classifyProvince_ON <- function(sim) {
   print(names(results))
   
   print(head(results))
+  
+  
   sim$AUtoCurve <- unique(
     results[, .(
       AU = bestAU,
       curveID = as.character(CURVENO)
     )]
   )
+  
+  
   # 🔥 area per AU
   sim$areaByAU <- sim$pixelGroupToAU[
     ,
