@@ -345,9 +345,12 @@ standardizeYieldTables <- function(sim,
         # -------------------------------------------------
         # store standardized curve
         # -------------------------------------------------
+        AU <- unique(curve_dt$AU)
         
-        yieldTables[[jur]][[reg]][[as.character(cid)]] <- 
-          reduced_dt
+        AU <- AU[!is.na(AU)][1]
+      #  yieldTables[[jur]][[reg]][[as.character(cid)]] <- 
+        #  reduced_dt
+        yieldTables[[AU]] <- reduced_dt
       }
     }
   }
