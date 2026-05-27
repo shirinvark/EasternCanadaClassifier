@@ -237,22 +237,10 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     )
     
     #terra::values(sim$pixelGroupMap) <- 1
-    vals <- terra::values(sim$pixelGroupMap)
-    
-    vals[] <- NA
-    
-    valid_cells <- which(
-      !is.na(
-        terra::values(ycf_raster)[,1]
-      )
-    )
-    
-    vals[valid_cells] <- seq_along(valid_cells)
-    
-    terra::values(sim$pixelGroupMap) <- vals
+    terra::values(sim$pixelGroupMap) <-
+      1:terra::ncell(sim$pixelGroupMap)
   
-  
-  
+  }
   # =========================================================
   # BUILD YCF raster (region)
   # =========================================================
@@ -281,7 +269,21 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     sim$pixelGroupMap,
     field = "YCF"
   )
+  # keep only cells inside YCF polygons
   
+  pg_vals_tmp <- terra::values(sim$pixelGroupMap)[,1]
+  
+  valid_cells <- which(
+    !is.na(
+      terra::values(ycf_raster)[,1]
+    )
+  )
+  
+  pg_vals_tmp[] <- NA
+  
+  pg_vals_tmp[valid_cells] <- seq_along(valid_cells)
+  
+  terra::values(sim$pixelGroupMap) <- pg_vals_tmp
   sim$ycfRaster <- ycf_raster   # Store in sim
   
   # =========================================================
@@ -425,6 +427,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     value.var = "B",
     fill = 0
   )
+  print(pixelAgeWide[, .(pixelGroup, region)])
   print("CHECK FINAL GROUPS:")
   print(names(pixelAgeWide))
   pixelAgeWide <- pixelAgeWide[!is.na(pixelGroup) & !is.na(age)]  # Remove NA rows
