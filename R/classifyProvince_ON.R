@@ -3,7 +3,7 @@ classifyProvince_ON <- function(sim) {
   library(data.table)
   message("Running Ontario classifier")
   
-  # ================================================
+  # ===================================================
   # === DOWNLOAD DATA FROM GITHUB ===
   # ===================================================
   
@@ -114,7 +114,7 @@ classifyProvince_ON <- function(sim) {
     dt[, total := rowSums(.SD, na.rm = TRUE), .SDcols = species_cols]
     dt <- dt[total > 0]
     
-   # dt[, (species_cols) := lapply(.SD, function(x) x / total), .SDcols = species_cols]
+    # dt[, (species_cols) := lapply(.SD, function(x) x / total), .SDcols = species_cols]
     
     # ---- Initialize group columns ----
     for (g in groups) {
@@ -151,8 +151,8 @@ classifyProvince_ON <- function(sim) {
     dt_summary[, total := rowSums(.SD), .SDcols = groups]
     dt_summary <- dt_summary[total > 0]
     
-  #  dt_summary[, (groups) := lapply(.SD, function(x) x / total),
-      #         .SDcols = groups]
+    #  dt_summary[, (groups) := lapply(.SD, function(x) x / total),
+    #         .SDcols = groups]
     
     # ---- Remove NA ----
     dt_summary <- dt_summary[complete.cases(dt_summary[, ..groups])]
@@ -162,7 +162,7 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Add zone ----
     dt_summary[, zone := submu]
-   
+    
     return(dt_summary)
   }
   
@@ -198,6 +198,15 @@ classifyProvince_ON <- function(sim) {
   sim$rawYieldTables$ON <- yield_by_region
   # =========================================================
   # 2.5 BUILD pixel_region FROM SHAPEFILE
+  # =========================================================
+  # ---- load shapefile (CORRECT WAY) ----
+  # =========================================================
+  # 2.5 BUILD pixel_region FROM SHAPEFILE
+  # =========================================================
+  
+  # =========================================================
+  # 2.5 BUILD pixel_region FROM SHAPEFILE
+  # =========================================================
   
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
@@ -269,7 +278,7 @@ classifyProvince_ON <- function(sim) {
   pixel_region[, region := "3e"]
   # ---- clean ----
   #pixel_region[, region := tolower(as.character(region))]
- ##############################################################3 
+  ##############################################################3 
   pixel_region <- pixel_region[
     !is.na(pixelGroup) & !is.na(region)
   ]
@@ -285,7 +294,7 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   cohortDT <- as.data.table(sim$cohortData)
   cohortDT[, speciesCode := as.character(speciesCode)]
- # browser() 
+  # browser() 
   pg_col <- grep("pixelgroup", names(cohortDT), ignore.case = TRUE, value = TRUE)  
   if (length(pg_col) != 1) {
     stop("❌ pixelGroup column not found or duplicated in cohortDT")
@@ -408,7 +417,7 @@ classifyProvince_ON <- function(sim) {
             ncol = length(cohort_vec),
             byrow = TRUE
           )  
-        
+          
           dists <- sqrt(rowSums((curves_mat - cohort_mat)^2))
           best_idx <- which.min(dists)
           
