@@ -638,7 +638,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     
   }, 1:nrow(pixelAgeWide))]
   
-  # ---------------------------
+  # ------------------------
   # build analysisUnitMap
   # ---------------------------
   pixelGroupMap <- sim$pixelGroupMap   # Base raster

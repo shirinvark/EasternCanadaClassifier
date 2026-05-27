@@ -240,7 +240,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         # pine dominated
         "Pinu_res","Pinu_str","Acer_sah",
         
-        # cedar / hemlock
+        # cedar / hemlock...
         "Thuj_occ","Tsug_can","Acer_sah",
         
         # boreal broadleaf
