@@ -656,15 +656,15 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     ]
   )
   lookup[, AU_id := as.numeric(as.factor(bestCurve))]   # Convert curves to numeric IDs
-  sim$pixelGroupToAU <- unique(
-    lookup[
-      ,
-      .(
-        pixelGroup,
-        analysisUnit = AU_id
-      )
-    ]
-  )
+  #sim$pixelGroupToAU <- unique(
+   # lookup[
+   #   ,
+    #  .(
+     #   pixelGroup,
+      #  analysisUnit = AU_id
+      #)
+    #]
+  #)
   pixelAgeWide <- merge(
     pixelAgeWide,
     lookup,
@@ -683,7 +683,16 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   
   print("analysisUnitMap built")   # Debug
   
-  sim$analysisUnitDT <- pixelAgeWide   # Store detailed table
+  sim$analysisUnitDT <- pixelAgeWide # Store detailed table
+  sim$pixelGroupToAU <- unique(
+    sim$analysisUnitDT[
+      ,
+      .(
+        pixelGroup,
+        analysisUnit = AU
+      )
+    ]
+  )
   sim$analysisUnitMap <- analysisUnitMap   # Store raster
   sim$AUtoCurve <- unique(
     pixelAgeWide[
