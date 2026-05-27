@@ -40,7 +40,7 @@ sim <- simInit(
   
   params = list(
     EasternCanadaClassifier = list(
-      jurisdiction = "NL"
+      jurisdiction = "ON"
     )
   ),
   

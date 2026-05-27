@@ -3,7 +3,7 @@ classifyProvince_ON <- function(sim) {
   library(data.table)
   message("Running Ontario classifier")
   
-  # ===================================================
+  # ================================================
   # === DOWNLOAD DATA FROM GITHUB ===
   # ===================================================
   
@@ -198,15 +198,6 @@ classifyProvince_ON <- function(sim) {
   sim$rawYieldTables$ON <- yield_by_region
   # =========================================================
   # 2.5 BUILD pixel_region FROM SHAPEFILE
-  # =========================================================
-  # ---- load shapefile (CORRECT WAY) ----
-  # =========================================================
-  # 2.5 BUILD pixel_region FROM SHAPEFILE
-  # =========================================================
-  
-  # =========================================================
-  # 2.5 BUILD pixel_region FROM SHAPEFILE
-  # =========================================================
   
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
