@@ -350,7 +350,8 @@ standardizeYieldTables <- function(sim,
         AU <- AU[!is.na(AU)][1]
       #  yieldTables[[jur]][[reg]][[as.character(cid)]] <- 
         #  reduced_dt
-        yieldTables[[AU]] <- reduced_dt
+        #yieldTables[[AU]] <- reduced_dt
+        yieldTables[[jur]][[reg]][[as.character(cid)]] <- reduced_dt
       }
     }
   }
