@@ -216,7 +216,12 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # standalone pixelGroupMap
   # =========================================================
   
-  if (is.null(sim$pixelGroupMap)) {
+  fakeExtent <- all(
+    terra::ext(sim$pixelGroupMap) ==
+      c(0,1000,0,1000)
+  )
+  
+  if (fakeExtent) { 
     
     message("Building standalone pixelGroupMap")
     
