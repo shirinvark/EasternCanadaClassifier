@@ -213,12 +213,21 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       crs = "EPSG:4326"   # 🔥 این خط مهمه
     )
     
+    #terra::values(r) <- sample(1:20, 100, replace = TRUE)
+    #این اومدجاش این زیری
     vals <- rep(
       sim$analysisUnitDT$pixelGroup,
       length.out = terra::ncell(r)
     )
     
-    terra::values(r) <- vals    
+    terra::values(r) <- vals
+    
+    
+    
+    
+    
+    
+    
     sim$pixelGroupMap <- r
   }
   
