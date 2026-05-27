@@ -478,7 +478,7 @@ classifyProvince_ON <- function(sim) {
   sim$AUtoCurve <- unique(
     results[, .(
       AU = bestAU,
-      curveID = bestAU
+      curveID = as.character(CURVENO)
     )]
   )
   # 🔥 area per AU
