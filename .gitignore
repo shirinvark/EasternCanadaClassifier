@@ -78,3 +78,20 @@ ONTARIO_PROCESS.Rmd
 ONTARIO_PROCESS.pdf
 shp.R
 shp_overlay.R
+# temporary local files
+IAN_ON.R
+Ian_cohort_extractor.R
+yieldprocessingfunctionNL.R
+
+# reports
+*.pdf
+
+# images
+images/
+
+# shapefiles
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
