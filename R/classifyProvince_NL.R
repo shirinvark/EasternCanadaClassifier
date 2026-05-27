@@ -227,7 +227,7 @@ classifyProvince_NL <- function(sim){    # Main classifier function
     message("Building standalone pixelGroupMap")
     
     ycf_vect <- terra::vect(
-      "data/NL/NL_YCF.shp"
+      "modules/EasternCanadaClassifier/data/NL/NL_YCF.shp"
     )
     
     sim$pixelGroupMap <- terra::rast(
@@ -244,11 +244,15 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   # =========================================================
   # BUILD YCF raster (region)
   # =========================================================
-  mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
+  mapSpeciesGroups <- read_curve_mapping(
+    "modules/EasternCanadaClassifier/data/NL/mapSpeciesGroups.txt"
+  )
   speciesGroup <- read_curve_mapping(
-    "E:/EasternCanadaClassifier/data/NL/speciesGroups.txt"
+    "modules/EasternCanadaClassifier/data/NL/speciesGroups.txt"
   )  
-  ycf_vect <- terra::vect("data/NL/NL_YCF.shp")   # Load YCF shapefile
+  ycf_vect <- terra::vect(
+    "modules/EasternCanadaClassifier/data/NL/NL_YCF.shp"
+  )   # Load YCF shapefile
   
   # 🔥
   #if (terra::crs(sim$pixelGroupMap) == "") {      # If raster has no CRS
