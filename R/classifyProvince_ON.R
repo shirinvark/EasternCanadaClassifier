@@ -393,6 +393,17 @@ classifyProvince_ON <- function(sim) {
         curves <- copy(
           sim$yield_by_region[[region]]
         )
+        
+        cat("\n===== BEFORE NORMALIZATION =====\n")
+        
+        print(
+          rowSums(
+            curves[, ..prop_cols],
+            na.rm = TRUE
+          )[1:20]
+        )
+        
+        
         age <- mean(.SD$age)
         
         curves[, age_diff := abs(AC10 - age)]
