@@ -682,7 +682,12 @@ classifyProvince_NL <- function(sim){    # Main classifier function
   terra::values(analysisUnitMap) <- analysis_vals   # Write values to raster
   
   print("analysisUnitMap built")   # Debug
+  vals <- rep(
+    pixelAgeWide$pixelGroup,
+    length.out = terra::ncell(pixelGroupMap)
+  )
   
+  terra::values(pixelGroupMap) <- vals
   sim$analysisUnitDT <- pixelAgeWide # Store detailed table
   sim$pixelGroupToAU <- unique(
     sim$analysisUnitDT[
