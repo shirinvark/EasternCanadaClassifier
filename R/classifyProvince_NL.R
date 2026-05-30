@@ -412,6 +412,12 @@ classifyProvince_NL <- function(sim) {
   print(head(pixel_region, 20))
   
   print(dim(pixel_region))
+  
+  lut <- levels(region_raster)[[1]]
+  
+  print(lut)
+  
+  
   pixel_region[
     ,
     region := gsub(
