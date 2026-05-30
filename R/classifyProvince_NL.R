@@ -679,7 +679,14 @@ classifyProvince_NL <- function(sim) {
   # ====================================================
   
   results <- cohort_classifiable[, {
+    print("===== CURVE COLS =====")
+    print(curve_cols)
     
+    print("===== SD NAMES =====")
+    print(names(.SD))
+    
+    print("===== FIRST ROW =====")
+    print(.SD[1])
     cohort_vec <- unlist(
       .SD[1, curve_cols, with = FALSE],
       use.names = FALSE
