@@ -758,7 +758,11 @@ classifyProvince_NL <- function(sim) {
       )
       
     } else {
+      print("===== AVAILABLE REGIONS =====")
+      print(names(sim$yield_by_region))
       
+      print("===== REQUESTED REGION =====")
+      print(region)
       curves <- copy(
         yield_by_region_norm[[region[1]]]
       )
