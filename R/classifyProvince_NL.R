@@ -582,21 +582,21 @@ classifyProvince_NL <- function(sim) {
   
   #lut <- levels(region_raster)[[1]]
   
-  pixel_region[
-    ,
-    region := lut$YCF[
-      match(region, lut$ID)
-    ]
-  ]
+ # pixel_region[
+  #  ,
+   # region := lut$YCF[
+    #  match(region, lut$ID)
+    #]
+  #]
   
-  pixel_region[
-    ,
-    region := gsub(
-      "^NL_",
-      "",
-      region
-    )
-  ]
+  #pixel_region[
+   # ,
+    #region := gsub(
+     # "^NL_",
+      #"",
+      #region
+    #)
+  #]
   
   ##yield by region
   yield_by_region <- list()
