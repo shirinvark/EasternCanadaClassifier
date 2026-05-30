@@ -296,12 +296,38 @@ classifyProvince_NL <- function(sim) {
       community = community,
       region = region
     )
+    ####For test
+    raw_curve <- parse_curve(block)
     
     curve_data <- rewrite_yld_curve(
-      parse_curve(block),
+      raw_curve,
       mapSpeciesGroups
     )
     
+    checkVolumeConservation <- FALSE
+    
+    if (checkVolumeConservation) {
+      
+      raw_total <- rowSums(as.data.frame(raw_curve))
+      
+      group_total <- rowSums(as.data.frame(curve_data))
+      
+      tmp_check <- data.frame(
+        age = seq(0, by = 10, length.out = length(raw_total)),
+        raw_total = raw_total,
+        group_total = group_total,
+        difference = raw_total - group_total
+      )
+      
+      print(tmp_check)
+      
+      cat(
+        "\nMAX DIFFERENCE:",
+        max(abs(tmp_check$difference)),
+        "\n"
+      )
+    }
+    ######
     ages <- seq(
       0,
       by = 10,
@@ -557,33 +583,33 @@ classifyProvince_NL <- function(sim) {
   ]
   
   ####pixel by region
- # shp2 <- terra::project(
-   # shp,
-   # terra::crs(sim$pixelGroupMap)
+  # shp2 <- terra::project(
+  # shp,
+  # terra::crs(sim$pixelGroupMap)
   #)
   #print(region_raster)
   
- # print(
-    #terra::freq(
-     # region_raster,
-     # digits = 0
-   # )
- # )
- # summary(
+  # print(
+  #terra::freq(
+  # region_raster,
+  # digits = 0
+  # )
+  # )
+  # summary(
   #  terra::values(region_raster)
   #)
   #region_raster <- terra::rasterize(
-    #shp2,
-    #sim$pixelGroupMap,
-   # field = "YCF"
+  #shp2,
+  #sim$pixelGroupMap,
+  # field = "YCF"
   #)
   
   #pg <- data.table::as.data.table(
-    #terra::values(sim$pixelGroupMap)
+  #terra::values(sim$pixelGroupMap)
   #)
   
-#  reg <- data.table::as.data.table(
- #   terra::values(region_raster)
+  #  reg <- data.table::as.data.table(
+  #   terra::values(region_raster)
   #)
   
   #setnames(pg, names(pg), "pixelGroup")
@@ -596,37 +622,37 @@ classifyProvince_NL <- function(sim) {
   
   #print(dim(pixel_region))
   #pixel_region <- pixel_region[
-    #!is.na(pixelGroup) &
-   #   !is.na(region)
+  #!is.na(pixelGroup) &
+  #   !is.na(region)
   #]
   
   #pixel_region[
-    #,
-    #region := gsub(
-      #"^NL_",
-     # "",
-    #  as.character(region)
-   # )
+  #,
+  #region := gsub(
+  #"^NL_",
+  # "",
+  #  as.character(region)
+  # )
   #]
   
   
   
   #lut <- levels(region_raster)[[1]]
   
- # pixel_region[
+  # pixel_region[
   #  ,
-   # region := lut$YCF[
-    #  match(region, lut$ID)
-    #]
+  # region := lut$YCF[
+  #  match(region, lut$ID)
+  #]
   #]
   
   #pixel_region[
-   # ,
-    #region := gsub(
-     # "^NL_",
-      #"",
-      #region
-    #)
+  # ,
+  #region := gsub(
+  # "^NL_",
+  #"",
+  #region
+  #)
   #]
   
   ##yield by region
@@ -697,15 +723,9 @@ classifyProvince_NL <- function(sim) {
   print(nrow(pixel_region))
   
   cat("\n===== COHORT PIXELS =====\n")
-  print(cohort_wide$pixelGroup)
   
   cat("\n===== INTERSECTION =====\n")
-  print(
-    intersect(
-      cohort_wide$pixelGroup,
-      pixel_region$pixelGroup
-    )
-  )
+  
   # =========================================================
   # KEEP ONLY PIXELS WITH REGION
   # =========================================================
@@ -766,22 +786,14 @@ classifyProvince_NL <- function(sim) {
   cat("\n===== YIELD REGIONS =====\n")
   print(names(yield_by_region_norm))
   results <- cohort_classifiable[, {
-    print("===== CURVE COLS =====")
-    print(curve_cols)
+    if (.GRP %% 10000 == 0)
+      cat("Processed:", .GRP, "\n")
     
-    print("===== SD NAMES =====")
-    print(names(.SD))
-    
-    print("===== FIRST ROW =====")
-    print(.SD[1])
     cohort_vec <- unlist(
       .SD[1, curve_cols, with = FALSE],
       use.names = FALSE
     )
-    print("===== COHORT DEBUG =====")
-    print(cohort_vec)
-    print(sum(cohort_vec))
-    print(any(is.na(cohort_vec)))
+    
     if (sum(cohort_vec) == 0) {
       
       list(
@@ -790,19 +802,14 @@ classifyProvince_NL <- function(sim) {
       )
       
     } else {
-      print("===== AVAILABLE REGIONS =====")
-      print(names(sim$yield_by_region))
       
-      print("===== REQUESTED REGION =====")
-      print(region)
+      
       curves <- copy(
         yield_by_region_norm[[region[1]]]
       )
       
       age_val <- age[1]
-      print(class(curves))
-      print(is.data.table(curves))
-      str(curves)
+      
       curves[
         ,
         age_diff := abs(
