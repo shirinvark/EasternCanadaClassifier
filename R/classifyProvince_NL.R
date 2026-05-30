@@ -764,7 +764,9 @@ classifyProvince_NL <- function(sim) {
       )
       
       age_val <- age[1]
-      
+      print(class(curves))
+      print(is.data.table(curves))
+      str(curves)
       curves[
         ,
         age_diff := abs(
