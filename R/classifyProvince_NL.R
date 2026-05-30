@@ -509,11 +509,11 @@ classifyProvince_NL <- function(sim) {
   
   cohort_wide[
     ,
-    (group_cols) := lapply(
+    (prop_cols) := lapply(
       .SD,
       function(x) x / total
     ),
-    .SDcols = group_cols
+    .SDcols = prop_cols
   ]
   
   ####pixel by region
