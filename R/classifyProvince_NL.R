@@ -674,9 +674,9 @@ classifyProvince_NL <- function(sim) {
     all.x = FALSE
   )
   
-  # =========================================================
+  # ======================================================
   # CLASSIFY ONE PIXEL
-  # ========================================================
+  # ====================================================
   
   results <- cohort_classifiable[, {
     
@@ -684,7 +684,10 @@ classifyProvince_NL <- function(sim) {
       .SD[1, curve_cols, with = FALSE],
       use.names = FALSE
     )
-    
+    print("===== COHORT DEBUG =====")
+    print(cohort_vec)
+    print(sum(cohort_vec))
+    print(any(is.na(cohort_vec)))
     if (sum(cohort_vec) == 0) {
       
       list(
