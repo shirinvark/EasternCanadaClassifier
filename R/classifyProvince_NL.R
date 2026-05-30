@@ -483,7 +483,12 @@ classifyProvince_NL <- function(sim) {
     .SDcols = group_cols
   ]
   
+  print("===== COHORT WIDE CHECK =====")
+  print(head(cohort_wide))
   
+  print(summary(cohort_wide$total))
+  
+  print(any(is.na(cohort_wide$total)))
   
   cohort_wide <- cohort_wide[
     total > 0
