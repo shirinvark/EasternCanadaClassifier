@@ -359,6 +359,7 @@ classifyProvince_NL <- function(sim) {
       sim$pixelGroupMap
     )
   )
+  print(levels(region_raster))
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
