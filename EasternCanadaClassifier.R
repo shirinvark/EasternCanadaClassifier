@@ -175,10 +175,10 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       # ===================================================
       
     #  sim$yieldTables <- standardizeYieldTables(sim)
-      sim$yieldTables <- standardizeYieldTables(
-        sim,
-        maxAge = P(sim)$maxYieldAge
-      )
+     # sim$yieldTables <- standardizeYieldTables(
+      #  sim,
+       # maxAge = P(sim)$maxYieldAge
+      #)
     },
     
     warning(noEventWarning(sim))
