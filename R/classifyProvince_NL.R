@@ -359,13 +359,20 @@ classifyProvince_NL <- function(sim) {
       sim$pixelGroupMap
     )
   )
-  print(levels(region_raster))
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
     field = "YCF",
     touches = TRUE
   )
+  
+  print(region_raster)
+  
+  print(terra::cats(region_raster))
+  
+  print(levels(region_raster))
+  
+  
   if (!terra::same.crs(
     NL_YCF,
     sim$pixelGroupMap
