@@ -207,21 +207,16 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     message("Creating fake pixelGroupMap")
     
     r <- terra::rast(
-      nrows = 10, ncols = 10,
-      xmin = 0, xmax = 1000,
-      ymin = 0, ymax = 1000,
-      crs = "EPSG:4326"   # 🔥 این خط مهمه
+      nrows = 10,
+      ncols = 10,
+      xmin = -140,
+      xmax = -50,
+      ymin = 40,
+      ymax = 70,
+      crs = "EPSG:4326"
     )
     
-    terra::values(r) <- sample(1:20, 100, replace = TRUE)
-    #این اومدجاش این زیری
-   
-    
-    
-    
-    
-    
-    
+    terra::values(r) <- seq_len(terra::ncell(r))
     
     sim$pixelGroupMap <- r
   }
@@ -234,40 +229,30 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Creating fake cohortData")
     
+    pg <- unique(
+      terra::values(sim$pixelGroupMap)
+    )
+    
+    pg <- pg[!is.na(pg)]
+    
+    pg <- pg[1:6]
+    
     sim$cohortData <- data.table::data.table(
       
-      pixelGroup = c(
-        100,100,100,
-        
-        50000,50000,50000,
-        
-        150000,150000,150000,
-        
-        300000,300000,300000,
-        
-        600000,600000,600000,
-        
-        900000,900000,900000
-      ),
+      pixelGroup = rep(pg, each = 3),
       
       speciesCode = c(
         
-        # black spruce dominated
         "Pice_mar","Abie_bal","Pinu_ban",
         
-        # pine dominated
         "Pinu_res","Pinu_str","Acer_sah",
         
-        # cedar / hemlock...
         "Thuj_occ","Tsug_can","Acer_sah",
         
-        # boreal broadleaf
         "Betu_pap","Popu_tre","Pice_mar",
         
-        # mixedwood
         "Pice_gla","Abie_bal","Betu_all",
         
-        # tolerant hardwood
         "Acer_sah","Quer_rub","Fagu_gra"
       ),
       
@@ -290,7 +275,6 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       )
     )
   }
-  
   # ========================================================
   # harvestableFraction (fake if missing)
   # ========================================================
