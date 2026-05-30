@@ -407,7 +407,11 @@ classifyProvince_NL <- function(sim) {
     !is.na(pixelGroup) &
       !is.na(region)
   ]
+  cat("\n===== AFTER FILTER =====\n")
   
+  print(head(pixel_region, 20))
+  
+  print(dim(pixel_region))
   pixel_region[
     ,
     region := gsub(
@@ -555,7 +559,11 @@ classifyProvince_NL <- function(sim) {
   setnames(reg, names(reg), "region")
   
   pixel_region <- cbind(pg, reg)
+  cat("\n===== BEFORE FILTER =====\n")
   
+  print(head(pixel_region, 20))
+  
+  print(dim(pixel_region))
   pixel_region <- pixel_region[
     !is.na(pixelGroup) &
       !is.na(region)
