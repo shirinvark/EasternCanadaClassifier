@@ -732,7 +732,8 @@ classifyProvince_NL <- function(sim) {
   # ======================================================
   # CLASSIFY ONE PIXEL
   # ====================================================
-  
+  cat("\n===== YIELD REGIONS =====\n")
+  print(names(yield_by_region_norm))
   results <- cohort_classifiable[, {
     print("===== CURVE COLS =====")
     print(curve_cols)
@@ -819,6 +820,9 @@ classifyProvince_NL <- function(sim) {
     age
   )]
   
+  
+  sim$yield_by_region_raw  <- yield_by_region
+  sim$yield_by_region      <- yield_by_region_norm
   
   classification <- results[
     ,
