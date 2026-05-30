@@ -1,724 +1,781 @@
-# =============================
-# HELPER FUNCTIONS (NL)
-# ============================
-rewrite_yld_curve <- function(curve_data, mapGroups) {
+classifyProvince_NL <- function(sim) {
   
-  # invert mapping (group → YLD members)
-  group_map <- list()
+  message("Running Newfoundland classifier")
   
-  for (k in names(mapGroups)) {
-    grp <- mapGroups[[k]]
-    
-    if (is.null(group_map[[grp]])) {
-      group_map[[grp]] <- c()
-    }
-    
-    group_map[[grp]] <- c(group_map[[grp]], k)
-  }
+  # ===================================================
+  # === DOWNLOAD DATA FROM GITHUB ===
+  # ===================================================
   
-  # جمع زدن داخل گروه‌ها
-  new_curve <- list()
-  
-  for (grp in names(group_map)) {
-    
-    members <- group_map[[grp]]
-    
-    vecs <- lapply(members, function(m) {
-      v <- curve_data[[m]]
-      if (is.null(v)) return(numeric(0))
-      return(v)
-    })
-    
-    max_len <- max(sapply(vecs, length))
-    
-    vecs <- lapply(vecs, function(v) {
-      c(v, rep(0, max_len - length(v)))
-    })
-    
-    new_curve[[grp]] <- Reduce(`+`, vecs)
-  }
-  
-  # هم‌طول کردن همه گروه‌ها
-  max_len_all <- max(sapply(new_curve, length))
-  
-  new_curve <- lapply(new_curve, function(v) {
-    c(v, rep(0, max_len_all - length(v)))
-  })
-  
-  return(new_curve)
-}
-#--------------------------------
-parse_curve <- function(curve_lines) {  # Function to parse .yld curve lines into species-wise vectors.3  ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷
-  
-  res <- list()                        # Initialize output list to store species data
-  current_sp <- NULL                   # Variable to track current species
-  
-  for (line in curve_lines) {          # Loop through each line of the file
-    if (grepl("^\\*Y", line) && length(res) > 0) {
-      break
-    }
-    line <- trimws(line)               # Remove leading/trailing whitespace
-    if (line == "") next               # Skip empty lines
-    
-    parts <- strsplit(line, "\\s+")[[1]]  # Split line into tokens by whitespace
-    
-    # اگر species line بود (مثل BSv)
-    if (grepl("^[A-Z]{2}v$", parts[1])) {   # Check if line defines a species (e.g., BSv)
-      current_sp <- parts[1]                # Set current species
-      res[[current_sp]] <- numeric()       # Initialize empty numeric vector for this species
-      
-    } else if (!is.null(current_sp)) {     # If numeric data line and species already defined
-      
-      nums <- suppressWarnings(as.numeric(parts))  # Convert tokens to numeric (suppress warnings)
-      nums <- nums[!is.na(nums)]                   # Remove NA values
-      
-      res[[current_sp]] <- c(res[[current_sp]], nums)  # Append values to species vector
-    }
-  }
-  
-  return(res)   # Return list of species → numeric vectors
-}
-
-# -----------------------------
-
-read_species_groups <- function(file) {  # Read species groups mapping file
-  lines <- readLines(file)              # Read all lines from file
-  res <- list()                         # Initialize output list
-  
-  for (ln in lines) {                   # Loop over lines
-    parts <- strsplit(ln, ":")[[1]]     # Split group and species
-    grp <- trimws(parts[1])             # Extract group name
-    spp <- trimws(unlist(strsplit(parts[2], ",")))  # Extract species list
-    res[[grp]] <- spp                   # Store mapping
-  }
-  
-  return(res)   # Return group → species mapping
-}
-
-# -----------------------------
-
-read_curve_mapping <- function(file) {   # Read curve species → group mapping
-  lines <- readLines(file)               # Read file
-  lines <- trimws(lines)                 # Trim whitespace
-  lines <- lines[lines != ""]            # Remove empty lines
-  
-  mapping <- list()                      # Initialize mapping list
-  
-  for (line in lines) {                  # Loop through lines
-    parts <- strsplit(line, ":")[[1]]    # Split key and values
-    key <- trimws(parts[1])              # Species key (e.g., BSv)
-    
-    vals <- strsplit(parts[2], ",")[[1]] # Group(s)
-    vals <- trimws(vals)                 # Trim whitespace
-    
-    mapping[[key]] <- vals               # Store mapping
-  }
-  
-  return(mapping)   # Return species → group mapping
-}
-
-# -----------------------------
-
-get_curve_vector <- function(curve_data, age_index, mapSpeciesToGroup_NL, cols) {
-  
-  vals <- rep(0, length(cols))
-  names(vals) <- cols
-  
-  for (sp in names(curve_data)) {
-    
-    # فقط speciesهایی که در cols هستن
-    #if (!(sp %in% cols)) next
-    if (!(sp %in% names(vals))) next
-    vec <- curve_data[[sp]]
-    
-    age_index2 <- min(age_index, length(vec))
-    
-    val <- vec[age_index2]
-    if (is.na(val)) val <- 0
-    
-    vals[sp] <- val
-  }
-  
-  # normalize
-  if (sum(vals) > 0) {
-    vals <- vals / sum(vals)
-  }
-  
-  return(vals)
-}
-# -----------------------------
-
-find_best_curve <- function(
-    p,
-    region_curves,
-    age,
-    mapSpeciesToGroup_NL,
-    cols
-) {
-  
-  curve_ids <- unique(region_curves$CURVENO)
-  
-  best_curve <- NA
-  best_diff  <- Inf
-  
-  for (curve_name in curve_ids) {
-    
-    curve_data <- region_curves[
-      CURVENO == curve_name
-    ]
-    
-    age_diff <- abs(curve_data$AC10 - age)
-    
-    row_i <- which.min(age_diff)
-    
-    y <- as.numeric(
-      curve_data[
-        row_i,
-        ..cols
-      ]
-    )
-    
-    if (sum(y) > 0) {
-      y <- y / sum(y)
-    }
-    
-    diff <- sqrt(sum((p - y)^2))
-    
-    if (diff < best_diff) {
-      
-      best_diff  <- diff
-      best_curve <- curve_name
-    }
-  }
-  
-  return(best_curve)
-}
-
-# -----------------------------
-
-get_region_from_name <- function(name) {
-  
-  if (grepl("BarNS", name)) return("NPen")
-  if (grepl("Central", name)) return("Central")
-  if (grepl("West", name)) return("West")
-  if (grepl("District", name)) return("Central")
-  if (grepl("NpMainLong", name)) return("NPen")
-  
-  return(NA)
-}
-######################################################
-# classifier
-######################################################
-
-classifyProvince_NL <- function(sim){    # Main classifier function
-
-  # =========================================================
-  # standalone pixelGroupMap
-  # =========================================================
-  
-  fakeExtent <- all(
-    as.vector(
-      terra::ext(sim$pixelGroupMap)
-    ) == c(0,1000,0,1000)
+  nl_dir <- file.path(
+    getPaths()$inputPath,
+    "NL"
   )
   
-  if (fakeExtent) { 
-    
-    message("Building standalone pixelGroupMap")
-    
-    ycf_vect <- terra::vect(
-      "modules/EasternCanadaClassifier/data/NL/NL_YCF.shp"
-    )
-    
-    sim$pixelGroupMap <- terra::rast(
-      ext(ycf_vect),
-      resolution = 250,
-      crs = terra::crs(ycf_vect)
-    )
-    
-    #terra::values(sim$pixelGroupMap) <- 1
-    terra::values(sim$pixelGroupMap) <-
-      1:terra::ncell(sim$pixelGroupMap)
+  dir.create(
+    nl_dir,
+    recursive = TRUE,
+    showWarnings = FALSE
+  )
   
+  ytf_dir <- file.path(
+    nl_dir,
+    "YTF"
+  )
+  
+  dir.create(
+    ytf_dir,
+    recursive = TRUE,
+    showWarnings = FALSE
+  )
+  
+  base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/NL/"
+  
+  # ===================================================
+  # === DOWNLOAD MAPPING FILES ===
+  # ===================================================
+  
+  mapping_files <- c(
+    "speciesGroups.txt",
+    "mapSpeciesGroups.txt"
+  )
+  
+  for (f in mapping_files) {
+    
+    dest <- file.path(nl_dir, f)
+    
+    if (!file.exists(dest)) {
+      
+      download.file(
+        paste0(base_url, f),
+        destfile = dest,
+        mode = "wb"
+      )
+      
+    }
   }
-  # =========================================================
-  # BUILD YCF raster (region)
-  # =========================================================
+  
+  # ===================================================
+  # === DOWNLOAD YIELD TABLES ===
+  # ===================================================
+  
+  ytf_files <- c(
+    "BarNS_sub_all.yld",
+    "Central_Sub_all.yld",
+    "District 1.yld",
+    "NpMainLong_sub_all.yld",
+    "West_sub_all.yld"
+  )
+  
+  for (f in ytf_files) {
+    
+    dest <- file.path(ytf_dir, f)
+    
+    if (!file.exists(dest)) {
+      
+      url <- paste0(
+        base_url,
+        "YTF/",
+        URLencode(f)
+      )
+      
+      download.file(
+        url,
+        destfile = dest,
+        mode = "wb"
+      )
+      
+    }
+  }
+  
+  # ===================================================
+  # STAGE 1: READ RAW YIELD CURVES
+  # ===================================================
+  #
+  # Goal:
+  #   Build the initial yield curve library for Newfoundland.
+  #
+  # At the end of this stage we should have all raw yield
+  # table files and species mapping files available locally.
+  #
+  # Inputs:
+  #   - Newfoundland yield table files (*.yld)
+  #   - speciesGroups.txt
+  #   - mapSpeciesGroups.txt
+  #
+  # Yield tables at this stage are still in their original
+  # species-code format (e.g. WSv, BSv, BFv, TLv, etc.).
+  #
+  # No species grouping, standardization, classification,
+  # distance calculations, or curve matching have occurred yet.
+  #
+  # Conceptually the output of this stage is:
+  #
+  #   Raw Yield Table Library
+  #
+  #        Region / Yield Table
+  #                 ↓
+  #            Raw Curves
+  #                 ↓
+  #            Age Classes
+  #                 ↓
+  #          Species Volumes
+  #
+  # Similar to Ontario, this stage is responsible only for:
+  #
+  #   ✓ downloading files
+  #   ✓ reading raw yield tables
+  #   ✓ preparing a local yield table library
+  #
+  # This stage does NOT:
+  #
+  #   ✗ rewrite species groups
+  #   ✗ aggregate species
+  #   ✗ convert to proportions
+  #   ✗ assign regions to pixels
+  #   ✗ compare cohorts to curves
+  #   ✗ select best curves
+  #
+  # Those steps occur later in the classifier pipeline.
+  #
+  # Expected next stage:
+  #
+  #   Stage 2:
+  #   Rewrite raw species codes into standardized
+  #   Newfoundland species groups.
+  #
+  # ===================================================
+  #تا اینجا درست
+  
+  
+  
+  
+  
+  
+  
+  source("R/helpers.R")
+  
+  # ===================================================
+  # === READ MAPPINGS ===
+  # ===================================================
+  
+  speciesGroups <- read_curve_mapping(
+    file.path(nl_dir, "speciesGroups.txt")
+  )
+  
   mapSpeciesGroups <- read_curve_mapping(
-    "modules/EasternCanadaClassifier/data/NL/mapSpeciesGroups.txt"
+    file.path(nl_dir, "mapSpeciesGroups.txt")
   )
-  speciesGroup <- read_curve_mapping(
-    "modules/EasternCanadaClassifier/data/NL/speciesGroups.txt"
-  )  
-  ycf_vect <- terra::vect(
-    "modules/EasternCanadaClassifier/data/NL/NL_YCF.shp"
-  )   # Load YCF shapefile
   
-  # 🔥
-  #if (terra::crs(sim$pixelGroupMap) == "") {      # If raster has no CRS
-   # terra::crs(sim$pixelGroupMap) <- terra::crs(ycf_vect)  # Assign CRS
-  #}
-  ####just for now
-  ycf_vect <- terra::project(ycf_vect, sim$pixelGroupMap)  # Reproject to match raster
-  ycf_vect <- terra::crop(ycf_vect, sim$pixelGroupMap)     # Crop to extent
+  sim$mapSpeciesGroups <- mapSpeciesGroups
   
-  ycf_vect$YCF <- as.factor(ycf_vect$YCF)   # Ensure YCF is factor
-  cat("\n===== EXTENT CHECK =====\n")
-  print(ext(sim$pixelGroupMap))
-  print(ext(ycf_vect))
-  print(crs(sim$pixelGroupMap))
-  print(ext(ycf_vect))
-  ycf_raster <- terra::rasterize(           # Rasterize polygons
-    ycf_vect,
-    sim$pixelGroupMap,
-    field = "YCF"
+  groups <- unique(
+    unlist(mapSpeciesGroups)
   )
-  # keep only cells inside YCF polygons
   
-  pg_vals_tmp <- terra::values(sim$pixelGroupMap)[,1]
+  groups <- groups[!is.na(groups)]
+  groups <- groups[groups != ""]
   
-  valid_cells <- which(
-    !is.na(
-      terra::values(ycf_raster)[,1]
+  inventory <- data.table()
+  for (f in ytf_files) {
+    
+    path <- file.path(
+      ytf_dir,
+      f
     )
+    
+    lines <- readLines(path)
+    
+    y_lines <- grep(
+      "^\\*Y",
+      lines,
+      value = TRUE
+    )
+    
+    tmp <- data.table(
+      file = f,
+      community = sub(
+        "^\\*Y\\s+(\\S+).*",
+        "\\1",
+        y_lines
+      ),
+      region = sub(
+        "^\\*Y\\s+\\S+\\s+\\S+\\s+\\S+\\s+\\?\\s+(\\S+)\\s+\\?.*$",
+        "\\1",
+        y_lines
+      )
+    )
+    
+    inventory <- rbind(
+      inventory,
+      tmp
+    )
+  }
+  
+  
+  #######AU
+  AU_table <- unique(
+    inventory[
+      ,
+      .(
+        AU = paste(
+          region,
+          community,
+          sep = "_"
+        ),
+        region,
+        community
+      )
+    ]
   )
   
-  pg_vals_tmp[] <- NA
   
-  pg_vals_tmp[valid_cells] <- seq_along(valid_cells)
+  ####AUTOcurve
   
-  terra::values(sim$pixelGroupMap) <- pg_vals_tmp
-  sim$ycfRaster <- ycf_raster   # Store in sim
-  
-  # =========================================================
-  # BUILD yield_by_region FROM YLD FILES
-  # =========================================================
-  
-  yld_files <- sim$yieldFiles   # Get list of .yld files
-  
-  curves_by_region <- list()
-  
-  for (f in yld_files) {
-    
-    curve_name <- tools::file_path_sans_ext(basename(f))
-    
-    # 🔥 اینجا اصلاح مهم
-    curve_name <- tools::file_path_sans_ext(basename(f))
-    
-    region <- get_region_from_name(curve_name)    # اگر region پیدا نشد → رد کن
-    if (is.na(region)) next
-    
-    lines <- readLines(f)
-    lines <- trimws(lines)
-    lines <- lines[lines != ""]
-    
-    #curve_data <- parse_curve(lines)
-    curve_data_raw <- parse_curve(lines)
-    print(curve_data_raw[[1]])
-    print(head(curve_data_raw[[1]]))
-    print(tail(curve_data_raw[[1]]))
-    
-    mapGroups <- read_curve_mapping(
-      "modules/EasternCanadaClassifier/data/NL/mapSpeciesGroups.txt"
+  AUtoCurve <- copy(AU_table)[
+    ,
+    .(
+      AU,
+      curveID = AU
     )
-    cols <- unique(unlist(mapSpeciesGroups))
-    curve_data <- rewrite_yld_curve(curve_data_raw, mapGroups)
-    print("BEFORE REWRITE:")
-    print(names(curve_data_raw))
+  ]
+  
+  
+  
+  
+  
+  region_file <- unique(
+    inventory[
+      ,
+      .(
+        region,
+        file
+      )
+    ]
+  )
+  
+  
+  AU_table <- merge(
+    AU_table,
+    region_file,
+    by = "region",
+    all.x = TRUE
+  )
+  
+  
+  
+  #################3
+  file_cache <- list()
+  
+  yieldTables_NL <- list()
+  
+  for (i in seq_len(nrow(AU_table))) {
     
-    print("AFTER REWRITE:")
-    print(names(curve_data))
-    print("COLS:")
-    print(cols)
-   # if (is.null(curves_by_region[[region]])) {
-    #  curves_by_region[[region]] <- list()
-    #}
+    au <- AU_table$AU[i]
+    region <- AU_table$region[i]
+    community <- AU_table$community[i]
+    file <- AU_table$file[i]
     
-    #curves_by_region[[region]][[curve_name]] <- curve_data
-    n_age <- length(curve_data[[1]])
+    if (!file %in% names(file_cache)) {
+      
+      path <- file.path(
+        ytf_dir,
+        file
+      )
+      
+      lines <- readLines(path)
+      lines <- trimws(lines)
+      lines <- lines[lines != ""]
+      
+      file_cache[[file]] <- lines
+    }
+    
+    lines <- file_cache[[file]]
+    
+    block <- extract_curve_block(
+      lines,
+      community = community,
+      region = region
+    )
+    
+    curve_data <- rewrite_yld_curve(
+      parse_curve(block),
+      mapSpeciesGroups
+    )
     
     ages <- seq(
       0,
       by = 10,
-      length.out = n_age
+      length.out = length(curve_data[[1]])
     )
     
     dt_curve <- data.table(
-      CURVENO = curve_name,
       AC10 = ages
     )
-    data.table::setDT(dt_curve)
-    data.table::setalloccol(dt_curve)
+    
     for (sp in names(curve_data)) {
-      
       dt_curve[[sp]] <- curve_data[[sp]]
-     # dt_curve[[sp]] <- rev(curve_data[[sp]])
     }
     
-    #dt_curve[, AU := curve_name]
-    
-    #dt_curve[, zone := region]
-    data.table::setDT(dt_curve)
-    data.table::setalloccol(dt_curve)
-    data.table::set(
-      dt_curve,
-      j = "AU",
-      value = curve_name
-    )
-    
-    data.table::set(
-      dt_curve,
-      j = "zone",
-      value = region
-    )
-    if (is.null(curves_by_region[[region]])) {
-      
-      curves_by_region[[region]] <- dt_curve
-      
-    } else {
-      
-      curves_by_region[[region]] <- rbind(
-        curves_by_region[[region]],
-        dt_curve,
-        fill = TRUE
-      )
-    }
+    yieldTables_NL[[au]] <- dt_curve
   }
   
-  yield_by_region <- curves_by_region
-  sim$rawYieldTables$NL <- yield_by_region
-  cat("\n===== NUMBER OF CURVES PER REGION =====\n")
-  print(lapply(yield_by_region, length))
-  print("Regions found:")
-  print(names(yield_by_region))
   
-  print("Yield loaded:")
-  print(lapply(yield_by_region, length))
-  # ---------------------------
-  # inputs
-  # ---------------------------
-  cohortDT <- as.data.table(sim$cohortData)
-  #mapSpeciesGroups <- read_curve_mapping("data/NL/mapSpeciesGroups.txt")
-  cohortDT[, final_group := sapply(speciesCode, function(x) {
+  # =========================================================
+  # BUILD pixel_region FROM NL_YCF
+  # =========================================================
+  ####فعلا بمونه توی مدل چون هنوز پیکسل گروپ نداریم
+  
+  # =========================================================
+  # BUILD pixel_region FROM NL_YCF
+  # =========================================================
+  
+  shp_path <- file.path(
+    getPaths()$modulePath,
+    "EasternCanadaClassifier",
+    "data",
+    "NL",
+    "NL_YCF.shp"
+  )
+  
+  shp <- terra::vect(shp_path)
+  
+  
+  
+  # ---- project ----
+  shp <- terra::project(
+    shp,
+    terra::crs(sim$pixelGroupMap)
+  )
+  NL_YCF <- terra::vect(shp_path)
+  
+  NL_YCF <- terra::project(
+    NL_YCF,
+    terra::crs(sim$pixelGroupMap)
+  )
+  # ---- rasterize ----
+  stopifnot(
+    terra::same.crs(
+      NL_YCF,
+      sim$pixelGroupMap
+    )
+  )
+  region_raster <- terra::rasterize(
+    shp,
+    sim$pixelGroupMap,
+    field = "YCF",
+    touches = TRUE
+  )
+  if (!terra::same.crs(
+    NL_YCF,
+    sim$pixelGroupMap
+  )) {
     
-    grp <- speciesGroup[[x]]   # 👈 فقط این
+    NL_YCF <- terra::project(
+      NL_YCF,
+      terra::crs(sim$pixelGroupMap)
+    )
     
-    if (is.null(grp)) return(NA_character_)
-    
-    return(as.character(grp))
-  })]
+  }
+  # ---- extract values ----
+  pg  <- data.table::as.data.table(
+    terra::values(sim$pixelGroupMap)
+  )
   
-  cohortDT <- cohortDT[!is.na(final_group)]
-  cat("\n===== DEBUG final_group STRUCTURE =====\n")
-  print(str(cohortDT$final_group))
-  str(cohortDT$final_group)
-  cohortDT <- cohortDT[!is.na(final_group)]
+  reg <- data.table::as.data.table(
+    terra::values(region_raster)
+  )
   
-  print(table(is.na(cohortDT$final_group)))
-  cohortDT <- cohortDT[!is.na(final_group)]
+  data.table::setnames(
+    pg,
+    names(pg),
+    "pixelGroup"
+  )
   
-  print("species groups assigned")
+  data.table::setnames(
+    reg,
+    names(reg),
+    "region"
+  )
   
-  # -------------------------
-  # aggregation
-  # ---------------------------
-  pixelAgeGroup <- cohortDT[
-    , .(B = sum(B)),                  # Sum biomass
-    by = .(pixelGroup, age, final_group)
+  pixel_region <- cbind(
+    pg,
+    reg
+  )
+  
+  # ---- clean ----
+  pixel_region <- pixel_region[
+    !is.na(pixelGroup) &
+      !is.na(region)
   ]
   
-  pixelAgeWide <- data.table::dcast(   # Convert to wide format
-    pixelAgeGroup,
+  pixel_region[
+    ,
+    region := gsub(
+      "^NL_",
+      "",
+      as.character(region)
+    )
+  ]
+  
+  # ---- save ----
+  sim$pixel_region <- pixel_region
+  
+  
+  # =========================================================
+  # CLASSIFIER - LOAD COHORT DATA
+  # =========================================================
+  #
+  
+  
+  cohortDT <- data.table::as.data.table(
+    sim$cohortData
+  )
+  
+  cohortDT[
+    ,
+    speciesCode := as.character(speciesCode)
+  ]
+  
+  cohortDT[
+    ,
+    final_group := speciesGroups[[speciesCode]],
+    by = speciesCode
+  ]
+  
+  cohortDT <- cohortDT[
+    !is.na(final_group)
+  ]
+  
+  cohort_group <- cohortDT[
+    ,
+    .(
+      B = sum(
+        B,
+        na.rm = TRUE
+      )
+    ),
+    by = .(
+      pixelGroup,
+      age,
+      final_group
+    )
+  ]
+  
+  
+  ########
+  
+  cohort_wide <- dcast(
+    cohort_group,
     pixelGroup + age ~ final_group,
     value.var = "B",
     fill = 0
   )
-  print(pixelAgeWide[, .(pixelGroup, region)])
-  print("CHECK FINAL GROUPS:")
-  print(names(pixelAgeWide))
-  pixelAgeWide <- pixelAgeWide[!is.na(pixelGroup) & !is.na(age)]  # Remove NA rows
-
-  print("aggregation done")   # Debug: confirm aggregation step completed
   
-  # =========================================================
-  # ADD region to pixel Group
-  # =========================================================
   
-  pg_vals  <- terra::values(sim$pixelGroupMap)[,1]   # Extract pixelGroup values from raster
-  reg_vals <- terra::values(sim$ycfRaster)[,1]       # Extract region (YCF) values from raster
-  
-  # 🔥 تبدیل NaN → NA
-  pg_vals[is.nan(pg_vals)]   <- NA   # Replace NaN with NA for pixel groups
-  reg_vals[is.nan(reg_vals)] <- NA   # Replace NaN with NA for regions
-  
-  # 🔥 تبدیل ID → region
-  reg_names <- as.character(reg_vals)   # Convert region IDs to character
-  
-  reg_names[reg_names == "9"]  <- "NPen"     # Map numeric codes to region names
-  reg_names[reg_names == "8"]  <- "Main"
-  reg_names[reg_names == "7"]  <- "Long"
-  reg_names[reg_names == "11"] <- "West"
-  reg_names[reg_names == "10"] <- "NShore"
-  reg_names[reg_names == "6"]  <- "Central"
-  reg_names[reg_names == "5"]  <- "CentVic"
-  reg_names[reg_names == "4"]  <- "CentRed"
-  reg_names[reg_names == "3"]  <- "BarEast"
-  reg_names[reg_names == "2"]  <- "BarCent"
-  reg_names[reg_names == "1"]  <- "Avalon"
-  reg_names[reg_names == "0"]  <- "Aphid"
-  
-  # NA درست کن
-  reg_names[is.na(reg_vals)] <- NA   # Ensure NA stays NA
-  
-  reg_names <- sub("NL_", "", reg_names)   # Remove "NL_" prefix if present
-  
-  regionDT <- data.table(
-    pixelGroup = pg_vals,   # Pixel group IDs
-    region = reg_names      # Region names
+  group_cols <- setdiff(
+    names(cohort_wide),
+    c("pixelGroup", "age", "total")
   )
-  print(head(regionDT, 50))
   
-  print(table(regionDT$region))
-  regionDT <- regionDT[!is.na(pixelGroup)]   # Remove rows with NA pixelGroup
-  
-  regionDT <- regionDT[, .(
-    region = {
-      tbl <- table(region)   # Count region frequency per pixelGroup
-      if (length(tbl) == 0) "NPen"   # Fallback if no region found
-      else names(tbl)[which.max(tbl)]   # Select most frequent region
-    }
-  ), by = pixelGroup]
-  
-  pixelAgeWide <- merge(pixelAgeWide, regionDT, by = "pixelGroup", all.x = TRUE)   # Attach region to data
-  print(pixelAgeWide[, .(pixelGroup, region)])
-  # ---------------------------
-  # proportion
-  # ---------------------------
-  cols <- names(pixelAgeWide)[sapply(pixelAgeWide, is.numeric)]   # Select numeric columns
-  cols <- setdiff(cols, c("pixelGroup", "age", "totalB"))         # Remove non-species columns
-  
-  pixelAgeWide[, totalB := rowSums(.SD), .SDcols = cols]   # Compute total biomass per row
-  pixelAgeWide <- pixelAgeWide[totalB > 0]                 # Remove rows with zero biomass
-  
-  pixelAgeWide[, (cols) := lapply(.SD, function(x) x / totalB), .SDcols = cols]   # Normalize to proportions
-  
-  print("proportion done")   # Debug: confirm normalization
-  
-  # ---------------------------
-  # mapping
-  # ---------------------------
-
-  # mapping مستقیم species → group
-  mapSpeciesToGroup_NL <- mapSpeciesGroups   # Direct mapping
-  
-  print("mapping file:")
-  print(mapSpeciesGroups)   # Debug: show mapping
-  
-  print("example species key:")
-  print(names(mapSpeciesGroups))   # Debug: list species keys
-  
-  print("mapping built")
-  
-  # ---------------------------
-  # test curve vector
-  # ---------------------------
- # curve_data <- yield_by_region[[1]][[1]]   # Take first curve for testing
-  curve_data <- yield_by_region[[1]]
-  
-  curve_data <- curve_data[
-    CURVENO == unique(curve_data$CURVENO)[1]
+  cohort_wide[
+    ,
+    total := rowSums(.SD),
+    .SDcols = group_cols
   ]
-  if (is.null(curve_data)) {
-    stop("No curves found in NPen")   # Stop if no curve found
-  }  
   
-  print("curve species:")
-  print(names(curve_data))   # Debug: show species in curve
   
-  test_vec <- get_curve_vector(
-    curve_data,
-    age_index = 1,
-    mapSpeciesToGroup_NL = mapSpeciesToGroup_NL,
-    cols = cols
+  
+  cohort_wide <- cohort_wide[
+    total > 0
+  ]
+  
+  print(names(cohort_wide))
+  ####normalization
+  group_cols <- setdiff(
+    names(cohort_wide),
+    c("pixelGroup", "age")
   )
   
-  print("curve vector test:")
-  print(test_vec)   # Debug: show computed curve vector
+  prop_cols <- intersect(
+    groups,
+    group_cols
+  )
   
-  # ---------------------------
-  # test best curve
-  # ---------------------------
-  # ---------------------------
-  # test best curve
-  # -------------
+  prop_cols <- prop_cols[!is.na(prop_cols)]
   
-  if (nrow(pixelAgeWide) == 0) {
-    stop("pixelAgeWide is empty")
+  if (length(prop_cols) == 0) {
+    stop("❌ No matching species groups between cohort and yield")
   }
   
-  region_i <- pixelAgeWide$region[1]
-  region_curves <- yield_by_region[[region_i]]
-  #region_curves <- yield_by_region[[1]]
-  age_val <- pixelAgeWide$age[1]
-  p <- as.numeric(pixelAgeWide[1, ..cols])
+  cohort_wide[
+    ,
+    (group_cols) := lapply(
+      .SD,
+      function(x) x / total
+    ),
+    .SDcols = group_cols
+  ]
   
-  print(cols)
-  best <- find_best_curve(
-    p,
-    region_curves,
-    age_val,
-    mapSpeciesToGroup_NL,
-    cols
+  ####pixel by region
+  shp2 <- terra::project(
+    shp,
+    terra::crs(sim$pixelGroupMap)
   )
   
-  print("best curve test:")
-  print(best)
- 
+  region_raster <- terra::rasterize(
+    shp2,
+    sim$pixelGroupMap,
+    field = "YCF"
+  )
   
-  # Mapping region to allowed curves
-  #region_curve_map <- list(
-   # NPen = c("BarNS_sub_all", "Central_Sub_all"),
-    #Main = c("NpMainLong_sub_all"),
-    #Long = c("NpMainLong_sub_all"),
-    #West = c("West_sub_all")
-  #)
+  pg <- data.table::as.data.table(
+    terra::values(sim$pixelGroupMap)
+  )
   
-  # ---------------------------
-  # assign best curve to all pixels
-  # ---------------------------
-  pixelAgeWide[, bestCurve := mapply(function(i) {
-    
-    p <- as.numeric(pixelAgeWide[i, cols, with = FALSE])
-    age_val <- pixelAgeWide$age[i]
-    
-    region_i <- pixelAgeWide$region[i]
-    
-    region_map <- list(
-      Main    = "NPen",
-      Long    = "NPen",
-      
-      Avalon  = "Central",
-      Aphid   = "Central",
-      CentVic = "Central",
-      CentRed = "Central",
-      
-      BarCent = "NPen",
-      BarEast = "NPen",
-      
-      NShore  = "West"
+  reg <- data.table::as.data.table(
+    terra::values(region_raster)
+  )
+  
+  setnames(pg, names(pg), "pixelGroup")
+  setnames(reg, names(reg), "region")
+  
+  pixel_region <- cbind(pg, reg)
+  
+  pixel_region <- pixel_region[
+    !is.na(pixelGroup) &
+      !is.na(region)
+  ]
+  
+  pixel_region[
+    ,
+    region := gsub(
+      "^NL_",
+      "",
+      as.character(region)
     )
+  ]
+  
+  
+  
+  lut <- levels(region_raster)[[1]]
+  
+  pixel_region[
+    ,
+    region := lut$YCF[
+      match(region, lut$ID)
+    ]
+  ]
+  
+  pixel_region[
+    ,
+    region := gsub(
+      "^NL_",
+      "",
+      region
+    )
+  ]
+  
+  ##yield by region
+  yield_by_region <- list()
+  
+  for (reg in unique(AU_table$region)) {
     
-    if (!region_i %in% names(yield_by_region)) {
-      
-      mapped_region <- region_map[[region_i]]
-      
-      if (is.null(mapped_region)) {
-        return(NA)
+    region_aus <- AU_table[
+      region == reg,
+      AU
+    ]
+    
+    region_list <- lapply(
+      region_aus,
+      function(au) {
+        
+        dt <- copy(
+          yieldTables_NL[[au]]
+        )
+        
+        dt[, AU := au]
+        
+        dt[, zone := reg]
+        
+        dt
       }
-      
-      region_i <- mapped_region
-    }    
-    region_curves <- yield_by_region[[region_i]]
-    
-    if (is.null(region_curves) || length(region_curves) == 0) {
-      return(NA)
-    }
-    
-    # اگر فقط یک curve داشت
-   # if (length(region_curves) == 1) {
-     # return(names(region_curves)[1])
-    #}
-    if (uniqueN(region_curves$CURVENO) == 1) {
-      
-      return(unique(region_curves$CURVENO))
-      
-    }
-    # اگر چند curve داشت → انتخاب با distance
-    find_best_curve(
-      p,
-      region_curves,
-      age_val,
-      mapSpeciesToGroup_NL,
-      cols
     )
     
-  }, 1:nrow(pixelAgeWide))]
+    yield_by_region[[reg]] <- rbindlist(
+      region_list,
+      fill = TRUE
+    )
+  }
   
-  # ------------------------
-  # build analysisUnitMap
-  # ---------------------------
-  pixelGroupMap <- sim$pixelGroupMap   # Base raster
   
- # lookup <- pixelAgeWide[, .(pixelGroup, bestCurve)]   # Lookup table
-  lookup <- unique(
-    pixelAgeWide[
-      , .(pixelGroup, bestCurve)
-    ]
+  # =========================================================
+  # NORMALIZE CURVES ONCE
+  # =========================================================
+  
+  curve_cols <- prop_cols
+  
+  yield_by_region_norm <- lapply(
+    yield_by_region,
+    function(dt) {
+      
+      dt <- copy(dt)
+      
+      dt[
+        ,
+        total := rowSums(.SD),
+        .SDcols = curve_cols
+      ]
+      
+      dt[
+        ,
+        (curve_cols) := lapply(
+          .SD,
+          function(x) x / total
+        ),
+        .SDcols = curve_cols
+      ]
+      
+      dt
+    }
   )
-  lookup[, AU_id := as.numeric(as.factor(bestCurve))]   # Convert curves to numeric IDs
-  #sim$pixelGroupToAU <- unique(
-   # lookup[
-   #   ,
-    #  .(
-     #   pixelGroup,
-      #  analysisUnit = AU_id
-      #)
-    #]
-  #)
-  pixelAgeWide <- merge(
-    pixelAgeWide,
-    lookup,
-    by = c("pixelGroup", "bestCurve"),
-    all.x = TRUE
+  
+  # =========================================================
+  # KEEP ONLY PIXELS WITH REGION
+  # =========================================================
+  
+  cohort_classifiable <- cohort_wide[
+    pixelGroup %in% pixel_region$pixelGroup
+  ]
+  
+  # ==========================================
+  # FIX DUPLICATED PIXELGROUPS IN pixel_region
+  # ==========================================
+  
+  pixel_region <- pixel_region[
+    ,
+    .(region = region[1]),
+    by = pixelGroup
+  ]
+  
+  setkey(
+    pixel_region,
+    pixelGroup
   )
-  vals <- sample(
-    unique(pixelAgeWide$pixelGroup),
-    terra::ncell(pixelGroupMap),
-    replace = TRUE
+  
+  
+  # ==========================================
+  # MERGE REGION INTO COHORT TABLE
+  # ==========================================
+  
+  cohort_classifiable <- merge(
+    cohort_classifiable,
+    pixel_region,
+    by = "pixelGroup",
+    all.x = FALSE
   )
   
-  terra::values(pixelGroupMap) <- vals
-  analysisUnitMap <- pixelGroupMap   # Initialize output raster
-  vals <- terra::values(pixelGroupMap)   # Extract pixel values
+  # =========================================================
+  # CLASSIFY ONE PIXEL
+  # ========================================================
   
-  match_idx <- match(vals, lookup$pixelGroup)   # Match pixelGroup to lookup
-  
-  analysis_vals <- lookup$AU_id[match_idx]      # Assign AU IDs
-  analysis_vals[is.na(analysis_vals)] <- NA     # Keep NA
-  
-  terra::values(analysisUnitMap) <- analysis_vals   # Write values to raster
-  
-  print("analysisUnitMap built")   # Debug
-  
-  sim$analysisUnitDT <- pixelAgeWide # Store detailed table
-  sim$pixelGroupToAU <- unique(
-    sim$analysisUnitDT[
-      ,
-      .(
-        pixelGroup,
-        analysisUnit = bestCurve
+  results <- cohort_classifiable[, {
+    
+    cohort_vec <- unlist(
+      .SD[1, curve_cols, with = FALSE],
+      use.names = FALSE
+    )
+    
+    if (sum(cohort_vec) == 0) {
+      
+      list(
+        bestAU = NA_character_,
+        distance = NA_real_
       )
-    ]
-  )
-  sim$analysisUnitMap <- analysisUnitMap   # Store raster
-  sim$AUtoCurve <- unique(
-    pixelAgeWide[
-      , .(
-        AU = AU_id,
-        curveID = bestCurve
+      
+    } else {
+      
+      curves <- copy(
+        yield_by_region_norm[[region[1]]]
       )
-    ]
-  )
-  # ---------------------------
-  # area summary
-  # ---------------------------
-  areaByAU <- as.data.table(terra::freq(analysisUnitMap))   # Count pixels per AU
+      
+      age_val <- age[1]
+      
+      curves[
+        ,
+        age_diff := abs(
+          AC10 - age_val
+        )
+      ]
+      
+      curves <- curves[
+        age_diff == min(age_diff)
+      ]
+      
+      curves[
+        ,
+        age_diff := NULL
+      ]
+      
+      curves_mat <- as.matrix(
+        curves[, ..curve_cols]
+      )
+      
+      cohort_mat <- matrix(
+        cohort_vec,
+        nrow = nrow(curves_mat),
+        ncol = length(cohort_vec),
+        byrow = TRUE
+      )
+      
+      dists <- sqrt(
+        rowSums(
+          (curves_mat - cohort_mat)^2
+        )
+      )
+      
+      best_idx <- which.min(dists)
+      
+      list(
+        bestAU = curves$AU[best_idx],
+        distance = dists[best_idx]
+      )
+      
+    }
+    
+  }, by = .(
+    pixelGroup,
+    region,
+    age
+  )]
   
-  setnames(areaByAU, c("value", "count"), c("AU_id", "nPixels"))   # Rename columns
   
-  areaByAU[, area_ha := nPixels * (250 * 250) / 10000]   # Convert pixels to hectares
+  classification <- results[
+    ,
+    .(
+      pixelGroup,
+      analysisUnit = bestAU,
+      distance
+    )
+  ]
   
-  sim$areaByAU <- areaByAU   # Store area summary
   
-  return(sim)   # Return updated simulation object
+  
+  sim$classification <- classification
+  
+  sim$pixelGroupToAU <- classification[
+    ,
+    .(
+      pixelGroup,
+      analysisUnit
+    )
+  ]
+  sim$AUtoCurve <- AUtoCurve
+  
+  if (is.null(sim$rawYieldTables)) {
+    sim$rawYieldTables <- list()
+  }
+  
+  sim$rawYieldTables$NL <- yield_by_region
+  sim$yieldTables_NL <- yieldTables_NL
+  return(sim)
 }
