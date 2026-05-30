@@ -526,61 +526,61 @@ classifyProvince_NL <- function(sim) {
   ]
   
   ####pixel by region
-  shp2 <- terra::project(
-    shp,
-    terra::crs(sim$pixelGroupMap)
-  )
-  print(region_raster)
+ # shp2 <- terra::project(
+   # shp,
+   # terra::crs(sim$pixelGroupMap)
+  #)
+  #print(region_raster)
   
-  print(
-    terra::freq(
-      region_raster,
-      digits = 0
-    )
-  )
-  summary(
-    terra::values(region_raster)
-  )
-  region_raster <- terra::rasterize(
-    shp2,
-    sim$pixelGroupMap,
-    field = "YCF"
-  )
+ # print(
+    #terra::freq(
+     # region_raster,
+     # digits = 0
+   # )
+ # )
+ # summary(
+  #  terra::values(region_raster)
+  #)
+  #region_raster <- terra::rasterize(
+    #shp2,
+    #sim$pixelGroupMap,
+   # field = "YCF"
+  #)
   
-  pg <- data.table::as.data.table(
-    terra::values(sim$pixelGroupMap)
-  )
+  #pg <- data.table::as.data.table(
+    #terra::values(sim$pixelGroupMap)
+  #)
   
-  reg <- data.table::as.data.table(
-    terra::values(region_raster)
-  )
+#  reg <- data.table::as.data.table(
+ #   terra::values(region_raster)
+  #)
   
-  setnames(pg, names(pg), "pixelGroup")
-  setnames(reg, names(reg), "region")
+  #setnames(pg, names(pg), "pixelGroup")
+  #setnames(reg, names(reg), "region")
   
-  pixel_region <- cbind(pg, reg)
-  cat("\n===== BEFORE FILTER =====\n")
+  #pixel_region <- cbind(pg, reg)
+  #cat("\n===== BEFORE FILTER =====\n")
   
-  print(head(pixel_region, 20))
+  #print(head(pixel_region, 20))
   
-  print(dim(pixel_region))
-  pixel_region <- pixel_region[
-    !is.na(pixelGroup) &
-      !is.na(region)
-  ]
+  #print(dim(pixel_region))
+  #pixel_region <- pixel_region[
+    #!is.na(pixelGroup) &
+   #   !is.na(region)
+  #]
   
-  pixel_region[
-    ,
-    region := gsub(
-      "^NL_",
-      "",
-      as.character(region)
-    )
-  ]
+  #pixel_region[
+    #,
+    #region := gsub(
+      #"^NL_",
+     # "",
+    #  as.character(region)
+   # )
+  #]
   
   
   
-  lut <- levels(region_raster)[[1]]
+  #lut <- levels(region_raster)[[1]]
   
   pixel_region[
     ,
