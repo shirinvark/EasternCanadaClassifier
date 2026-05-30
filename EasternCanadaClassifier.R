@@ -229,14 +229,14 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Creating fake cohortData")
     
-    pg <- unique(
-      terra::values(sim$pixelGroupMap)
-    )
+   # pg <- unique(
+    #  terra::values(sim$pixelGroupMap)
+   # )
     
-    pg <- pg[!is.na(pg)]
+   # pg <- pg[!is.na(pg)]
     
-    pg <- pg[1:6]
-    
+    #pg <- pg[1:6]
+    pg <- c(70,79,80)
     sim$cohortData <- data.table::data.table(
       
       pixelGroup = rep(pg, each = 3),
