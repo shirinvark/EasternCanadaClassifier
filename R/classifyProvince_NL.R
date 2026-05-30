@@ -415,6 +415,23 @@ classifyProvince_NL <- function(sim) {
     !is.na(pixelGroup) &
       !is.na(region)
   ]
+  lut <- terra::cats(region_raster)[[1]]
+  
+  pixel_region[
+    ,
+    region := lut$YCF[
+      match(region, lut$ID)
+    ]
+  ]
+  
+  pixel_region[
+    ,
+    region := gsub(
+      "^NL_",
+      "",
+      region
+    )
+  ]
   cat("\n===== AFTER FILTER =====\n")
   
   print(head(pixel_region, 20))
