@@ -526,7 +526,17 @@ classifyProvince_NL <- function(sim) {
     shp,
     terra::crs(sim$pixelGroupMap)
   )
+  print(region_raster)
   
+  print(
+    terra::freq(
+      region_raster,
+      digits = 0
+    )
+  )
+  summary(
+    terra::values(region_raster)
+  )
   region_raster <- terra::rasterize(
     shp2,
     sim$pixelGroupMap,
@@ -643,7 +653,20 @@ classifyProvince_NL <- function(sim) {
       dt
     }
   )
+  cat("\n===== PIXEL REGION =====\n")
+  print(head(pixel_region))
+  print(nrow(pixel_region))
   
+  cat("\n===== COHORT PIXELS =====\n")
+  print(cohort_wide$pixelGroup)
+  
+  cat("\n===== INTERSECTION =====\n")
+  print(
+    intersect(
+      cohort_wide$pixelGroup,
+      pixel_region$pixelGroup
+    )
+  )
   # =========================================================
   # KEEP ONLY PIXELS WITH REGION
   # =========================================================
@@ -678,7 +701,26 @@ classifyProvince_NL <- function(sim) {
     by = "pixelGroup",
     all.x = FALSE
   )
+  print("===== COHORT CLASSIFIABLE =====")
+  print(head(cohort_classifiable))
   
+  print(names(cohort_classifiable))
+  
+  print(
+    cohort_classifiable[
+      1:6,
+      .(
+        pixelGroup,
+        age,
+        region,
+        balsamFir_NL,
+        blackSpruce_NL,
+        broadleaf_NL,
+        otherConifer_NL,
+        total
+      )
+    ]
+  )
   # ======================================================
   # CLASSIFY ONE PIXEL
   # ====================================================
