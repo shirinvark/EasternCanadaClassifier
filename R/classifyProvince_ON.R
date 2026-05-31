@@ -286,8 +286,23 @@ classifyProvince_ON <- function(sim) {
   ########################################################
   ####it is temporary and just for fake data
   pixel_region[, region := as.character(region)]
-  pixel_region[, region := "3e"]
-  # ---- clean ----
+  #pixel_region[, region := "3e"]
+  cat("\n===== RAW REGION TABLE =====\n")
+  print(table(pixel_region$region))
+  
+  cat("\n===== UNIQUE REGIONS =====\n")
+  print(unique(pixel_region$region)[1:20])
+  
+  cat("\n===== DUPLICATE CHECK =====\n")
+  print(
+    pixel_region[
+      ,
+      .N,
+      by = pixelGroup
+    ][
+      order(-N)
+    ][1:20]
+  )  # ---- clean ----
   #pixel_region[, region := tolower(as.character(region))]
   ##############################################################3 
   pixel_region <- pixel_region[
