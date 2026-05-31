@@ -283,6 +283,34 @@ classifyProvince_ON <- function(sim) {
   setnames(reg, names(reg), "region")
   
   pixel_region <- cbind(pg, reg)
+  cats_dt <- as.data.table(
+    terra::cats(region_raster)[[1]]
+  )
+  
+  cats_dt[
+    ,
+    SITEREGION := tolower(SITEREGION)
+  ]
+  
+  setnames(cats_dt, "ID", "region")
+  
+  pixel_region <- merge(
+    pixel_region,
+    cats_dt,
+    by = "region",
+    all.x = TRUE
+  )
+  
+  pixel_region[
+    ,
+    region := SITEREGION
+  ]
+  
+  pixel_region[
+    ,
+    SITEREGION := NULL
+  ]
+  print(table(pixel_region$region))
   ########################################################
   ####it is temporary and just for fake data
   pixel_region[, region := as.character(region)]
@@ -389,7 +417,7 @@ classifyProvince_ON <- function(sim) {
     if (sum(cohort_vec) == 0) {
       list(bestAU = NA, distance = NA)
     } else {
-      
+      # browser()
       cohort_vec <- cohort_vec / sum(cohort_vec)
       
       region_vals <- pixel_region[pixelGroup == .BY$pixelGroup, region]
@@ -399,7 +427,7 @@ classifyProvince_ON <- function(sim) {
       } else {
         names(which.max(table(region_vals)))
       }
-      
+      # browser()
       if (!(region %in% names(yield_by_region))) {
         list(bestAU = NA, distance = NA)
       } else {
@@ -542,7 +570,7 @@ classifyProvince_ON <- function(sim) {
     all.x = TRUE
   )
   
-  # compute effective area
+  # compute effective area...
   pixel_area_dt[, effectiveArea := harvestableFraction * cellArea_ha]
   
   # save in sim
