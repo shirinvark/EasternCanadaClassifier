@@ -520,14 +520,31 @@ classifyProvince_ON <- function(sim) {
   
   print(head(results))
   
+ ######################################3
+  #######################################3
+  #################################3
   
-  sim$AUtoCurve <- unique(
-    results[, .(
+#  sim$AUtoCurve <- unique(
+   # results[, .(
+     # AU = bestAU,
+     # curveID = as.character(CURVENO)
+   # )]
+  #)
+  sim$AUtoCurve <- results[
+    !is.na(bestAU),
+    .N,
+    by = .(
       AU = bestAU,
       curveID = as.character(CURVENO)
-    )]
-  )
-  
+    )
+  ][
+    ,
+    .SD[which.max(N)],
+    by = AU
+  ][
+    ,
+    .(AU, curveID)
+  ]
   
   # 🔥 area per AU
   sim$areaByAU <- sim$pixelGroupToAU[
@@ -577,3 +594,7 @@ classifyProvince_ON <- function(sim) {
   sim$pixelAreaDT <- pixel_area_dt
   return(sim)
 }
+
+# TODO:
+# Border pixelGroups intersecting multiple SITEREGIONs
+# currently use which.max(table(region_vals))
