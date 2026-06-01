@@ -827,7 +827,7 @@ classifyProvince_NL <- function(sim) {
       ]
       
       curves_mat <- as.matrix(
-        curves[, ..curve_cols]
+        curves[, curve_cols, with = FALSE]
       )
       
       cohort_mat <- matrix(
