@@ -347,18 +347,11 @@ standardizeYieldTables <- function(
         # -------------------------------------------------
         # store standardized curve
         # -------------------------------------------------
-      #  AU <- unique(curve_dt$AU)
-        
-       # AU <- AU[!is.na(AU)][1]
-      #  yieldTables[[jur]][[reg]][[as.character(cid)]] <- 
-        #  reduced_dt
-        #yieldTables[[AU]] <- reduced_dt
-       # yieldTables[[jur]][[reg]][[as.character(cid)]] <- reduced_dt
         AU <- unique(curve_dt$AU)
         
         AU <- AU[!is.na(AU)][1]
         
-        yieldTables[[as.character(cid)]] <- reduced_dt
+        yieldTables[[jur]][[reg]][[as.character(cid)]] <- reduced_dt
       }
     }
   }
