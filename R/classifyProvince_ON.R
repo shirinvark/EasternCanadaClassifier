@@ -520,15 +520,15 @@ classifyProvince_ON <- function(sim) {
   
   print(head(results))
   
- ######################################3
+  ######################################3
   #######################################3
   #################################3
   
-#  sim$AUtoCurve <- unique(
-   # results[, .(
-     # AU = bestAU,
-     # curveID = as.character(CURVENO)
-   # )]
+  #  sim$AUtoCurve <- unique(
+  # results[, .(
+  # AU = bestAU,
+  # curveID = as.character(CURVENO)
+  # )]
   #)
   sim$AUtoCurve <- results[
     !is.na(bestAU),
@@ -592,6 +592,27 @@ classifyProvince_ON <- function(sim) {
   
   # save in sim
   sim$pixelAreaDT <- pixel_area_dt
+  ########AUMAP
+  ##########################
+  analysisUnitMap <- sim$pixelGroupMap
+  
+  lookup <- sim$pixelGroupToAU
+  
+  pg_vals <- terra::values(sim$pixelGroupMap)
+  
+  idx <- match(
+    pg_vals,
+    lookup$pixelGroup
+  )
+  
+  terra::values(analysisUnitMap) <-
+    lookup$analysisUnit[idx]
+  
+  sim$analysisUnitMap <- analysisUnitMap
+  
+  
+  
+  
   return(sim)
 }
 
