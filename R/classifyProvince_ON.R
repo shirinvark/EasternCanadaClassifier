@@ -495,14 +495,14 @@ classifyProvince_ON <- function(sim) {
           sim$yield_by_region[[region]]
         )
         
-        cat("\n===== BEFORE NORMALIZATION =====\n")
+      #  cat("\n===== BEFORE NORMALIZATION =====\n")
         
-        print(
-          rowSums(
-            curves[, prop_cols, with = FALSE],
-            na.rm = TRUE
-          )[1:20]
-        )
+       # print(
+        #  rowSums(
+         #   curves[, prop_cols, with = FALSE],
+          #  na.rm = TRUE
+         # )[1:20]
+       # )
         
         age <- mean(.SD$age)
         
