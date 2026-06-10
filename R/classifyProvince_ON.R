@@ -66,32 +66,55 @@ classifyProvince_ON <- function(sim) {
     print(unique(dt$SI))
     print(unique(dt$FU))
     
-    # step 1: subset by region
-    dt_sub <- dt[grepl(tolower(submu), tolower(SUBMU))]
+    # ======================================
+    # explicit Ontario filtering
+    # ======================================
     
-    # step 2: prepare SI values
-    si_vals <- tolower(dt_sub$SI)
-    si_vals <- si_vals[!is.na(si_vals)]
-    
-    # step 3: choose SI
-    target_si <- if (any(grepl("prsnt", si_vals))) {
-      "prsnt"
-    } else {
-      names(sort(table(si_vals), decreasing = TRUE))[1]
+    if (submu == "3e") {
+      
+      dt <- dt[
+        tolower(SUBMU) == "3e" &
+          tolower(SI) == "prsnt"
+      ]
+      
+    } else if (submu == "3w") {
+      
+      dt <- dt[
+        tolower(SUBMU) == "3w" &
+          tolower(SI) == "prsnt"
+      ]
+      
+    } else if (submu == "4e") {
+      
+      dt <- dt[
+        tolower(SUBMU) == "4e_5e" &
+          tolower(SI) == "prsnt"
+      ]
+      
+    } else if (submu == "4s") {
+      
+      dt <- dt[
+        tolower(SUBMU) == "4s_3s" &
+          tolower(SI) == "prsnt"
+      ]
+      
+    } else if (submu == "4w") {
+      
+      dt <- dt[
+        tolower(SUBMU) == "4w" &
+          tolower(SI) == "prsnt"
+      ]
+      
+    } else if (submu == "5e") {
+      
+      dt <- dt[
+        tolower(SUBMU) == "5e" &
+          tolower(SI) == "exten"
+      ]
+      
     }
-    
-    # step 4: final filter
-    dt <- dt_sub[
-      !is.na(SI) &
-        grepl(target_si, tolower(SI)) &
-        tolower(FU) != "bog"
-    ]
-    
-    # debug
-    cat("\n===== DEBUG AFTER FILTER =====\n")
-    cat("Zone:", submu, "\n")
-    cat("Selected SI:", target_si, "\n")
-    print(dim(dt))
+    #Debug
+    cat("Remaining SI values:\n")
     print(unique(tolower(dt$SI)))
     
     # safety
