@@ -128,10 +128,37 @@ classifyProvince_ON <- function(sim) {
     species_cols <- c("PW","PR","PJ","SB","SW","BF","CE","OC","HE","PO","PB","BW","MH","QR","YB","OH")
     
     # ---- Convert to numeric ----
+    #dt[, (species_cols) := lapply(.SD, function(x) {
+     # x[x == "." | x == "" | is.na(x)] <- NA
+     # as.numeric(x)
+   # }), .SDcols = species_cols]
+    
+    # ---- Find bad values ----
+    for (sp in species_cols) {
+      
+      bad <- unique(
+        dt[
+          !is.na(get(sp)) &
+            suppressWarnings(is.na(as.numeric(get(sp)))),
+          get(sp)
+        ]
+      )
+      
+      if (length(bad) > 0) {
+        cat("\nBAD VALUES IN", sp, ":\n")
+        print(bad)
+      }
+    }
+    
+    # ---- Convert to numeric ----
     dt[, (species_cols) := lapply(.SD, function(x) {
       x[x == "." | x == "" | is.na(x)] <- NA
       as.numeric(x)
     }), .SDcols = species_cols]
+    
+    
+    
+    
     
     # ---- Convert to proportions ----
     dt[, total := rowSums(.SD, na.rm = TRUE), .SDcols = species_cols]
