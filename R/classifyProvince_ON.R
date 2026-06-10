@@ -438,7 +438,11 @@ classifyProvince_ON <- function(sim) {
     cohort_vec <- as.numeric(.SD[1, prop_cols, with = FALSE])
     
     if (sum(cohort_vec) == 0) {
-      list(bestAU = NA, distance = NA)
+      list(
+        bestAU = NA_character_,
+        CURVENO = NA_integer_,
+        distance = NA_real_
+      )
     } else {
       # browser()
       cohort_vec <- cohort_vec / sum(cohort_vec)
@@ -452,7 +456,11 @@ classifyProvince_ON <- function(sim) {
       }
       # browser()
       if (!(region %in% names(yield_by_region))) {
-        list(bestAU = NA, distance = NA)
+        list(
+          bestAU = NA_character_,
+          CURVENO = NA_integer_,
+          distance = NA_real_
+        )
       } else {
         
         #curves <- sim$yield_by_region[[region]] 
@@ -464,11 +472,10 @@ classifyProvince_ON <- function(sim) {
         
         print(
           rowSums(
-            curves[, ..prop_cols],
+            curves[, prop_cols, with = FALSE],
             na.rm = TRUE
           )[1:20]
         )
-        
         
         age <- mean(.SD$age)
         
@@ -476,7 +483,11 @@ classifyProvince_ON <- function(sim) {
         curves <- curves[age_diff == min(age_diff)]
         curves[, age_diff := NULL]
         if (nrow(curves) == 0) {
-          list(bestAU = NA, distance = NA)
+          list(
+            bestAU = NA_character_,
+            CURVENO = NA_integer_,
+            distance = NA_real_
+          )
         } else {
           
           curves[
