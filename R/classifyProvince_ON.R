@@ -598,22 +598,39 @@ classifyProvince_ON <- function(sim) {
   # curveID = as.character(CURVENO)
   # )]
   #)
-  sim$AUtoCurve <- results[
-    !is.na(bestAU),
-    .N,
-    by = .(
-      AU = bestAU,
-      curveID = as.character(CURVENO)
-    )
-  ][
-    ,
-    .SD[which.max(N)],
-    by = AU
-  ][
-    ,
-    .(AU, curveID)
-  ]
+ # sim$AUtoCurve <- results[
+  #  !is.na(bestAU),
+   # .N,
+    #by = .(
+   #   AU = bestAU,
+  #    curveID = as.character(CURVENO)
+ #   )
+#  ][
+    #,
+    #.SD[which.max(N)],
+   # by = AU
+  #][
+   # ,
+  #  .(AU, curveID)
+ # ]
   
+  
+  
+  
+  
+  
+  
+  sim$AUtoCurve <- unique(
+    rbindlist(
+      sim$yield_by_region
+    )[
+      ,
+      .(
+        AU,
+        curveID = as.character(CURVENO)
+      )
+    ]
+  )
   # 🔥 area per AU
   sim$areaByAU <- sim$pixelGroupToAU[
     ,
