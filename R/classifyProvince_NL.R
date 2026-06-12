@@ -243,7 +243,7 @@ classifyProvince_NL <- function(sim) {
   )
   
   
-  ####AUTOcurve
+  ####AUTOcurve####
   
   AUtoCurve <- copy(AU_table)[
     ,
