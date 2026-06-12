@@ -194,7 +194,17 @@ classifyProvince_NL <- function(sim) {
     y_lines <- y_lines[
       grepl("\\smedium\\s", y_lines)
     ]
+    cat("\nFILE:", f, "\n")
     
+    print(
+      table(
+        sub(
+          "^\\*Y\\s+\\S+\\s+(\\S+).*",
+          "\\1",
+          y_lines
+        )
+      )
+    )
     tmp <- data.table(
       file = f,
       community = sub(
