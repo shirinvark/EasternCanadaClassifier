@@ -218,11 +218,18 @@ classifyProvince_ON <- function(sim) {
     # ---- Remove NA ----
     dt_summary <- dt_summary[complete.cases(dt_summary[, ..groups])]
     
-    # ---- Assign AU ----
-    dt_summary[, AU := FU]
-    
     # ---- Add zone ----
     dt_summary[, zone := submu]
+    
+    # ---- Assign AU ----
+    dt_summary[
+      ,
+      AU := paste0(
+        FU,
+        "_",
+        zone
+      )
+    ]
     
     return(dt_summary)
   }
