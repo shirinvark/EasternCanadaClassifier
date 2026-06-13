@@ -885,10 +885,53 @@ classifyProvince_NL <- function(sim) {
     )
   ]
   
+  sim$classification <- results[
+    ,
+    .(
+      pixelGroup,
+      AU = bestAU,
+      distance
+    )
+  ]
   
+  sim$classification <- merge(
+    sim$classification,
+    AUtoCurve,
+    by = "AU",
+    all.x = TRUE
+  )
+  ###standDT
+  standDT <- unique(
+    sim$cohortData[
+      ,
+      .(
+        pixelGroup,
+        age
+      )
+    ]
+  )
+  standDT <- merge(
+    standDT,
+    sim$classification[
+      ,
+      .(
+        pixelGroup,
+        AU,
+        curveID
+      )
+    ],
+    by = "pixelGroup",
+    all.x = TRUE
+  )
   
-  sim$classification <- classification
+  standDT <- standDT[
+    !is.na(AU) &
+      !is.na(curveID)
+  ]
   
+  sim$standDT <- standDT
+
+  ######################################
   sim$pixelGroupToAU <- classification[
     ,
     .(
@@ -897,7 +940,88 @@ classifyProvince_NL <- function(sim) {
     )
   ]
   sim$AUtoCurve <- AUtoCurve
+  # =====================================================
+  # pixelAreaDT
+  # =====================================================
   
+  cellArea_ha <- prod(
+    terra::res(sim$pixelGroupMap)
+  ) / 10000
+  
+  hf <- as.vector(
+    terra::values(sim$harvestableFraction)
+  )
+  
+  pg <- as.vector(
+    terra::values(sim$pixelGroupMap)
+  )
+  
+  pixel_area_dt <- data.table(
+    pixelGroup = pg,
+    harvestableFraction = hf
+  )
+  
+  pixel_area_dt <- unique(
+    pixel_area_dt,
+    by = "pixelGroup"
+  )
+  
+  pixel_area_dt <- pixel_area_dt[
+    !is.na(pixelGroup)
+  ]
+  
+  pixel_area_dt <- merge(
+    pixel_area_dt,
+    sim$pixelGroupToAU,
+    by = "pixelGroup",
+    all.x = TRUE
+  )
+  
+  pixel_area_dt[
+    ,
+    effectiveArea := harvestableFraction * cellArea_ha
+  ]
+  
+  sim$pixelAreaDT <- pixel_area_dt
+  # =====================================================
+  # Add effectiveArea to standDT
+  # =====================================================
+  
+  standDT <- merge(
+    sim$standDT,
+    sim$pixelAreaDT[
+      ,
+      .(
+        pixelGroup,
+        effectiveArea
+      )
+    ],
+    by = "pixelGroup",
+    all.x = TRUE
+  )
+  
+  sim$standDT <- standDT
+  # =====================================================
+  # analysisUnitMap
+  # =====================================================
+  
+  analysisUnitMap <- sim$pixelGroupMap
+  
+  lookup <- sim$pixelGroupToAU
+  
+  pg_vals <- terra::values(
+    sim$pixelGroupMap
+  )
+  
+  idx <- match(
+    pg_vals,
+    lookup$pixelGroup
+  )
+  
+  terra::values(analysisUnitMap) <-
+    lookup$analysisUnit[idx]
+  
+  sim$analysisUnitMap <- analysisUnitMap
   if (is.null(sim$rawYieldTables)) {
     sim$rawYieldTables <- list()
   }
