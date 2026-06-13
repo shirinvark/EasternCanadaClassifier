@@ -83,7 +83,7 @@ standardizeYieldTables <- function(
     # -----------------------------------------------------
     # loop through regions
     # -----------------------------------------------------
-   
+    
     regions <- names(jur_tables)
     
     for (reg in regions) {
@@ -164,8 +164,7 @@ standardizeYieldTables <- function(
           # store
           # -------------------------------------------------
           
-          yieldTables[[jur]][[reg]][[cid]] <- 
-            reduced_dt
+          yieldTables[[as.character(cid)]] <- reduced_dt
         }
         
         next
@@ -185,7 +184,7 @@ standardizeYieldTables <- function(
         curve_dt <- region_tables[
           CURVENO == cid
         ]
-       
+        
         # -------------------------------------------------
         # first column assumed to be ages
         # -------------------------------------------------
@@ -268,8 +267,8 @@ standardizeYieldTables <- function(
           
           yt_standard[[sp_col]] <- species_tables[[sp_col]]
         }
-       
-       
+        
+        
         
         
         
@@ -285,16 +284,17 @@ standardizeYieldTables <- function(
         # -------------------------------------------------
         # store standardized curve
         # -------------------------------------------------
-       
         
-        yieldTables[[jur]][[reg]][[as.character(cid)]] <- reduced_dt
+        
+        yieldTables[[as.character(cid)]] <- reduced_dt
       }
     }
   }
   
-  # -------------------------------------------------------
-  # save standardized tables
-  # -------------------------------------------------------
+  # --------------------------------------------------
+  -----
+    # save standardized tables
+    # -------------------------------------------------------
   
   sim$yieldTables <- yieldTables
   
