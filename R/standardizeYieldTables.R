@@ -67,7 +67,13 @@ standardizeYieldTables <- function(
     # -----------------------------------------------------
     # loop through regions
     # -----------------------------------------------------
+    cat("\n===== JUR DEBUG =====\n")
     
+    print(jur)
+    
+    print(class(jur_tables))
+    
+    print(names(jur_tables))
     regions <- names(jur_tables)
     
     for (reg in regions) {
