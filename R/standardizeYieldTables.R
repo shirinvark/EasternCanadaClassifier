@@ -27,15 +27,6 @@ standardizeYieldTables <- function(
     maxAge
 ) {
   
-  print("===== START STANDARDIZE =====")
-  
-  print(names(sim$rawYieldTables))
-  
-  print(names(sim$rawYieldTables$ON))
-  
-  print(class(sim$rawYieldTables$ON$`3e`))
-  
-  print(head(sim$rawYieldTables$ON$`3e`))
   
   # -------------------------------------------------------
   # raw processed yield tables
@@ -54,6 +45,33 @@ standardizeYieldTables <- function(
   
   yieldTables <- list()
   
+  dropZeroSpecies <- function(dt) {
+    
+    species_cols <- setdiff(
+      names(dt),
+      "age"
+    )
+    
+    keep_species <- species_cols[
+      sapply(
+        dt[, ..species_cols],
+        function(x) any(x > 0)
+      )
+    ]
+    
+    dt[
+      ,
+      c("age", keep_species),
+      with = FALSE
+    ]
+  }
+  
+  
+  isListStyleYield <- function(x) {
+    
+    is.list(x[[1]]) &&
+      is.numeric(x[[1]][[1]])
+  }
   # -------------------------------------------------------
   # loop through jurisdictions
   # -------------------------------------------------------
@@ -65,27 +83,13 @@ standardizeYieldTables <- function(
     # -----------------------------------------------------
     # loop through regions
     # -----------------------------------------------------
-    cat("\n===== JUR DEBUG =====\n")
-    
-    print(jur)
-    
-    print(class(jur_tables))
-    
-    print(names(jur_tables))
+   
     regions <- names(jur_tables)
     
     for (reg in regions) {
       
       region_tables <- jur_tables[[reg]]
-      # =====================================================
-      # detect list-style yield tables
-      # =====================================================
       
-      isListStyleYield <- function(x) {
-        
-        is.list(x[[1]]) &&
-          is.numeric(x[[1]][[1]])
-      }
       # =====================================================
       # LIST-STYLE CURVES
       # =====================================================
@@ -153,27 +157,9 @@ standardizeYieldTables <- function(
             yt_standard[[sp_col]] <- species_tables[[sp_col]]
           }
           
-          # -------------------------------------------------
-          # remove zero columns
-          # -------------------------------------------------
-          
-          species_cols <- setdiff(
-            names(yt_standard),
-            "age"
-          )
-          
-          keep_species <- species_cols[
-            sapply(
-              yt_standard[
-                ,
-                ..species_cols
-              ],
-              function(x) any(x > 0)
-            )
-          ]
-          
-          reduced_dt <- yt_standard
-          
+          reduced_dt <- dropZeroSpecies(
+            yt_standard
+          )         
           # -------------------------------------------------
           # store
           # -------------------------------------------------
@@ -199,21 +185,7 @@ standardizeYieldTables <- function(
         curve_dt <- region_tables[
           CURVENO == cid
         ]
-        print("===== DEBUG STANDARDIZE =====")
-        
-        print(jur)
-        
-        print(reg)
-        
-        print(cid)
-        
-        print(class(curve_dt))
-        
-        print(dim(curve_dt))
-        
-        print(names(curve_dt))
-        
-        print(head(curve_dt))
+       
         # -------------------------------------------------
         # first column assumed to be ages
         # -------------------------------------------------
@@ -251,18 +223,6 @@ standardizeYieldTables <- function(
           exclude_cols
         )
         
-        
-        # -------------------------------------------------
-        # -------------------------------------------------
-        
-       # curve_dt[
-         # ,
-        #  total_volume := rowSums(
-          #  .SD,
-           # na.rm = TRUE
-          #),
-          #.SDcols = volume_cols
-        #]
         # -------------------------------------------------
         # sort by age
         # -------------------------------------------------
@@ -318,43 +278,14 @@ standardizeYieldTables <- function(
         # -------------------------------------------------
         # remove all-zero species columns
         # -------------------------------------------------
-        
-        # remove all-zero species columns
-        
-        species_cols <- setdiff(
-          names(yt_standard),
-          "age"
+        reduced_dt <- dropZeroSpecies(
+          yt_standard
         )
-        
-        keep_species <- species_cols[
-          sapply(
-            yt_standard[
-              ,
-              ..species_cols
-            ],
-            function(x) any(x > 0)
-          )
-        ]
-        
-        reduced_dt <- yt_standard[
-          ,
-          c("age", keep_species),
-          with = FALSE
-        ]        # -------------------------------------------------
         # -------------------------------------------------
-        
-       # yt_standard <- standardizeYieldCurve(
-        #  ages = curve_dt[[age_col]],
-         # volumes = curve_dt$total_volume,
-          #maxAge = maxAge
-        #)
-        
         # -------------------------------------------------
         # store standardized curve
         # -------------------------------------------------
-        AU <- unique(curve_dt$AU)
-        
-        AU <- AU[!is.na(AU)][1]
+       
         
         yieldTables[[jur]][[reg]][[as.character(cid)]] <- reduced_dt
       }
