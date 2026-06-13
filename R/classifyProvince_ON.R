@@ -671,6 +671,10 @@ classifyProvince_ON <- function(sim) {
     by = "pixelGroup",
     all.x = TRUE
   )
+  standDT <- standDT[
+    !is.na(AU) &
+      !is.na(curveID)
+  ]
   sim$standDT <- standDT
   cat("\n===== STANDDT =====\n")
   
@@ -723,6 +727,24 @@ classifyProvince_ON <- function(sim) {
   
   # save in sim
   sim$pixelAreaDT <- pixel_area_dt
+  # =====================================================
+  # Add effectiveArea to standDT
+  # =====================================================
+  
+  standDT <- merge(
+    sim$standDT,
+    sim$pixelAreaDT[
+      ,
+      .(
+        pixelGroup,
+        effectiveArea
+      )
+    ],
+    by = "pixelGroup",
+    all.x = TRUE
+  )
+  
+  sim$standDT <- standDT
   ########AUMAP
   ##########################
   analysisUnitMap <- sim$pixelGroupMap
