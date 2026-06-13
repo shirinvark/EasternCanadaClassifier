@@ -888,16 +888,6 @@ classifyProvince_NL <- function(sim) {
   
   
   sim$classification <- classification
-#  sim$classification <- results[
-   # ,
-    .(
-      pixelGroup,
-      AU = bestAU,
-      curveID = as.character(CURVENO),
-      distance
-    )
-  ]
-  
   
   sim$pixelGroupToAU <- classification[
     ,
