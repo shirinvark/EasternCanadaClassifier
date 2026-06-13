@@ -671,6 +671,12 @@ classifyProvince_ON <- function(sim) {
     by = "pixelGroup",
     all.x = TRUE
   )
+  sim$standDT <- standDT
+  cat("\n===== STANDDT =====\n")
+  
+  print(head(sim$standDT))
+  
+  print(str(sim$standDT))
   # 🔥 area per AU
   sim$areaByAU <- sim$pixelGroupToAU[
     ,
