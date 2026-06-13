@@ -576,9 +576,22 @@ classifyProvince_ON <- function(sim) {
   # FINAL OUTPUTS
   # =========================================================
   
-  # classification already exists
-  sim$classification <- results
+  # =====================================================
+  # Standardized classification output
+  # =====================================================
   
+  sim$classification <- results[
+    ,
+    .(
+      pixelGroup,
+      AU = bestAU,
+      curveID = as.character(CURVENO),
+      distance
+    )
+  ]
+  names(sim$classification)
+  
+  head(sim$classification)
   # 🔥 pixelGroup → AU mapping
   sim$pixelGroupToAU <- results[, .(
     pixelGroup,
@@ -630,6 +643,33 @@ classifyProvince_ON <- function(sim) {
         curveID = as.character(CURVENO)
       )
     ]
+  )
+  # =====================================================
+  # Build standDT for AAC
+  # =====================================================
+  
+  standDT <- unique(
+    sim$cohortData[
+      ,
+      .(
+        pixelGroup,
+        age
+      )
+    ]
+  )
+  
+  standDT <- merge(
+    standDT,
+    sim$classification[
+      ,
+      .(
+        pixelGroup,
+        AU,
+        curveID
+      )
+    ],
+    by = "pixelGroup",
+    all.x = TRUE
   )
   # 🔥 area per AU
   sim$areaByAU <- sim$pixelGroupToAU[
