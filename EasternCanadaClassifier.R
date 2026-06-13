@@ -133,6 +133,23 @@ defineModule(sim, list(
       "data.table",
       "Mean age and number of stands for each analysis unit."
     ),
+    createsOutput(
+      "classification",
+      "data.table",
+      "Pixel group classification results."
+    ),
+    
+    createsOutput(
+      "AUtoCurve",
+      "data.table",
+      "Mapping between analysis units and yield curves."
+    ),
+    
+    createsOutput(
+      "standDT",
+      "data.table",
+      "Stand-level table used by AAC."
+    ),
     
     createsOutput(
       "speciesSummaryByAU",
