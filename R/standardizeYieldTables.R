@@ -41,8 +41,7 @@ standardizeYieldTables <- function(
   # raw processed yield tables
   # -------------------------------------------------------
   
-  rawYieldTables <- sim$rawYieldTables
-  
+  rawYieldTables <- sim$yield_by_region  
   # -------------------------------------------------------
   # jurisdiction names
   # -------------------------------------------------------
