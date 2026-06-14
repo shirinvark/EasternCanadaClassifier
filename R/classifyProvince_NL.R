@@ -930,7 +930,40 @@ classifyProvince_NL <- function(sim) {
   ]
   
   sim$standDT <- standDT
-
+  # =====================================================
+  # AAC input table
+  # =====================================================
+  
+  sim$aacInput <- standDT[
+    ,
+    .(
+      area = sum(
+        effectiveArea,
+        na.rm = TRUE
+      )
+    ),
+    by = .(
+      AU,
+      age,
+      curveID
+    )
+  ]
+  
+  setorder(
+    sim$aacInput,
+    AU,
+    age
+  )
+  
+  cat("\n===== AAC INPUT =====\n")
+  
+  print(
+    head(sim$aacInput)
+  )
+  
+  print(
+    summary(sim$aacInput$area)
+  )
   ######################################
   sim$pixelGroupToAU <- classification[
     ,
