@@ -985,7 +985,7 @@ classifyProvince_NL <- function(sim) {
   sim$pixelAreaDT <- pixel_area_dt
   # =====================================================
   # Add effectiveArea to standDT
-  # ===================================================
+  # =================================================
   
   standDT <- merge(
     sim$standDT,
