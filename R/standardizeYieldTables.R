@@ -173,7 +173,37 @@ standardizeYieldTables <- function(
       # unique curve IDs
       # ---------------------------------------------------
       
-      curve_ids <- unique(region_tables$CURVENO)
+      # ---------------------------------------------------
+      # curve identifier
+      # ---------------------------------------------------
+      
+      if ("CURVENO" %in% names(region_tables)) {
+        
+        curve_ids <- unique(
+          region_tables$CURVENO
+        )
+        
+        subsetCurve <- function(dt, cid) {
+          dt[CURVENO == cid]
+        }
+        
+      } else if ("AU" %in% names(region_tables)) {
+        
+        curve_ids <- unique(
+          region_tables$AU
+        )
+        
+        subsetCurve <- function(dt, cid) {
+          dt[AU == cid]
+        }
+        
+      } else {
+        
+        stop(
+          "No curve identifier found"
+        )
+        
+      }
       
       # ---------------------------------------------------
       # loop through curves
@@ -181,9 +211,10 @@ standardizeYieldTables <- function(
       
       for (cid in curve_ids) {
         
-        curve_dt <- region_tables[
-          CURVENO == cid
-        ]
+        curve_dt <- subsetCurve(
+          region_tables,
+          cid
+        )
         
         # -------------------------------------------------
         # first column assumed to be ages
