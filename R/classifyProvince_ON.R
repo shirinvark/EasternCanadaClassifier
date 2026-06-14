@@ -3,7 +3,7 @@ classifyProvince_ON <- function(sim) {
   library(data.table)
   message("Running Ontario classifier")
   
-  # ===================================================
+  # ================================================
   # === DOWNLOAD DATA FROM GITHUB ===
   # ===================================================
   
