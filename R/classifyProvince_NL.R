@@ -146,13 +146,14 @@ classifyProvince_NL <- function(sim) {
   # ===================================================
   #تا اینجا درست
   
-  
-  
-  
-  
-  
-  
-  source("R/helpers.R")
+  source(
+    file.path(
+      getPaths()$modulePath,
+      "EasternCanadaClassifier",
+      "R",
+      "helpers.R"
+    )
+  )
   
   # ===================================================
   # === READ MAPPINGS ===
@@ -312,12 +313,24 @@ classifyProvince_NL <- function(sim) {
     )
     ####For test
     raw_curve <- parse_curve(block)
-    
+    if (au == "Aphid_bF") {
+      
+      cat("\n===== RAW CURVE =====\n")
+      
+      print(head(raw_curve$BFv, 30))
+      
+    }
     curve_data <- rewrite_yld_curve(
       raw_curve,
       mapSpeciesGroups
     )
-    
+    if (au == "Aphid_bF") {
+      
+      cat("\n===== REWRITTEN CURVE =====\n")
+      
+      print(head(curve_data$balsamFir_NL, 30))
+      
+    }
     checkVolumeConservation <- FALSE
     
     if (checkVolumeConservation) {
@@ -351,7 +364,13 @@ classifyProvince_NL <- function(sim) {
     dt_curve <- data.table(
       AC10 = ages
     )
-    
+    if (au == "Aphid_bF") {
+      
+      cat("\n===== DT CURVE =====\n")
+      
+      print(dt_curve)
+      
+    }
     for (sp in names(curve_data)) {
       dt_curve[[sp]] <- curve_data[[sp]]
     }
