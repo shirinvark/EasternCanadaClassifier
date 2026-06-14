@@ -63,16 +63,30 @@ parse_curve <- function(curve_lines) {  # Function to parse .yld curve lines int
     parts <- strsplit(line, "\\s+")[[1]]  # Split line into tokens by whitespace
     
     # اگر species line بود (مثل BSv)
-    if (grepl("^[A-Z]{2}v$", parts[1])) {   # Check if line defines a species (e.g., BSv)
-      current_sp <- parts[1]                # Set current species
-      res[[current_sp]] <- numeric()       # Initialize empty numeric vector for this species
+    if (grepl("^[A-Z]{2}v$", parts[1])) {
       
-    } else if (!is.null(current_sp)) {     # If numeric data line and species already defined
+      current_sp <- parts[1]
       
-      nums <- suppressWarnings(as.numeric(parts))  # Convert tokens to numeric (suppress warnings)
-      nums <- nums[!is.na(nums)]                   # Remove NA values
+      nums <- suppressWarnings(
+        as.numeric(parts[-1])
+      )
       
-      res[[current_sp]] <- c(res[[current_sp]], nums)  # Append values to species vector
+      nums <- nums[!is.na(nums)]
+      
+      res[[current_sp]] <- nums
+      
+    } else if (!is.null(current_sp)) {
+      
+      nums <- suppressWarnings(
+        as.numeric(parts)
+      )
+      
+      nums <- nums[!is.na(nums)]
+      
+      res[[current_sp]] <- c(
+        res[[current_sp]],
+        nums
+      )
     }
   }
   
