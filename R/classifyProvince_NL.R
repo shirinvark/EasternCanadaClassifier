@@ -314,16 +314,39 @@ classifyProvince_NL <- function(sim) {
     ####For test
     raw_curve <- parse_curve(block)
     if (au == "Aphid_bF") {
+      cat("\n====================\n")
+      cat("AU =", au, "\n")
+      cat("community =", community, "\n")
+      cat("region =", region, "\n")
+      cat("====================\n")
       
       cat("\n===== RAW CURVE =====\n")
       
       print(head(raw_curve$BFv, 30))
-      
+      print(head(block, 30))
     }
     curve_data <- rewrite_yld_curve(
       raw_curve,
       mapSpeciesGroups
     )
+    
+    if (au == "Aphid_bF") {
+      
+      cat("\n===== RAW BFv =====\n")
+      print(raw_curve$BFv)
+      
+    }
+    
+    if (au == "Aphid_bF") {
+      
+      cat("\n===== REWRITTEN balsamFir_NL =====\n")
+      print(curve_data$balsamFir_NL)
+      
+    }
+    
+    
+    
+    
     if (au == "Aphid_bF") {
       
       cat("\n===== REWRITTEN CURVE =====\n")

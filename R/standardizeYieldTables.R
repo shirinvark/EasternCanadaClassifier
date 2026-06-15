@@ -164,8 +164,13 @@ standardizeYieldTables <- function(
           # store
           # -------------------------------------------------
           
-          yieldTables[[as.character(cid)]] <- reduced_dt
-        }
+          curveID <- paste0(
+            reg,
+            "_",
+            cid
+          )
+          
+          yieldTables[[curveID]] <- reduced_dt        }
         
         next
       }
@@ -317,14 +322,19 @@ standardizeYieldTables <- function(
         # -------------------------------------------------
         
         
-        yieldTables[[as.character(cid)]] <- reduced_dt
-      }
+        curveID <- paste0(
+          reg,
+          "_",
+          cid
+        )
+        
+        yieldTables[[curveID]] <- reduced_dt      }
     }
   }
   
   # --------------------------------------------------
-    # save standardized tables
-    # -------------------------------------------------------
+  # save standardized tables
+  # -------------------------------------------------------
   
   sim$yieldTables <- yieldTables
   

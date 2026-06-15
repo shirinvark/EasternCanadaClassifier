@@ -129,9 +129,9 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Convert to numeric ----
     #dt[, (species_cols) := lapply(.SD, function(x) {
-     # x[x == "." | x == "" | is.na(x)] <- NA
-     # as.numeric(x)
-   # }), .SDcols = species_cols]
+    # x[x == "." | x == "" | is.na(x)] <- NA
+    # as.numeric(x)
+    # }), .SDcols = species_cols]
     
     # ---- Find bad values ----
     for (sp in species_cols) {
@@ -502,14 +502,14 @@ classifyProvince_ON <- function(sim) {
           sim$yield_by_region[[region]]
         )
         
-      #  cat("\n===== BEFORE NORMALIZATION =====\n")
+        #  cat("\n===== BEFORE NORMALIZATION =====\n")
         
-       # print(
+        # print(
         #  rowSums(
-         #   curves[, prop_cols, with = FALSE],
-          #  na.rm = TRUE
-         # )[1:20]
-       # )
+        #   curves[, prop_cols, with = FALSE],
+        #  na.rm = TRUE
+        # )[1:20]
+        # )
         
         age <- mean(.SD$age)
         
@@ -579,16 +579,36 @@ classifyProvince_ON <- function(sim) {
   # =====================================================
   # Standardized classification output
   # =====================================================
-  
+  sim$AUtoCurve <- unique(
+    rbindlist(
+      sim$yield_by_region
+    )[
+      ,
+      .(
+        AU,
+        curveID = paste0(
+          zone,
+          "_",
+          CURVENO
+        )
+      )
+    ]
+  )
   sim$classification <- results[
     ,
     .(
       pixelGroup,
       AU = bestAU,
-      curveID = as.character(CURVENO),
       distance
     )
   ]
+  
+  sim$classification <- merge(
+    sim$classification,
+    sim$AUtoCurve,
+    by = "AU",
+    all.x = TRUE
+  )
   names(sim$classification)
   
   head(sim$classification)
@@ -611,21 +631,21 @@ classifyProvince_ON <- function(sim) {
   # curveID = as.character(CURVENO)
   # )]
   #)
- # sim$AUtoCurve <- results[
+  # sim$AUtoCurve <- results[
   #  !is.na(bestAU),
-   # .N,
-    #by = .(
-   #   AU = bestAU,
+  # .N,
+  #by = .(
+  #   AU = bestAU,
   #    curveID = as.character(CURVENO)
- #   )
-#  ][
-    #,
-    #.SD[which.max(N)],
-   # by = AU
+  #   )
+  #  ][
+  #,
+  #.SD[which.max(N)],
+  # by = AU
   #][
-   # ,
+  # ,
   #  .(AU, curveID)
- # ]
+  # ]
   
   
   ###
@@ -633,17 +653,7 @@ classifyProvince_ON <- function(sim) {
   
   
   
-  sim$AUtoCurve <- unique(
-    rbindlist(
-      sim$yield_by_region
-    )[
-      ,
-      .(
-        AU,
-        curveID = as.character(CURVENO)
-      )
-    ]
-  )
+  
   # =====================================================
   # Build standDT for AAC
   # =====================================================
