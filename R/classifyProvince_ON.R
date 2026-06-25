@@ -386,6 +386,11 @@ classifyProvince_ON <- function(sim) {
     touches = TRUE
   )
   print(unique(terra::values(region_raster)))
+  print(compareGeom(
+    sim$pixelGroupMap,
+    region_raster,
+    stopOnError = FALSE
+  ))
   # ---- extract values ----
   pg  <- as.data.table(terra::values(sim$pixelGroupMap))
   reg <- as.data.table(terra::values(region_raster))

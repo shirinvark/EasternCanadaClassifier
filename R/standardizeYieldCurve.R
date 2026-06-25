@@ -10,7 +10,11 @@ standardizeYieldCurve <- function(
   # - ages are unique
   # - no missing values
   # ------------------------------------------------------
-  annual <- approx(
+  if (ages[1] > 1 && volumes[1] == 0) {
+    ages <- c(1, ages[-1])
+    volumes <- c(0, volumes[-1])
+  }
+    annual <- approx(
     x = ages,
     y = volumes,
     xout = 1:maxAge,
