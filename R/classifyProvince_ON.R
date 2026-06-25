@@ -255,6 +255,14 @@ classifyProvince_ON <- function(sim) {
   
   # بعد combine کن
   yield_all <- rbindlist(results_list, fill = TRUE)
+  cat("\n===== yield_all =====\n")
+  
+  print(
+    yield_all[
+      CURVENO == 105 & zone == "5e",
+      .(AC10, spruce_ON)
+    ]
+  )
   yield_by_region <- split(yield_all, yield_all$zone)
   
   sim$yield_by_region <- yield_by_region

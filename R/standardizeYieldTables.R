@@ -261,7 +261,9 @@ standardizeYieldTables <- function(
         # -------------------------------------------------
         # sort by age
         # -------------------------------------------------
-        
+        if (cid == 105 && reg == "5e") {
+         
+        }
         curve_dt <- curve_dt[
           order(get(age_col))
         ]
@@ -294,7 +296,6 @@ standardizeYieldTables <- function(
               curve_dt[, c(age_col, sp_col), with = FALSE]
             )
             
-            browser()
           }
           
           yt_standard <- standardizeYieldCurve(
