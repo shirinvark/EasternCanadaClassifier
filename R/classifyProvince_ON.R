@@ -776,6 +776,25 @@ classifyProvince_ON <- function(sim) {
     pixelGroup = pg,
     harvestableFraction = hf
   )
+  cat("\n===== PIXEL GROUP DUPLICATES =====\n")
+  
+  data.table(
+    pixelGroup = pg
+  )[
+    ,
+    .N,
+    by = pixelGroup
+  ][
+    order(-N)
+  ] |>
+    head(20) |>
+    print()
+  
+  cat("\nNumber of unique pixelGroups:\n")
+  print(length(unique(pg)))
+  
+  cat("\nNumber of raster cells (excluding NA):\n")
+  print(sum(!is.na(pg)))
   pixel_area_dt <- unique(
     pixel_area_dt,
     by = "pixelGroup"
