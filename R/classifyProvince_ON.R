@@ -173,8 +173,10 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Convert to proportions ----
     dt[, total := rowSums(.SD, na.rm = TRUE), .SDcols = species_cols]
-    dt <- dt[total > 0]
-    
+    #dt <- dt[total > 0]
+    if (sum(dt$total) == 0) {
+      next
+    }
     # dt[, (species_cols) := lapply(.SD, function(x) x / total), .SDcols = species_cols]
     
     # ---- Initialize group columns ----
