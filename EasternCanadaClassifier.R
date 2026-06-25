@@ -57,11 +57,6 @@ defineModule(sim, list(
       desc = "LandR cohort data containing species biomass"
     ),
     expectsInput(
-      "standAge_250m",
-      objectClass = "SpatRaster",
-      desc = "Stand age map from LandR"
-    ),
-    expectsInput(
       "pixelGroupMap",
       objectClass = "SpatRaster",
       desc = "Raster identifying pixelGroup IDs"
