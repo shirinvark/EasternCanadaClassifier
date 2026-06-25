@@ -223,7 +223,7 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Normalize ----
     dt_summary[, total := rowSums(.SD), .SDcols = groups]
-    dt_summary <- dt_summary[total > 0]
+  #  dt_summary <- dt_summary[total > 0]
     
     #  dt_summary[, (groups) := lapply(.SD, function(x) x / total),
     #         .SDcols = groups]
@@ -243,7 +243,18 @@ classifyProvince_ON <- function(sim) {
         zone
       )
     ]
-    
+    if (submu == "5e") {
+      
+      cat("\n===== dt_summary BEFORE RETURN =====\n")
+      
+      print(
+        dt_summary[
+          CURVENO == 105,
+          .(CURVENO, AC10, spruce_ON)
+        ]
+      )
+      
+    }
     return(dt_summary)
   }
   
