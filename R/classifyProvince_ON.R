@@ -60,7 +60,18 @@ classifyProvince_ON <- function(sim) {
   process_zone <- function(path, submu) {
     #browser()
     dt <- fread(path)
-    
+    if (submu == "5e") {
+      
+      cat("\n===== RAW FILE =====\n")
+      
+      print(
+        dt[
+          CURVENO == 105,
+          .(AC10, SW)
+        ]
+      )
+      
+    }
     cat("\n===== DEBUG BEFORE FILTER =====\n")
     print(unique(dt$SUBMU))
     print(unique(dt$SI))
