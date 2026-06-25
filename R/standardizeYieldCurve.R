@@ -14,6 +14,12 @@ standardizeYieldCurve <- function(
     ages <- c(1, ages[-1])
     volumes <- c(0, volumes[-1])
   }
+  cat("AGES AFTER FIX:\n")
+  print(ages[1:5])
+  
+  cat("VOLUMES AFTER FIX:\n")
+  print(volumes[1:5])
+  
     annual <- approx(
     x = ages,
     y = volumes,
