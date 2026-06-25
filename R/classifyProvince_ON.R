@@ -56,7 +56,28 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   # 1. PROCESS ZONE FUNCTION
   # =========================================================
+  # ================================================
+  # CHECK RASTER ALIGNMENT
+  # ================================================
   
+  stopifnot(inherits(sim$pixelGroupMap, "SpatRaster"))
+  stopifnot(inherits(sim$harvestableFraction, "SpatRaster"))
+  
+  print(compareGeom(
+    sim$pixelGroupMap,
+    sim$harvestableFraction,
+    stopOnError = FALSE
+  ))
+  
+  cat("\nPixelGroupMap:\n")
+  print(res(sim$pixelGroupMap))
+  print(ext(sim$pixelGroupMap))
+  print(origin(sim$pixelGroupMap))
+  
+  cat("\nHarvestableFraction:\n")
+  print(res(sim$harvestableFraction))
+  print(ext(sim$harvestableFraction))
+  print(origin(sim$harvestableFraction))
   process_zone <- function(path, submu) {
     #browser()
     dt <- fread(path)
@@ -351,6 +372,7 @@ classifyProvince_ON <- function(sim) {
   
   # ---- project ----
   shp <- terra::project(shp, terra::crs(sim$pixelGroupMap))  
+  print(groups)
   # ---- align extent (خیلی مهم) ----
   #shp <- terra::crop(shp, terra::ext(sim$pixelGroupMap))
   cat("\n===== EXTENT CHECK =====\n")
