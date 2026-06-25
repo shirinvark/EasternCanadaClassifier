@@ -750,20 +750,7 @@ classifyProvince_ON <- function(sim) {
   print(head(sim$standDT))
   
   print(str(sim$standDT))
-  # 🔥 area per AU
-  sim$areaByAU <- sim$pixelAreaDT[
-    ,
-    list(
-      nPixelGroups = .N,
-      effectiveArea = sum(effectiveArea, na.rm = TRUE)
-    ),
-    by = list(AU = analysisUnit)
-  ]
-  
-  print(sim$areaByAU)
-  
-  print(sim$areaByAU)
-  setnames(sim$areaByAU, "N", "nPixels")
+ 
   
   # -------------------------------------------------------
   # 🔥 COMPUTE pixel-level effective area (hectares)
@@ -842,8 +829,19 @@ classifyProvince_ON <- function(sim) {
   sim$standDT <- standDT
   
   
+  # 🔥 area per AU
+  sim$areaByAU <- sim$pixelAreaDT[
+    ,
+    list(
+      nPixelGroups = .N,
+      effectiveArea = sum(effectiveArea, na.rm = TRUE)
+    ),
+    by = list(AU = analysisUnit)
+  ]
   
+  print(sim$areaByAU)
   
+
   
   
   ######################OBject new based on AU(standdt is based on pixel)
