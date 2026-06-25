@@ -10,7 +10,7 @@ standardizeYieldCurve <- function(
   # - ages are unique
   # - no missing values
   # ------------------------------------------------------
-  
+  browser()
   annual <- approx(
     x = ages,
     y = volumes,
