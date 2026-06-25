@@ -282,9 +282,21 @@ standardizeYieldTables <- function(
         }
         
         for (sp_col in volume_cols) {
+          
           if (cid == 105 && reg == "5e" && sp_col == "spruce_ON") {
+            
+            cat("\n========== DEBUG ==========\n")
+            cat("Region:", reg, "\n")
+            cat("Curve :", cid, "\n")
+            cat("Species:", sp_col, "\n\n")
+            
+            print(
+              curve_dt[, c(age_col, sp_col), with = FALSE]
+            )
+            
             browser()
           }
+          
           yt_standard <- standardizeYieldCurve(
             ages = curve_dt[[age_col]],
             volumes = curve_dt[[sp_col]],
