@@ -545,7 +545,16 @@ classifyProvince_ON <- function(sim) {
       sum(is.nan(cohort_wide$pixelGroup)), "\n")
   
   
+  pg <- terra::values(sim$pixelGroupMap)[,1]
   
+  missingPG <- setdiff(
+    unique(pg[!is.na(pg)]),
+    cohort_wide$pixelGroup
+  )
+  
+  cat("\n===== MISSING FROM COHORT_WIDE =====\n")
+  print(length(missingPG))
+  print(head(missingPG, 50))
   
   
   
