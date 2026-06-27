@@ -767,7 +767,17 @@ classifyProvince_ON <- function(sim) {
   # =====================================================
   # Build standDT for AAC
   # =====================================================
+  cat("\n===== RESULTS WITHOUT AU =====\n")
   
+  results[
+    is.na(bestAU),
+    .(
+      pixelGroup,
+      age,
+      CURVENO,
+      distance
+    )
+  ][1:50]
   standDT <- unique(
     sim$cohortData[
       ,
