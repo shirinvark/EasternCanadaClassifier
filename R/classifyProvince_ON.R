@@ -526,6 +526,29 @@ classifyProvince_ON <- function(sim) {
   #cohort_wide  <- sim$cohort_wide
   pixel_region <- sim$pixel_region
   
+  
+  
+  
+  
+  
+  cat("\n===== COHORT_WIDE =====\n")
+  
+  cat("Rows:", nrow(cohort_wide), "\n")
+  
+  cat("Unique pixelGroups:",
+      length(unique(cohort_wide$pixelGroup)), "\n")
+  
+  cat("NA pixelGroups:",
+      sum(is.na(cohort_wide$pixelGroup)), "\n")
+  
+  cat("NaN pixelGroups:",
+      sum(is.nan(cohort_wide$pixelGroup)), "\n")
+  
+  
+  
+  
+  
+  
   results <- cohort_wide[, {
     
     cohort_vec <- as.numeric(.SD[1, prop_cols, with = FALSE])
@@ -626,22 +649,7 @@ classifyProvince_ON <- function(sim) {
     }
     
   }, by = pixelGroup]
-  cat("\n===== RESULTS SUMMARY =====\n")
   
-  cat("Rows:", nrow(results), "\n")
-  
-  cat("Unique pixelGroups:",
-      length(unique(results$pixelGroup)),
-      "\n")
-  
-  pg <- terra::values(sim$pixelGroupMap)[,1]
-  pg <- unique(pg[!is.na(pg)])
-  
-  missingPG <- setdiff(pg, results$pixelGroup)
-  
-  cat("Missing:", length(missingPG), "\n")
-  
-  print(head(missingPG, 50))
   # =========================================================
   # 4. SAVE OUTPUT
   # =========================================================
