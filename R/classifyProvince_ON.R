@@ -672,6 +672,37 @@ classifyProvince_ON <- function(sim) {
   
   head(sim$classification)
   # 🔥 pixelGroup → AU mapping
+  
+  cat("\n===== RESULTS CHECK =====\n")
+  
+  cat("nrow(results):", nrow(results), "\n")
+  
+  cat("Unique pixelGroups in results:",
+      length(unique(results$pixelGroup)), "\n")
+  
+  cat("PixelGroup 840:\n")
+  print(
+    results[pixelGroup == 840]
+  )
+  
+  cat("Missing pixelGroups compared to pixelGroupMap:\n")
+  
+  pg <- terra::values(sim$pixelGroupMap)[,1]
+  
+  missingPG <- setdiff(
+    unique(pg[!is.na(pg)]),
+    results$pixelGroup
+  )
+  
+  print(length(missingPG))
+  print(head(missingPG, 20))
+  
+  
+  
+  
+  
+  
+  
   sim$pixelGroupToAU <- results[, .(
     pixelGroup,
     analysisUnit = bestAU
