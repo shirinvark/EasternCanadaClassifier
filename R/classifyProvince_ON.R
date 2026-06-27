@@ -615,6 +615,10 @@ classifyProvince_ON <- function(sim) {
           )
         } else {
           
+          
+          
+          
+          ##WE HAD TO DO SOMETHING FOR AGE O ROES.FOR NOW THEY DOES NOT ENTER
           curves[
             ,
             total_prop := rowSums(
@@ -628,11 +632,14 @@ classifyProvince_ON <- function(sim) {
             ,
             (prop_cols) := lapply(
               .SD,
-              function(x) x / total_prop
-            ),
+              function(x) fifelse(
+                total_prop > 0,
+                x / total_prop,
+                0
+              ))
+            ,
             .SDcols = prop_cols
           ]
-          
           
           curves_mat <- as.matrix(
             curves[, prop_cols, with = FALSE]
