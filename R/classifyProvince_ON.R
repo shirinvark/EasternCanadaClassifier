@@ -244,7 +244,7 @@ classifyProvince_ON <- function(sim) {
     
     # ---- Normalize ----
     dt_summary[, total := rowSums(.SD), .SDcols = groups]
-  #  dt_summary <- dt_summary[total > 0]
+    #  dt_summary <- dt_summary[total > 0]
     
     #  dt_summary[, (groups) := lapply(.SD, function(x) x / total),
     #         .SDcols = groups]
@@ -808,19 +808,40 @@ classifyProvince_ON <- function(sim) {
   print(head(sim$standDT))
   
   print(str(sim$standDT))
- 
+  
   
   # -------------------------------------------------------
   # 🔥 COMPUTE pixel-level effective area (hectares)
   # -------------------------------------------------------
-  
   # cell area (ha)
+  # -------------------------------------------------------
+  # 🔥 COMPUTE pixel-level effective area (hectares)
+  # -------------------------------------------------------
+  
+  # Make sure both rasters are perfectly aligned
+  if (!terra::compareGeom(
+    sim$pixelGroupMap,
+    sim$harvestableFraction,
+    stopOnError = FALSE
+  )) {
+    
+    cat("\n===== GEOMETRY MISMATCH =====\n")
+    
+    cat("pixelGroupMap:\n")
+    print(sim$pixelGroupMap)
+    
+    cat("harvestableFraction:\n")
+    print(sim$harvestableFraction)
+    
+    stop(
+      "pixelGroupMap and harvestableFraction are not aligned. ",
+      "Effective area cannot be calculated."
+    )
+  }
   cellArea_ha <- prod(terra::res(sim$pixelGroupMap)) / 10000
   
-  # harvestable fraction raster → vector
+  # raster -> vectors
   hf <- as.vector(terra::values(sim$harvestableFraction))
-  
-  # pixelGroup raster → vector
   pg <- as.vector(terra::values(sim$pixelGroupMap))
   
   # build table
@@ -828,33 +849,21 @@ classifyProvince_ON <- function(sim) {
     pixelGroup = pg,
     harvestableFraction = hf
   )
-  cat("\n===== PIXEL GROUP DUPLICATES =====\n")
   
-  data.table(
-    pixelGroup = pg
-  )[
-    ,
-    .N,
-    by = pixelGroup
-  ][
-    order(-N)
-  ] |>
-    head(20) |>
-    print()
-  
-  cat("\nNumber of unique pixelGroups:\n")
-  print(length(unique(pg)))
-  
-  cat("\nNumber of raster cells (excluding NA):\n")
-  print(sum(!is.na(pg)))
-  pixel_area_dt <- unique(
-    pixel_area_dt,
-    by = "pixelGroup"
-  )
-  # remove NA
+  # remove NA cells
   pixel_area_dt <- pixel_area_dt[!is.na(pixelGroup)]
   
-  # join with AU mapping
+  # aggregate by pixelGroup
+  pixel_area_dt <- pixel_area_dt[
+    ,
+    .(
+      harvestableFraction = sum(harvestableFraction, na.rm = TRUE),
+      effectiveArea = sum(harvestableFraction * cellArea_ha, na.rm = TRUE)
+    ),
+    by = pixelGroup
+  ]
+  
+  # join AU
   pixel_area_dt <- merge(
     pixel_area_dt,
     sim$pixelGroupToAU,
@@ -862,10 +871,7 @@ classifyProvince_ON <- function(sim) {
     all.x = TRUE
   )
   
-  # compute effective area...
-  pixel_area_dt[, effectiveArea := harvestableFraction * cellArea_ha]
-  
-  # save in sim
+  # save
   sim$pixelAreaDT <- pixel_area_dt
   # =====================================================
   # Add effectiveArea to standDT
@@ -899,7 +905,7 @@ classifyProvince_ON <- function(sim) {
   
   print(sim$areaByAU)
   
-
+  
   
   
   ######################OBject new based on AU(standdt is based on pixel)
