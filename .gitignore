@@ -95,3 +95,23 @@ images/
 *.dbf
 *.prj
 *.cpg
+.Rprofile
+# Simulation outputs
+*.rds
+*.csv
+*.aux.xml
+*.zip
+# Simulation outputs
+classification.rds
+classification_real_ON.rds
+classifyPixel_NL_validated.rds
+AUtoCurve_real_ON.rds
+areaByAU_real_ON.rds
+cohortData.rds
+pixelAreaDT.csv
+classification.csv
+# Local test scripts
+standalone_TEST.R
+test_with_real_data.R
+ON_LEARN_CODE.R
+CRES_ON.R
