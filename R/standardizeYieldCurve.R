@@ -20,13 +20,22 @@ standardizeYieldCurve <- function(
   cat("VOLUMES AFTER FIX:\n")
   print(volumes[1:5])
   
-    annual <- approx(
+  sp <- splinefun(
     x = ages,
     y = volumes,
-    xout = 1:maxAge,
-    method = "linear",
-    rule = 1
-  )$y
+    method = "hyman"
+  )
+  
+  annual <- sp(1:maxAge)
+  
+  lastAge <- max(ages)
+  lastVol <- tail(volumes, 1)
+  
+  if (lastAge < maxAge) {
+    annual[(lastAge + 1):maxAge] <- lastVol
+  }
+  
+  annual[annual < 0] <- 0
   
   annual[is.na(annual)] <- 0
   # ------------------------------------------------------
@@ -39,12 +48,7 @@ standardizeYieldCurve <- function(
     annual[1:(first_age - 1)] <- 0
   }
   
-  # ------------------------------------------------------
-  # prevent negative interpolated values
-  # ------------------------------------------------------
-  
-  annual[annual < 0] <- 0
-  
+ 
   # ------------------------------------------------------
   # return standardized annual yield table
   # ------------------------------------------------------
