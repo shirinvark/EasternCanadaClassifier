@@ -775,15 +775,28 @@ classifyProvince_ON <- function(sim) {
   # Build standDT for AAC
   # =====================================================
   
-  standDT <- unique(
-    sim$cohortData[
-      ,
-      .(
-        pixelGroup,
-        age
-      )
-    ]
-  )
+  # -------------------------------------------------------
+  # Temporary stand age definition
+  # -------------------------------------------------------
+  # A pixelGroup may contain multiple cohorts with different ages.
+  # For now, we assign the stand age as the modal (most frequent)
+  # cohort age within each pixelGroup.
+  #
+  # TODO:
+  # Verify the appropriate stand-age definition for LandR.
+  # Alternatives include:
+  #   - oldest cohort
+  #   - biomass-weighted age
+  #   - LandR stand age (if available)
+  # -------------------------------------------------------
+  
+  standDT <- sim$cohortData[
+    ,
+    .(
+      age = as.numeric(names(which.max(table(age))))
+    ),
+    by = pixelGroup
+  ]
   
   standDT <- merge(
     standDT,
