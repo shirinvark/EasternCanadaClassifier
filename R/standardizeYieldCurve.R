@@ -23,7 +23,7 @@ standardizeYieldCurve <- function(
   sp <- splinefun(
     x = ages,
     y = volumes,
-    method = "hyman"
+    method = "natural"
   )
   
   annual <- sp(1:maxAge)
