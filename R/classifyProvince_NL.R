@@ -254,7 +254,11 @@ classifyProvince_NL <- function(sim) {
     )
   ]
   
+  dupAU <- AUtoCurve[, .N, by = AU][N > 1]
   
+  if (nrow(dupAU) > 0) {
+    stop("More than one curve assigned to the same AU.")
+  }
   
   
   
@@ -943,15 +947,13 @@ classifyProvince_NL <- function(sim) {
     all.x = TRUE
   )
   ###standDT
-  standDT <- unique(
-    sim$cohortData[
-      ,
-      .(
-        pixelGroup,
-        age
-      )
-    ]
-  )
+  standDT <- sim$cohortData[
+    ,
+    .(
+      age = as.numeric(names(which.max(table(age))))
+    ),
+    by = pixelGroup
+  ]
   standDT <- merge(
     standDT,
     sim$classification[
@@ -972,7 +974,7 @@ classifyProvince_NL <- function(sim) {
   ]
   
   sim$standDT <- standDT
-  
+
   ######################################
   sim$pixelGroupToAU <- classification[
     ,
@@ -1003,13 +1005,17 @@ classifyProvince_NL <- function(sim) {
     harvestableFraction = hf
   )
   
-  pixel_area_dt <- unique(
-    pixel_area_dt,
-    by = "pixelGroup"
-  )
-  
   pixel_area_dt <- pixel_area_dt[
     !is.na(pixelGroup)
+  ]
+  
+  pixel_area_dt <- pixel_area_dt[
+    ,
+    .(
+      harvestableFraction = sum(harvestableFraction, na.rm = TRUE),
+      effectiveArea = sum(harvestableFraction * cellArea_ha, na.rm = TRUE)
+    ),
+    by = pixelGroup
   ]
   
   pixel_area_dt <- merge(
@@ -1019,12 +1025,19 @@ classifyProvince_NL <- function(sim) {
     all.x = TRUE
   )
   
-  pixel_area_dt[
-    ,
-    effectiveArea := harvestableFraction * cellArea_ha
-  ]
-  
   sim$pixelAreaDT <- pixel_area_dt
+  # =====================================================
+  # Area by Analysis Unit
+  # =====================================================
+  
+  sim$areaByAU <- sim$pixelAreaDT[
+    ,
+    .(
+      nPixelGroups = .N,
+      effectiveArea = sum(effectiveArea, na.rm = TRUE)
+    ),
+    by = .(AU = analysisUnit)
+  ]
   # =====================================================
   # Add effectiveArea to standDT
   # =================================================
@@ -1106,7 +1119,8 @@ classifyProvince_NL <- function(sim) {
     sim$rawYieldTables <- list()
   }
   
-  sim$rawYieldTables$NL <- yield_by_region
+  #sim$rawYieldTables$NL <- yield_by_regionپ
+  sim$rawYieldTables$NL <- sim$yield_by_region_raw
   sim$yieldTables_NL <- yieldTables_NL
   return(sim)
 }
