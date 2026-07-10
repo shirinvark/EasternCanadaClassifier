@@ -1081,12 +1081,12 @@ classifyProvince_NL <- function(sim) {
   # =====================================================
   # AAC input table
   # =====================================================
-  cat("\n===== STANDDT AFTER AREA MERGE =====\n")
+  # =====================================================
+  # AAC input table
+  # =====================================================
   
-  print(names(standDT))
-  
-  print(head(standDT))
-  sim$aacInput <- standDT[
+  # Aggregate observed area by AU and stand age
+  aacInput <- standDT[
     ,
     .(
       area = sum(
@@ -1101,20 +1101,53 @@ classifyProvince_NL <- function(sim) {
     )
   ]
   
+  # -----------------------------------------------------
+  # Expand to a complete annual age sequence
+  # (1:maxYieldAge) for every Analysis Unit
+  # Missing ages receive zero area
+  # -----------------------------------------------------
+  
+  allAU <- unique(
+    aacInput[
+      ,
+      .(AU, curveID)
+    ]
+  )
+  
+  maxAge <- max(
+    vapply(
+      sim$yieldTables,
+      nrow,
+      integer(1)
+    )
+  )
+  
+  fullGrid <- allAU[
+    ,
+    .(age = 1:maxAge),
+    by = .(AU, curveID)
+  ]
+  
+  sim$aacInput <- merge(
+    fullGrid,
+    aacInput,
+    by = c(
+      "AU",
+      "curveID",
+      "age"
+    ),
+    all.x = TRUE
+  )
+  
+  sim$aacInput[
+    is.na(area),
+    area := 0
+  ]
+  
   setorder(
     sim$aacInput,
     AU,
     age
-  )
-  
-  cat("\n===== AAC INPUT =====\n")
-  
-  print(
-    head(sim$aacInput)
-  )
-  
-  print(
-    summary(sim$aacInput$area)
   )
   # =====================================================
   # analysisUnitMap
