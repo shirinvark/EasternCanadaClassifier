@@ -87,6 +87,7 @@ defineModule(sim, list(
       "Yield tables used for classifier."
     ),
     
+    
     createsOutput(
       "yieldAges",
       "numeric",
@@ -116,7 +117,16 @@ defineModule(sim, list(
       "data.table",
       "Area summary in hectares for each analysis unit."
     ),
-    
+    createsOutput(
+      "analysisUnitSummary",
+      "data.table",
+      "Summary table of Analysis Units including assigned yield curve, effective area, and number of pixel groups."
+    ),
+    createsOutput(
+      "analysisUnitMap",
+      "SpatRaster",
+      "Raster map showing the spatial distribution of Analysis Units."
+    ),
     createsOutput(
       "ageStructureByAU",
       "data.table",

@@ -1039,6 +1039,28 @@ classifyProvince_NL <- function(sim) {
     by = .(AU = analysisUnit)
   ]
   # =====================================================
+  # Analysis Unit Summary
+  # =====================================================
+  
+  sim$analysisUnitSummary <- merge(
+    sim$areaByAU,
+    sim$AUtoCurve,
+    by = "AU",
+    all.x = TRUE
+  )
+  
+  sim$analysisUnitSummary[
+    ,
+    percentArea :=
+      100 * effectiveArea /
+      sum(effectiveArea, na.rm = TRUE)
+  ]
+  
+  setorder(
+    sim$analysisUnitSummary,
+    -effectiveArea
+  )
+  # =====================================================
   # Add effectiveArea to standDT
   # =================================================
   

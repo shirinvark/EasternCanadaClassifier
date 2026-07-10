@@ -918,7 +918,28 @@ classifyProvince_ON <- function(sim) {
   
   print(sim$areaByAU)
   
+  # =====================================================
+  # Analysis Unit Summary
+  # =====================================================
   
+  sim$analysisUnitSummary <- merge(
+    sim$areaByAU,
+    sim$AUtoCurve,
+    by = "AU",
+    all.x = TRUE
+  )
+  
+  sim$analysisUnitSummary[
+    ,
+    percentArea :=
+      100 * effectiveArea /
+      sum(effectiveArea, na.rm = TRUE)
+  ]
+  
+  setorder(
+    sim$analysisUnitSummary,
+    -effectiveArea
+  )
   
   
   ######################OBject new based on AU(standdt is based on pixel)
