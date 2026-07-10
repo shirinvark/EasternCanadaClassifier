@@ -987,7 +987,12 @@ classifyProvince_ON <- function(sim) {
       integer(1)
     )
   )
-  
+  stop(
+    paste(
+      "DEBUG maxAge =", maxAge,
+      "| yield rows =", nrow(sim$yieldTables[["5e_105"]])
+    )
+  )
   fullGrid <- allAU[
     ,
     .(age = 1:maxAge),
