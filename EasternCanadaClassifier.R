@@ -201,6 +201,72 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         sim,
         maxAge = P(sim)$maxYieldAge
       )
+      
+      # =====================================================
+      # AAC input table
+      # =====================================================
+      
+      # =====================================================
+      # AAC input table
+      # =====================================================
+      
+      aacInput <- sim$standDT[
+        ,
+        .(
+          area = sum(
+            effectiveArea,
+            na.rm = TRUE
+          )
+        ),
+        by = .(
+          AU,
+          age,
+          curveID
+        )
+      ]
+      
+      allAU <- unique(
+        aacInput[
+          ,
+          .(AU, curveID)
+        ]
+      )
+      
+      maxAge <- max(
+        vapply(
+          sim$yieldTables,
+          nrow,
+          integer(1)
+        )
+      )
+      
+      fullGrid <- allAU[
+        ,
+        .(age = 1:maxAge),
+        by = .(AU, curveID)
+      ]
+      
+      sim$aacInput <- merge(
+        fullGrid,
+        aacInput,
+        by = c(
+          "AU",
+          "curveID",
+          "age"
+        ),
+        all.x = TRUE
+      )
+      
+      sim$aacInput[
+        is.na(area),
+        area := 0
+      ]
+      
+      setorder(
+        sim$aacInput,
+        AU,
+        age
+      )
     },
     
     warning(noEventWarning(sim))
