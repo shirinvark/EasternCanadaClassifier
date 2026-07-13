@@ -181,7 +181,6 @@ Init <- function(sim) {
 }
 
 
-
 doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   
   switch(
@@ -205,18 +204,10 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       # =====================================================
       # AAC input table
       # =====================================================
-      
-      # =====================================================
-      # AAC input table
-      # =====================================================
-      
       aacInput <- sim$standDT[
         ,
         .(
-          area = sum(
-            effectiveArea,
-            na.rm = TRUE
-          )
+          area = sum(effectiveArea, na.rm = TRUE)
         ),
         by = .(
           AU,
@@ -225,19 +216,40 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         )
       ]
       
-      allAU <- unique(
-        aacInput[
-          ,
-          .(AU, curveID)
-        ]
-      )
-      
       maxAge <- max(
         vapply(
           sim$yieldTables,
           nrow,
           integer(1)
         )
+      )
+      
+      expanded <- data.table::rbindlist(
+        lapply(seq_len(nrow(aacInput)), function(i) {
+          
+          x <- aacInput[i]
+          
+          ages <- seq(
+            from = x$age,
+            to = min(x$age + 9L, maxAge)
+          )
+          
+          data.table(
+            AU = x$AU,
+            curveID = x$curveID,
+            age = ages,
+            area = x$area / length(ages)
+          )
+        })
+      )
+      
+      aacInput <- expanded
+      
+      allAU <- unique(
+        aacInput[
+          ,
+          .(AU, curveID)
+        ]
       )
       
       fullGrid <- allAU[
@@ -317,11 +329,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Creating fake cohortData")
     
-   # pg <- unique(
+    # pg <- unique(
     #  terra::values(sim$pixelGroupMap)
-   # )
+    # )
     
-   # pg <- pg[!is.na(pg)]
+    # pg <- pg[!is.na(pg)]
     
     #pg <- pg[1:6]
     pg <- c(70,79,80)

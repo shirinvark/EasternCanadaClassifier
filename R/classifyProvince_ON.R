@@ -864,15 +864,20 @@ classifyProvince_ON <- function(sim) {
   )
   
   # remove NA cells
-  pixel_area_dt <- pixel_area_dt[!is.na(pixelGroup)]
-  
+  pixel_area_dt <- pixel_area_dt[
+    pixelGroup > 0
+  ]  
   # aggregate by pixelGroup
   pixel_area_dt <- pixel_area_dt[
     ,
-    .(
-      harvestableFraction = sum(harvestableFraction, na.rm = TRUE),
-      effectiveArea = sum(harvestableFraction * cellArea_ha, na.rm = TRUE)
-    ),
+    {
+      hf <- mean(harvestableFraction, na.rm = TRUE)
+      
+      .(
+        harvestableFraction = hf,
+        effectiveArea = hf * .N * cellArea_ha
+      )
+    },
     by = pixelGroup
   ]
   
