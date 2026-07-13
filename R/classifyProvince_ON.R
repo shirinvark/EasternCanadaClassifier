@@ -870,14 +870,12 @@ classifyProvince_ON <- function(sim) {
   # aggregate by pixelGroup
   pixel_area_dt <- pixel_area_dt[
     ,
-    {
-      hf <- mean(harvestableFraction, na.rm = TRUE)
-      
-      .(
-        harvestableFraction = hf,
-        effectiveArea = hf * .N * cellArea_ha
+    .(
+      effectiveArea = sum(
+        harvestableFraction * cellArea_ha,
+        na.rm = TRUE
       )
-    },
+    ),
     by = pixelGroup
   ]
   
@@ -912,6 +910,20 @@ classifyProvince_ON <- function(sim) {
   
   
   # 🔥 area per AU
+  cat("\n===== TOP ANALYSIS UNITS =====\n")
+  
+  print(
+    pixel_area_dt[
+      ,
+      .(
+        nPixelGroups = .N,
+        effectiveArea = sum(effectiveArea)
+      ),
+      by = analysisUnit
+    ][
+      order(-effectiveArea)
+    ][1:20]
+  )
   sim$areaByAU <- sim$pixelAreaDT[
     ,
     list(
