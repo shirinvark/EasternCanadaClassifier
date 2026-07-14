@@ -229,10 +229,23 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
           
           x <- aacInput[i]
           
-          ages <- seq(
-            from = x$age,
-            to = min(x$age + 9L, maxAge)
-          )
+          if (x$age <= 70) {
+            
+            ages <- x$age
+            
+          } else if (x$age %% 10 == 0) {
+            
+            ages <- seq(
+              x$age - 9L,
+              x$age,
+              by = 1L
+            )
+            
+          } else {
+            
+            ages <- x$age
+            
+          }
           
           data.table(
             AU = x$AU,
@@ -242,6 +255,18 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
           )
         })
       )
+      
+      expanded <- expanded[
+        ,
+        .(
+          area = sum(area)
+        ),
+        by = .(
+          AU,
+          curveID,
+          age
+        )
+      ]
       
       aacInput <- expanded
       
@@ -257,7 +282,31 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         .(age = 1:maxAge),
         by = .(AU, curveID)
       ]
+      ##################################
+      cat("\nDuplicates in expanded:\n")
+      print(
+        expanded[
+          ,
+          .N,
+          by = .(AU, curveID, age)
+        ][N > 1]
+      )
       
+      cat("\nDuplicates in fullGrid:\n")
+      print(
+        fullGrid[
+          ,
+          .N,
+          by = .(AU, curveID, age)
+        ][N > 1]
+      )
+      
+      cat("\nRows in expanded:\n")
+      print(nrow(expanded))
+      
+      cat("\nRows in fullGrid:\n")
+      print(nrow(fullGrid))
+      ################################
       sim$aacInput <- merge(
         fullGrid,
         aacInput,
@@ -273,7 +322,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         is.na(area),
         area := 0
       ]
-      
+      sim$aacInput <- sim$aacInput[
+        ,
+        .(area = sum(area)),
+        by = .(AU, curveID, age)
+      ]
       setorder(
         sim$aacInput,
         AU,
