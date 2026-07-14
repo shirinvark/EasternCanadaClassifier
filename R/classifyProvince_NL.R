@@ -922,14 +922,6 @@ classifyProvince_NL <- function(sim) {
   sim$yield_by_region_raw  <- yield_by_region
   sim$yield_by_region      <- yield_by_region_norm
   
-  classification <- results[
-    ,
-    .(
-      pixelGroup,
-      analysisUnit = bestAU,
-      distance
-    )
-  ]
   
   sim$classification <- results[
     ,
@@ -976,18 +968,37 @@ classifyProvince_NL <- function(sim) {
   sim$standDT <- standDT
 
   ######################################
-  sim$pixelGroupToAU <- classification[
+  sim$pixelGroupToAU <- results[
     ,
     .(
       pixelGroup,
-      analysisUnit
+      analysisUnit = bestAU
     )
   ]
   sim$AUtoCurve <- AUtoCurve
   # =====================================================
   # pixelAreaDT
   # =====================================================
-  
+  # Make sure both rasters are perfectly aligned
+  if (!terra::compareGeom(
+    sim$pixelGroupMap,
+    sim$harvestableFraction,
+    stopOnError = FALSE
+  )) {
+    
+    cat("\n===== GEOMETRY MISMATCH =====\n")
+    
+    cat("pixelGroupMap:\n")
+    print(sim$pixelGroupMap)
+    
+    cat("harvestableFraction:\n")
+    print(sim$harvestableFraction)
+    
+    stop(
+      "pixelGroupMap and harvestableFraction are not aligned. ",
+      "Effective area cannot be calculated."
+    )
+  }
   cellArea_ha <- prod(
     terra::res(sim$pixelGroupMap)
   ) / 10000
@@ -1006,13 +1017,13 @@ classifyProvince_NL <- function(sim) {
   )
   
   pixel_area_dt <- pixel_area_dt[
-    !is.na(pixelGroup)
+    pixelGroup > 0
   ]
   
   pixel_area_dt <- pixel_area_dt[
     ,
     .(
-      harvestableFraction = sum(harvestableFraction, na.rm = TRUE),
+      #harvestableFraction = sum(harvestableFraction, na.rm = TRUE),
       effectiveArea = sum(harvestableFraction * cellArea_ha, na.rm = TRUE)
     ),
     by = pixelGroup
@@ -1078,77 +1089,7 @@ classifyProvince_NL <- function(sim) {
   )
   
   sim$standDT <- standDT
-  # =====================================================
-  # AAC input table
-  # =====================================================
-  # =====================================================
-  # AAC input table
-  # =====================================================
-  
-  # Aggregate observed area by AU and stand age
-  aacInput <- standDT[
-    ,
-    .(
-      area = sum(
-        effectiveArea,
-        na.rm = TRUE
-      )
-    ),
-    by = .(
-      AU,
-      age,
-      curveID
-    )
-  ]
-  
-  # -----------------------------------------------------
-  # Expand to a complete annual age sequence
-  # (1:maxYieldAge) for every Analysis Unit
-  # Missing ages receive zero area
-  # -----------------------------------------------------
-  
-  allAU <- unique(
-    aacInput[
-      ,
-      .(AU, curveID)
-    ]
-  )
-  
-  maxAge <- max(
-    vapply(
-      sim$yieldTables,
-      nrow,
-      integer(1)
-    )
-  )
-  
-  fullGrid <- allAU[
-    ,
-    .(age = 1:maxAge),
-    by = .(AU, curveID)
-  ]
-  
-  sim$aacInput <- merge(
-    fullGrid,
-    aacInput,
-    by = c(
-      "AU",
-      "curveID",
-      "age"
-    ),
-    all.x = TRUE
-  )
-  
-  sim$aacInput[
-    is.na(area),
-    area := 0
-  ]
-  
-  setorder(
-    sim$aacInput,
-    AU,
-    age
-  )
+ 
   # =====================================================
   # analysisUnitMap
   # =====================================================
