@@ -242,15 +242,23 @@ classifyProvince_ON <- function(sim) {
                      by = .(CURVENO, AC10, FU),
                      .SDcols = groups]
     
-    # ---- Normalize ----
-    dt_summary[, total := rowSums(.SD), .SDcols = groups]
-    #  dt_summary <- dt_summary[total > 0]
+    # Steve:
+    # Convert yield volume (m3/ha) to approximate biomass (kg/ha)
+    conversionFactor <- 1000 * 0.5 / 0.8
     
-    #  dt_summary[, (groups) := lapply(.SD, function(x) x / total),
-    #         .SDcols = groups]
+    dt_summary[
+      ,
+      (groups) := lapply(
+        .SD,
+        function(x) x * conversionFactor
+      ),
+      .SDcols = groups
+    ]
     
     # ---- Remove NA ----
-    dt_summary <- dt_summary[complete.cases(dt_summary[, ..groups])]
+    dt_summary <- dt_summary[
+      complete.cases(dt_summary[, ..groups])
+    ]
     
     # ---- Add zone ----
     dt_summary[, zone := submu]
@@ -517,14 +525,21 @@ classifyProvince_ON <- function(sim) {
   if (length(prop_cols) == 0) {
     stop("❌ No matching species groups between cohort and yield")
   }
+  #######Steve is talking about this part
   cohort_wide[, total := rowSums(.SD), .SDcols = group_cols]
-  
-  cohort_wide[, (group_cols) := lapply(.SD, function(x) x / total),
-              .SDcols = group_cols]
+  #this line commented for steve suggestion
+  #cohort_wide[, (group_cols) := lapply(.SD, function(x) x / total),
+  #            .SDcols = group_cols]
   
   cohort_wide <- cohort_wide[total > 0]
-  #cohort_wide  <- sim$cohort_wide
-  pixel_region <- sim$pixel_region
+
+ 
+  
+  
+  
+  
+  
+    pixel_region <- sim$pixel_region
   
   
   
@@ -569,9 +584,8 @@ classifyProvince_ON <- function(sim) {
         distance = NA_real_
       )
     } else {
-      # browser()
-      cohort_vec <- cohort_vec / sum(cohort_vec)
-      
+      # Steve: compare using total biomass (kg/ha), not proportions
+      # cohort_vec <- cohort_vec / sum(cohort_vec)      
       region_vals <- pixel_region[pixelGroup == .BY$pixelGroup, region]
       
       region <- if (length(region_vals) == 0) {
@@ -618,28 +632,32 @@ classifyProvince_ON <- function(sim) {
           
           
           
-          ##WE HAD TO DO SOMETHING FOR AGE O ROES.FOR NOW THEY DOES NOT ENTER
-          curves[
-            ,
-            total_prop := rowSums(
-              .SD,
-              na.rm = TRUE
-            ),
-            .SDcols = prop_cols
-          ]
+          ##and also this part: WE HAD TO DO SOMETHING FOR AGE O ROES.FOR NOW THEY DOES NOT ENTER
+          #curves[
+          #  ,
+           # total_prop := rowSums(
+            #  .SD,
+             # na.rm = TRUE
+          #  ),
+           # .SDcols = prop_cols
+         # ]
           
-          curves[
-            ,
-            (prop_cols) := lapply(
-              .SD,
-              function(x) fifelse(
-                total_prop > 0,
-                x / total_prop,
-                0
-              ))
-            ,
-            .SDcols = prop_cols
-          ]
+         # curves[
+           # ,
+           # (prop_cols) := lapply(
+            #  .SD,
+             # function(x) fifelse(
+               # total_prop > 0,
+              #  x / total_prop,
+               # 0
+             # ))
+           # ,
+           # .SDcols = prop_cols
+         # ]
+          # Steve: compare using total biomass (kg/ha), not proportions.
+          # Yield tables will be converted from volume (m3/ha) to biomass (kg/ha).
+          # Do not normalize to proportions.
+          
           
           curves_mat <- as.matrix(
             curves[, prop_cols, with = FALSE]
