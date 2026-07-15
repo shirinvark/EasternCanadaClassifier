@@ -2,11 +2,12 @@ classifyProvince_ON <- function(sim) {
   
   library(data.table)
   message("Running Ontario classifier")
-  
-  # ================================================
-  # === DOWNLOAD DATA FROM GITHUB ===
-  # ================================================
-  
+
+  # =========================================================
+  # Download Ontario mapping files and yield tables.
+  # Files are downloaded only if they are not already present
+  # in the local input directory.
+  # =========================================================
   
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
@@ -49,55 +50,25 @@ classifyProvince_ON <- function(sim) {
   mapSpeciesGroups <- read_curve_mapping(file.path(on_dir, "mapSpeciesGroups.txt"))
   sim$mapSpeciesGroups <- mapSpeciesGroups
   groups    <- unique(unlist(mapSpeciesGroups))
-  
   groups <- groups[!is.na(groups)]
   groups <- groups[groups != ""]
   print(groups)
   # =========================================================
-  # 1. PROCESS ZONE FUNCTION
+  # Process a single Ontario yield-table region.
+  #
+  # Steps:
+  #   1. Read raw yield table.
+  #   2. Filter to the appropriate ecological region.
+  #   3. Aggregate species into LandR species groups.
+  #   4. Convert volume to approximate biomass.
+  #   5. Build standardized analysis-unit yield table.
   # =========================================================
-  # ================================================
-  # CHECK RASTER ALIGNMENT
-  # ================================================
   
   stopifnot(inherits(sim$pixelGroupMap, "SpatRaster"))
   stopifnot(inherits(sim$harvestableFraction, "SpatRaster"))
   
-  print(compareGeom(
-    sim$pixelGroupMap,
-    sim$harvestableFraction,
-    stopOnError = FALSE
-  ))
-  
-  cat("\nPixelGroupMap:\n")
-  print(res(sim$pixelGroupMap))
-  print(ext(sim$pixelGroupMap))
-  print(origin(sim$pixelGroupMap))
-  
-  cat("\nHarvestableFraction:\n")
-  print(res(sim$harvestableFraction))
-  print(ext(sim$harvestableFraction))
-  print(origin(sim$harvestableFraction))
   process_zone <- function(path, submu) {
-    #browser()
     dt <- fread(path)
-    if (submu == "5e") {
-      
-      cat("\n===== RAW FILE =====\n")
-      
-      print(
-        dt[
-          CURVENO == 105,
-          .(AC10, SW)
-        ]
-      )
-      
-    }
-    cat("\n===== DEBUG BEFORE FILTER =====\n")
-    print(unique(dt$SUBMU))
-    print(unique(dt$SI))
-    print(unique(dt$FU))
-    
     # ======================================
     # explicit Ontario filtering
     # ======================================
@@ -145,25 +116,14 @@ classifyProvince_ON <- function(sim) {
       ]
       
     }
-    #Debug
-    cat("Remaining SI values:\n")
-    print(unique(tolower(dt$SI)))
     
     # safety
     if (nrow(dt) == 0) {
       warning(paste("No data after filtering for zone:", submu))
       return(NULL)
     }
-    
-    # ---- ادامه کدت (species processing) ----
-    # ---- Species columns ----
+        # ---- Species columns ----
     species_cols <- c("PW","PR","PJ","SB","SW","BF","CE","OC","HE","PO","PB","BW","MH","QR","YB","OH")
-    
-    # ---- Convert to numeric ----
-    #dt[, (species_cols) := lapply(.SD, function(x) {
-    # x[x == "." | x == "" | is.na(x)] <- NA
-    # as.numeric(x)
-    # }), .SDcols = species_cols]
     
     # ---- Find bad values ----
     for (sp in species_cols) {
@@ -657,6 +617,23 @@ classifyProvince_ON <- function(sim) {
           # Steve: compare using total biomass (kg/ha), not proportions.
           # Yield tables will be converted from volume (m3/ha) to biomass (kg/ha).
           # Do not normalize to proportions.
+          
+          # Steve:
+          # Exclude AUs whose total biomass differs too much from the pixel biomass.
+          
+          pixel_total <- sum(cohort_vec)
+          
+          curve_total <- rowSums(
+            curves[, ..prop_cols],
+            na.rm = TRUE
+          )
+          
+          ratio <- pixel_total / curve_total
+          
+          curves <- curves[
+            ratio >= 0.6 &
+              ratio <= (1 / 0.6)
+          ]
           
           
           curves_mat <- as.matrix(
