@@ -1,7 +1,6 @@
 classifyProvince_ON <- function(sim) {
   
   library(data.table)
-  message("Running Ontario classifier")
 
   # =========================================================
   # Download Ontario mapping files and yield tables.
@@ -52,7 +51,6 @@ classifyProvince_ON <- function(sim) {
   groups    <- unique(unlist(mapSpeciesGroups))
   groups <- groups[!is.na(groups)]
   groups <- groups[groups != ""]
-  print(groups)
   # =========================================================
   # Process a single Ontario yield-table region.
   #
@@ -149,9 +147,6 @@ classifyProvince_ON <- function(sim) {
     }), .SDcols = species_cols]
     
     
-    
-    
-    
     # ---- Convert to proportions ----
     dt[, total := rowSums(.SD, na.rm = TRUE), .SDcols = species_cols]
     #dt <- dt[total > 0]
@@ -166,8 +161,7 @@ classifyProvince_ON <- function(sim) {
     }
     
     # ---- Mapping species → groups ----
-    print(names(speciesGroups))
-    print(names(mapSpeciesGroups))
+   
     for (sp in species_cols) {
       
       key <- trimws(sp)
@@ -183,9 +177,7 @@ classifyProvince_ON <- function(sim) {
       
       dt[[final_group]] <- dt[[final_group]] + dt[[sp]]
     }
-    cat("\n===== GROUP SUM CHECK =====\n")
-    print(colSums(dt[, ..groups], na.rm = TRUE))
-    print(colSums(dt[, ..groups], na.rm = TRUE))
+   
     # ---- Aggregate to curve level ----
     
     print(head(
@@ -288,15 +280,7 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
-  # ---- load shapefile (CORRECT WAY) ----
-  # =========================================================
-  # 2.5 BUILD pixel_region FROM SHAPEFILE
-  # =========================================================
-  
-  # =========================================================
-  # 2.5 BUILD pixel_region FROM SHAPEFILE
-  # =========================================================
-  
+ 
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
   
@@ -329,23 +313,13 @@ classifyProvince_ON <- function(sim) {
   
   shp <- terra::vect(shp_path)
   
-  cat("\n===== SHP PATH =====\n")
-  print(shp_path)
-  
-  cat("\n===== SHP FIELDS =====\n")
-  print(names(shp))
   # =========================================================
   # BUILD pixel_region (MISSING PART - FIX)
   # =========================================================
   
   # ---- project ----
   shp <- terra::project(shp, terra::crs(sim$pixelGroupMap))  
-  print(groups)
-  # ---- align extent (خیلی مهم) ----
-  #shp <- terra::crop(shp, terra::ext(sim$pixelGroupMap))
-  cat("\n===== EXTENT CHECK =====\n")
-  print(ext(sim$pixelGroupMap))
-  print(ext(shp))
+  
   # ---- rasterize ----
   region_raster <- terra::rasterize(
     shp,
@@ -394,17 +368,10 @@ classifyProvince_ON <- function(sim) {
     ,
     SITEREGION := NULL
   ]
-  print(table(pixel_region$region))
   ########################################################
   ####it is temporary and just for fake data
   pixel_region[, region := as.character(region)]
-  #pixel_region[, region := "3e"]
-  cat("\n===== RAW REGION TABLE =====\n")
-  print(table(pixel_region$region))
-  
-  cat("\n===== UNIQUE REGIONS =====\n")
-  print(unique(pixel_region$region)[1:20])
-  
+
   cat("\n===== DUPLICATE CHECK =====\n")
   print(
     pixel_region[
@@ -423,10 +390,6 @@ classifyProvince_ON <- function(sim) {
   
   # ---- save in sim ----
   sim$pixel_region <- pixel_region
-  
-  # ---- debug ----
-  cat("\n===== REGION TABLE =====\n")
-  print(table(pixel_region$region))
   # =========================================================
   # 3. CLASSIFIER
   # =========================================================
@@ -449,24 +412,13 @@ classifyProvince_ON <- function(sim) {
   cohort_group <- cohortDT[, .(
     B = sum(B, na.rm = TRUE)
   ), by = .(pixelGroup, age, final_group)]
-  #####
-  # اسم ستون pixelGroup رو تمیز کن
-  
-  
-  
-  
-  
-  
-  
-  print(names(cohortDT))
-  # convert to wide
+  #####  # convert to wide
   cohort_wide <- dcast(
     cohort_group,
     pixelGroup + age ~ final_group,
     value.var = "B",
     fill = 0
   )
-  print(names(cohort_wide))
   # force pixelGroup name
   pg_col <- names(cohort_wide)[grepl("pixelgroup", names(cohort_wide), ignore.case = TRUE)]
   
@@ -502,35 +454,13 @@ classifyProvince_ON <- function(sim) {
     pixel_region <- sim$pixel_region
   
   
-  
-  
-  
-  
-  cat("\n===== COHORT_WIDE =====\n")
-  
-  cat("Rows:", nrow(cohort_wide), "\n")
-  
-  cat("Unique pixelGroups:",
-      length(unique(cohort_wide$pixelGroup)), "\n")
-  
-  cat("NA pixelGroups:",
-      sum(is.na(cohort_wide$pixelGroup)), "\n")
-  
-  cat("NaN pixelGroups:",
-      sum(is.nan(cohort_wide$pixelGroup)), "\n")
-  
-  
   pg <- terra::values(sim$pixelGroupMap)[,1]
   
   missingPG <- setdiff(
     unique(pg[!is.na(pg)]),
     cohort_wide$pixelGroup
   )
-  
-  cat("\n===== MISSING FROM COHORT_WIDE =====\n")
-  print(length(missingPG))
-  print(head(missingPG, 50))
-  
+ 
   
   
   results <- cohort_wide[, {
@@ -562,19 +492,11 @@ classifyProvince_ON <- function(sim) {
         )
       } else {
         
-        #curves <- sim$yield_by_region[[region]] 
         curves <- copy(
           sim$yield_by_region[[region]]
         )
         
-        #  cat("\n===== BEFORE NORMALIZATION =====\n")
         
-        # print(
-        #  rowSums(
-        #   curves[, prop_cols, with = FALSE],
-        #  na.rm = TRUE
-        # )[1:20]
-        # )
         
         age <- mean(.SD$age)
         
@@ -591,7 +513,7 @@ classifyProvince_ON <- function(sim) {
           
           
           
-          
+          ####PROPORTIONS
           ##and also this part: WE HAD TO DO SOMETHING FOR AGE O ROES.FOR NOW THEY DOES NOT ENTER
           #curves[
           #  ,
@@ -624,7 +546,7 @@ classifyProvince_ON <- function(sim) {
           pixel_total <- sum(cohort_vec)
           
           curve_total <- rowSums(
-            curves[, ..prop_cols],
+            curves[, prop_cols, with = FALSE],
             na.rm = TRUE
           )
           
@@ -635,7 +557,11 @@ classifyProvince_ON <- function(sim) {
               ratio <= (1 / 0.6)
           ]
           
-          
+          cat(
+            "Before filter:", length(ratio),
+            " After filter:", nrow(curves),
+            "\n"
+          )
           curves_mat <- as.matrix(
             curves[, prop_cols, with = FALSE]
           )
@@ -715,11 +641,7 @@ classifyProvince_ON <- function(sim) {
     unique(pg[!is.na(pg)]),
     results$pixelGroup
   )
-  
-  print(length(missingPG))
-  print(head(missingPG, 20))
-  
-  
+ 
   
   
   
@@ -729,9 +651,7 @@ classifyProvince_ON <- function(sim) {
     pixelGroup,
     analysisUnit = bestAU
   )]
-  print(names(results))
-  
-  print(head(results))
+ 
   
   ######################################3
   #######################################3
@@ -811,12 +731,7 @@ classifyProvince_ON <- function(sim) {
       !is.na(curveID)
   ]
   sim$standDT <- standDT
-  cat("\n===== STANDDT =====\n")
-  
-  print(head(sim$standDT))
-  
-  print(str(sim$standDT))
-  
+
   
   # -------------------------------------------------------
   # 🔥 COMPUTE pixel-level effective area (hectares)
@@ -832,14 +747,6 @@ classifyProvince_ON <- function(sim) {
     sim$harvestableFraction,
     stopOnError = FALSE
   )) {
-    
-    cat("\n===== GEOMETRY MISMATCH =====\n")
-    
-    cat("pixelGroupMap:\n")
-    print(sim$pixelGroupMap)
-    
-    cat("harvestableFraction:\n")
-    print(sim$harvestableFraction)
     
     stop(
       "pixelGroupMap and harvestableFraction are not aligned. ",
@@ -905,8 +812,7 @@ classifyProvince_ON <- function(sim) {
   
   
   # 🔥 area per AU
-  cat("\n===== TOP ANALYSIS UNITS =====\n")
-  
+
   print(
     pixel_area_dt[
       ,
@@ -928,8 +834,7 @@ classifyProvince_ON <- function(sim) {
     by = list(AU = analysisUnit)
   ]
   
-  print(sim$areaByAU)
-  
+
   # =====================================================
   # Analysis Unit Summary
   # =====================================================
