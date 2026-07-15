@@ -52,21 +52,23 @@ standardizeYieldCurve <- function(
   # ------------------------------------------------------
   # return standardized annual yield table
   # ------------------------------------------------------
+  out <- data.table(
+    age = 1:maxAge,
+    volume = annual
+  )
+  
   cat("\nAGES INPUT:\n")
   print(ages)
   
   cat("\nVOLUMES INPUT:\n")
   print(volumes)
   
-  cat("\nAGES AFTER FIX:\n")
-  print(out$age)
+  cat("\nAGES OUTPUT:\n")
+  print(out$age[1:20])
   
-  cat("\nVOLUMES AFTER FIX:\n")
-  print(out$volume)
-  return(
-    data.table(
-      age = 1:maxAge,
-      volume = annual
-    )
-  )
+  cat("\nVOLUMES OUTPUT:\n")
+  print(out$volume[1:20])
+  
+  return(out)
+  
 }

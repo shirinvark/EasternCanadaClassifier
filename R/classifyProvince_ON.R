@@ -465,7 +465,6 @@ classifyProvince_ON <- function(sim) {
   )
  
   
-  
   results <- cohort_wide[, {
     
     cohort_vec <- as.numeric(.SD[1, prop_cols, with = FALSE])
@@ -507,6 +506,7 @@ classifyProvince_ON <- function(sim) {
         curves <- curves[age_diff == min(age_diff)]
         curves[, age_diff := NULL]
         if (nrow(curves) == 0) {
+
           list(
             bestAU = NA_character_,
             CURVENO = NA_integer_,
@@ -575,10 +575,19 @@ classifyProvince_ON <- function(sim) {
               ratio <= (1 / 0.6)
           ]
           if (nrow(curves) == 0) {
+            
             cat(
               "\nNO CURVES LEFT FOR PIXELGROUP:",
               .BY$pixelGroup,
               "\n"
+            )
+            
+            return(
+              list(
+                bestAU = NA_character_,
+                CURVENO = NA_integer_,
+                distance = NA_real_
+              )
             )
           }
           cat(
@@ -617,6 +626,21 @@ classifyProvince_ON <- function(sim) {
     uniqueN(results$pixelGroup),
     "\n"
   )
+  cat("\n=========================\n")
+  
+  cat(
+    "PixelGroups with NA AU:",
+    sum(is.na(results$bestAU)),
+    "\n"
+  )
+  
+  cat(
+    "Unique missing PixelGroups:",
+    uniqueN(results[is.na(bestAU), pixelGroup]),
+    "\n"
+  )
+  
+  cat("=========================\n")
   # =========================================================
   # 4. SAVE OUTPUT
   # =========================================================
