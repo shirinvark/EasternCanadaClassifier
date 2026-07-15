@@ -147,14 +147,16 @@ classifyProvince_ON <- function(sim) {
     }), .SDcols = species_cols]
     
     
-    # ---- Convert to proportions ----
+    # -------------------------------------------------------
+    # Calculate total biomass across species for each yield
+    # table record. Species values remain as absolute biomass
+    # and are not converted to proportions.
+    # -------------------------------------------------------
     dt[, total := rowSums(.SD, na.rm = TRUE), .SDcols = species_cols]
-    #dt <- dt[total > 0]
     if (sum(dt$total) == 0) {
       next
     }
-    # dt[, (species_cols) := lapply(.SD, function(x) x / total), .SDcols = species_cols]
-    
+
     # ---- Initialize group columns ----
     for (g in groups) {
       dt[[g]] <- 0
@@ -407,7 +409,19 @@ classifyProvince_ON <- function(sim) {
   #cohortDT[, final_group := speciesGroups[[speciesCode]]]
   cohortDT[, final_group := speciesGroups[[speciesCode]], by = speciesCode]  # remove unmapped
   cohortDT <- cohortDT[!is.na(final_group)]
+  cat("\n========== AFTER final_group FILTER ==========\n")
   
+  cat(
+    "PixelGroup 85 exists:",
+    85 %in% cohortDT$pixelGroup,
+    "\n"
+  )
+  
+  print(
+    cohortDT[
+      pixelGroup == 85
+    ]
+  )
   # aggregate biomass
   cohort_group <- cohortDT[, .(
     B = sum(B, na.rm = TRUE)
@@ -430,8 +444,10 @@ classifyProvince_ON <- function(sim) {
   if (!"pixelGroup" %in% names(cohort_wide)) {
     stop("❌ pixelGroup column still missing in cohort_wide")
   }
-  # normalize to proportions
-  group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
+
+  # Identify the species-group columns used for
+  # biomass comparison.
+    group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
   prop_cols <- intersect(groups, group_cols)
   prop_cols <- prop_cols[!is.na(prop_cols)]
   if (length(prop_cols) == 0) {
@@ -540,8 +556,9 @@ classifyProvince_ON <- function(sim) {
           # Yield tables will be converted from volume (m3/ha) to biomass (kg/ha).
           # Do not normalize to proportions.
           
-          # Steve:
-          # Exclude AUs whose total biomass differs too much from the pixel biomass.
+          # Restrict candidate yield curves to those with a
+          # comparable total biomass before calculating the
+          # Euclidean distance in species-group biomass.
           
           pixel_total <- sum(cohort_vec)
           
