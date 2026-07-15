@@ -123,23 +123,6 @@ classifyProvince_ON <- function(sim) {
         # ---- Species columns ----
     species_cols <- c("PW","PR","PJ","SB","SW","BF","CE","OC","HE","PO","PB","BW","MH","QR","YB","OH")
     
-    # ---- Find bad values ----
-    for (sp in species_cols) {
-      
-      bad <- unique(
-        dt[
-          !is.na(get(sp)) &
-            suppressWarnings(is.na(as.numeric(get(sp)))),
-          get(sp)
-        ]
-      )
-      
-      if (length(bad) > 0) {
-        cat("\nBAD VALUES IN", sp, ":\n")
-        print(bad)
-      }
-    }
-    
     # ---- Convert to numeric ----
     dt[, (species_cols) := lapply(.SD, function(x) {
       x[x == "." | x == "" | is.na(x)] <- NA
@@ -170,28 +153,15 @@ classifyProvince_ON <- function(sim) {
       final_group <- mapSpeciesGroups[[key]]
       
       if (is.null(final_group)) {
-        cat("❌ NO mapping for:", sp, "\n")
+        
         next
       }
-      
-      cat("✔️", sp, "→", final_group,
-          "| sum =", sum(dt[[sp]], na.rm = TRUE), "\n")
       
       dt[[final_group]] <- dt[[final_group]] + dt[[sp]]
     }
    
     # ---- Aggregate to curve level ----
-    
-    print(head(
-      dt[, c("AC10", species_cols), with = FALSE]
-    ))
-    
-    print(
-      rowSums(
-        dt[, species_cols, with = FALSE],
-        na.rm = TRUE
-      )[1:20]
-    )
+   
     dt_summary <- dt[, lapply(.SD, sum, na.rm = TRUE),
                      by = .(CURVENO, AC10, FU),
                      .SDcols = groups]
@@ -226,18 +196,7 @@ classifyProvince_ON <- function(sim) {
         zone
       )
     ]
-    if (submu == "5e") {
-      
-      cat("\n===== dt_summary BEFORE RETURN =====\n")
-      
-      print(
-        dt_summary[
-          CURVENO == 105,
-          .(CURVENO, AC10, spruce_ON)
-        ]
-      )
-      
-    }
+   
     return(dt_summary)
   }
   
@@ -262,14 +221,7 @@ classifyProvince_ON <- function(sim) {
   
   # بعد combine کن
   yield_all <- rbindlist(results_list, fill = TRUE)
-  cat("\n===== yield_all =====\n")
-  
-  print(
-    yield_all[
-      CURVENO == 105 & zone == "5e",
-      .(AC10, spruce_ON)
-    ]
-  )
+ 
   yield_by_region <- split(yield_all, yield_all$zone)
   
   sim$yield_by_region <- yield_by_region
@@ -371,7 +323,7 @@ classifyProvince_ON <- function(sim) {
     SITEREGION := NULL
   ]
   ########################################################
-  ####it is temporary and just for fake data
+  # Ensure region identifiers are stored as character values.
   pixel_region[, region := as.character(region)]
 
   cat("\n===== DUPLICATE CHECK =====\n")
@@ -409,6 +361,13 @@ classifyProvince_ON <- function(sim) {
   #cohortDT[, final_group := speciesGroups[[speciesCode]]]
   cohortDT[, final_group := speciesGroups[[speciesCode]], by = speciesCode]  # remove unmapped
   cohortDT <- cohortDT[!is.na(final_group)]
+  cat("\n===== STEP 1 =====\n")
+  
+  cat(
+    "Unique pixelGroups in cohortDT:",
+    uniqueN(cohortDT$pixelGroup),
+    "\n"
+  )
   cat("\n========== AFTER final_group FILTER ==========\n")
   
   cat(
@@ -432,6 +391,28 @@ classifyProvince_ON <- function(sim) {
     pixelGroup + age ~ final_group,
     value.var = "B",
     fill = 0
+  )
+  cat("\n===== STEP 2 =====\n")
+  
+  cat(
+    "Unique pixelGroups in cohort_wide:",
+    uniqueN(cohort_wide$pixelGroup),
+    "\n"
+  )
+  cat(
+    "\n===== COHORT_WIDE =====\n"
+  )
+  
+  cat(
+    "Unique pixelGroups:",
+    uniqueN(cohort_wide$pixelGroup),
+    "\n"
+  )
+  
+  cat(
+    "Missing pixelGroups still present:",
+    sum(unique(cohort_wide$pixelGroup) %in% missingPG),
+    "\n"
   )
   # force pixelGroup name
   pg_col <- names(cohort_wide)[grepl("pixelgroup", names(cohort_wide), ignore.case = TRUE)]
@@ -461,7 +442,13 @@ classifyProvince_ON <- function(sim) {
   
   cohort_wide <- cohort_wide[total > 0]
 
- 
+  cat("\n===== STEP 3 =====\n")
+  
+  cat(
+    "Unique pixelGroups after total > 0:",
+    uniqueN(cohort_wide$pixelGroup),
+    "\n"
+  )
   
   
   
@@ -568,12 +555,32 @@ classifyProvince_ON <- function(sim) {
           )
           
           ratio <- pixel_total / curve_total
-          
+          # ===== DEBUG =====
+          if (any(ratio < 0.6 | ratio > (1 / 0.6))) {
+            
+            cat("\n==============================\n")
+            cat("PixelGroup:", .BY$pixelGroup, "\n")
+            cat("Pixel total:", pixel_total, "\n")
+            
+            print(
+              data.table(
+                AU = curves$AU,
+                curveTotal = round(curve_total, 2),
+                ratio = round(ratio, 3)
+              )
+            )
+          }
           curves <- curves[
             ratio >= 0.6 &
               ratio <= (1 / 0.6)
           ]
-          
+          if (nrow(curves) == 0) {
+            cat(
+              "\nNO CURVES LEFT FOR PIXELGROUP:",
+              .BY$pixelGroup,
+              "\n"
+            )
+          }
           cat(
             "Before filter:", length(ratio),
             " After filter:", nrow(curves),
@@ -603,7 +610,13 @@ classifyProvince_ON <- function(sim) {
     }
     
   }, by = pixelGroup]
+  cat("\n===== STEP 4 =====\n")
   
+  cat(
+    "Unique pixelGroups in results:",
+    uniqueN(results$pixelGroup),
+    "\n"
+  )
   # =========================================================
   # 4. SAVE OUTPUT
   # =========================================================

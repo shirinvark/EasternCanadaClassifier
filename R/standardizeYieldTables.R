@@ -171,7 +171,22 @@ standardizeYieldTables <- function(
           )
           
           yieldTables[[curveID]] <- reduced_dt        }
+        # ===== DEBUG ZERO CURVES =====
+        totalCurve <- rowSums(
+          reduced_dt[, -1, with = FALSE],
+          na.rm = TRUE
+        )
         
+        if (max(totalCurve, na.rm = TRUE) == 0) {
+          
+          cat("\n=====================================\n")
+          cat("ZERO CURVE FOUND\n")
+          cat("Region :", reg, "\n")
+          cat("CurveID:", curveID, "\n")
+          cat("CID    :", cid, "\n")
+          cat("=====================================\n")
+          
+        }
         next
       }
       # ---------------------------------------------------
