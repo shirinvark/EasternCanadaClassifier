@@ -870,12 +870,12 @@ classifyProvince_ON <- function(sim) {
     ][1:20]
   )
   sim$areaByAU <- sim$pixelAreaDT[
-    ,
-    list(
+    !is.na(analysisUnit),
+    .(
       nPixelGroups = .N,
       effectiveArea = sum(effectiveArea, na.rm = TRUE)
     ),
-    by = list(AU = analysisUnit)
+    by = .(AU = analysisUnit)
   ]
   
   
