@@ -1,7 +1,7 @@
 classifyProvince_ON <- function(sim) {
   
   library(data.table)
-
+  
   # =========================================================
   # Download Ontario mapping files and yield tables.
   # Files are downloaded only if they are not already present
@@ -120,7 +120,7 @@ classifyProvince_ON <- function(sim) {
       warning(paste("No data after filtering for zone:", submu))
       return(NULL)
     }
-        # ---- Species columns ----
+    # ---- Species columns ----
     species_cols <- c("PW","PR","PJ","SB","SW","BF","CE","OC","HE","PO","PB","BW","MH","QR","YB","OH")
     
     # ---- Convert to numeric ----
@@ -139,14 +139,14 @@ classifyProvince_ON <- function(sim) {
     if (sum(dt$total) == 0) {
       next
     }
-
+    
     # ---- Initialize group columns ----
     for (g in groups) {
       dt[[g]] <- 0
     }
     
     # ---- Mapping species → groups ----
-   
+    
     for (sp in species_cols) {
       
       key <- trimws(sp)
@@ -159,9 +159,9 @@ classifyProvince_ON <- function(sim) {
       
       dt[[final_group]] <- dt[[final_group]] + dt[[sp]]
     }
-   
+    
     # ---- Aggregate to curve level ----
-   
+    
     dt_summary <- dt[, lapply(.SD, sum, na.rm = TRUE),
                      by = .(CURVENO, AC10, FU),
                      .SDcols = groups]
@@ -196,7 +196,7 @@ classifyProvince_ON <- function(sim) {
         zone
       )
     ]
-   
+    
     return(dt_summary)
   }
   
@@ -221,7 +221,7 @@ classifyProvince_ON <- function(sim) {
   
   # بعد combine کن
   yield_all <- rbindlist(results_list, fill = TRUE)
- 
+  
   yield_by_region <- split(yield_all, yield_all$zone)
   
   sim$yield_by_region <- yield_by_region
@@ -234,7 +234,7 @@ classifyProvince_ON <- function(sim) {
   # =========================================================
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
- 
+  
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
   
@@ -325,7 +325,7 @@ classifyProvince_ON <- function(sim) {
   ########################################################
   # Ensure region identifiers are stored as character values.
   pixel_region[, region := as.character(region)]
-
+  
   cat("\n===== DUPLICATE CHECK =====\n")
   print(
     pixel_region[
@@ -425,10 +425,10 @@ classifyProvince_ON <- function(sim) {
   if (!"pixelGroup" %in% names(cohort_wide)) {
     stop("❌ pixelGroup column still missing in cohort_wide")
   }
-
+  
   # Identify the species-group columns used for
   # biomass comparison.
-    group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
+  group_cols <- setdiff(names(cohort_wide), c("pixelGroup","age"))
   prop_cols <- intersect(groups, group_cols)
   prop_cols <- prop_cols[!is.na(prop_cols)]
   if (length(prop_cols) == 0) {
@@ -441,7 +441,7 @@ classifyProvince_ON <- function(sim) {
   #            .SDcols = group_cols]
   
   cohort_wide <- cohort_wide[total > 0]
-
+  
   cat("\n===== STEP 3 =====\n")
   
   cat(
@@ -454,7 +454,7 @@ classifyProvince_ON <- function(sim) {
   
   
   
-    pixel_region <- sim$pixel_region
+  pixel_region <- sim$pixel_region
   
   
   pg <- terra::values(sim$pixelGroupMap)[,1]
@@ -463,7 +463,7 @@ classifyProvince_ON <- function(sim) {
     unique(pg[!is.na(pg)]),
     cohort_wide$pixelGroup
   )
- 
+  
   
   results <- cohort_wide[, {
     
@@ -506,7 +506,7 @@ classifyProvince_ON <- function(sim) {
         curves <- curves[age_diff == min(age_diff)]
         curves[, age_diff := NULL]
         if (nrow(curves) == 0) {
-
+          
           list(
             bestAU = NA_character_,
             CURVENO = NA_integer_,
@@ -520,25 +520,25 @@ classifyProvince_ON <- function(sim) {
           ##and also this part: WE HAD TO DO SOMETHING FOR AGE O ROES.FOR NOW THEY DOES NOT ENTER
           #curves[
           #  ,
-           # total_prop := rowSums(
-            #  .SD,
-             # na.rm = TRUE
+          # total_prop := rowSums(
+          #  .SD,
+          # na.rm = TRUE
           #  ),
-           # .SDcols = prop_cols
-         # ]
+          # .SDcols = prop_cols
+          # ]
           
-         # curves[
-           # ,
-           # (prop_cols) := lapply(
-            #  .SD,
-             # function(x) fifelse(
-               # total_prop > 0,
-              #  x / total_prop,
-               # 0
-             # ))
-           # ,
-           # .SDcols = prop_cols
-         # ]
+          # curves[
+          # ,
+          # (prop_cols) := lapply(
+          #  .SD,
+          # function(x) fifelse(
+          # total_prop > 0,
+          #  x / total_prop,
+          # 0
+          # ))
+          # ,
+          # .SDcols = prop_cols
+          # ]
           # Steve: compare using total biomass (kg/ha), not proportions.
           # Yield tables will be converted from volume (m3/ha) to biomass (kg/ha).
           # Do not normalize to proportions.
@@ -555,38 +555,30 @@ classifyProvince_ON <- function(sim) {
           )
           
           ratio <- pixel_total / curve_total
-          # ===== DEBUG =====
-          if (any(ratio < 0.6 | ratio > (1 / 0.6))) {
-            
-            cat("\n==============================\n")
-            cat("PixelGroup:", .BY$pixelGroup, "\n")
-            cat("Pixel total:", pixel_total, "\n")
-            
-            print(
-              data.table(
-                AU = curves$AU,
-                curveTotal = round(curve_total, 2),
-                ratio = round(ratio, 3)
-              )
-            )
-          }
-          curves <- curves[
+          
+          curves_filtered <- curves[
             ratio >= 0.6 &
               ratio <= (1 / 0.6)
           ]
-          if (nrow(curves) == 0) {
+          
+          cat(
+            "Before filter:", nrow(curves),
+            " After filter:", nrow(curves_filtered),
+            "\n"
+          )
+          
+          if (nrow(curves_filtered) > 0) {
+            curves <- curves_filtered
+          } else {
             
             cat(
-              "\nNO CURVES LEFT FOR PIXELGROUP:",
+              "\nNO CURVES PASSED BIOMASS FILTER - USING ALL CURVES:",
               .BY$pixelGroup,
               "\n"
             )
             
-            list(
-              bestAU = NA_character_,
-              CURVENO = NA_integer_,
-              distance = NA_real_
-            )
+            ## عمداً curves را تغییر نمی‌دهیم
+            ## یعنی از همه AUها برای Euclidean distance استفاده می‌کنیم.
           }
           cat(
             "Before filter:", length(ratio),
@@ -693,7 +685,7 @@ classifyProvince_ON <- function(sim) {
     unique(pg[!is.na(pg)]),
     results$pixelGroup
   )
- 
+  
   
   
   
@@ -703,7 +695,7 @@ classifyProvince_ON <- function(sim) {
     pixelGroup,
     analysisUnit = bestAU
   )]
- 
+  
   
   ######################################3
   #######################################3
@@ -783,7 +775,7 @@ classifyProvince_ON <- function(sim) {
       !is.na(curveID)
   ]
   sim$standDT <- standDT
-
+  
   
   # -------------------------------------------------------
   # 🔥 COMPUTE pixel-level effective area (hectares)
@@ -864,7 +856,7 @@ classifyProvince_ON <- function(sim) {
   
   
   # 🔥 area per AU
-
+  
   print(
     pixel_area_dt[
       ,
@@ -886,7 +878,7 @@ classifyProvince_ON <- function(sim) {
     by = list(AU = analysisUnit)
   ]
   
-
+  
   # =====================================================
   # Analysis Unit Summary
   # =====================================================
@@ -915,7 +907,7 @@ classifyProvince_ON <- function(sim) {
   # =====================================================
   # AAC input table
   # =====================================================
- 
+  
   ########AUMAP
   ##########################
   analysisUnitMap <- sim$pixelGroupMap
