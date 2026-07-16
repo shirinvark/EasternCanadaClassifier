@@ -790,7 +790,9 @@ classifyProvince_ON <- function(sim) {
   ]
   sim$standDT <- standDT
   
-  
+  cat("\n===== FINAL standDT =====\n")
+  print(names(sim$standDT))
+  print(head(sim$standDT))
   # -------------------------------------------------------
   # 🔥 COMPUTE pixel-level effective area (hectares)
   # -------------------------------------------------------
