@@ -582,12 +582,10 @@ classifyProvince_ON <- function(sim) {
               "\n"
             )
             
-            return(
-              list(
-                bestAU = NA_character_,
-                CURVENO = NA_integer_,
-                distance = NA_real_
-              )
+            list(
+              bestAU = NA_character_,
+              CURVENO = NA_integer_,
+              distance = NA_real_
             )
           }
           cat(
