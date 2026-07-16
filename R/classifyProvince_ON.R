@@ -548,7 +548,24 @@ classifyProvince_ON <- function(sim) {
           # Euclidean distance in species-group biomass.
           
           pixel_total <- sum(cohort_vec)
-          
+          if (pixel_total == 0) {
+            
+            cat(
+              "\nSkipping zero-biomass PixelGroup:",
+              .BY$pixelGroup,
+              "\n"
+            )
+            
+            list(
+              bestAU = NA_character_,
+              CURVENO = NA_integer_,
+              distance = NA_real_
+            )
+            
+          } else {
+            
+            # ادامه کد فعلی
+          }
           curve_total <- rowSums(
             curves[, prop_cols, with = FALSE],
             na.rm = TRUE
