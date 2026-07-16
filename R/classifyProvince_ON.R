@@ -409,11 +409,7 @@ classifyProvince_ON <- function(sim) {
     "\n"
   )
   
-  cat(
-    "Missing pixelGroups still present:",
-    sum(unique(cohort_wide$pixelGroup) %in% missingPG),
-    "\n"
-  )
+ 
   # force pixelGroup name
   pg_col <- names(cohort_wide)[grepl("pixelgroup", names(cohort_wide), ignore.case = TRUE)]
   
