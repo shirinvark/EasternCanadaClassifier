@@ -838,6 +838,11 @@ classifyProvince_ON <- function(sim) {
     by = pixelGroup
   ]
   
+  
+  # =====================================================
+  # Add effectiveArea to standDT
+  # =====================================================
+  
   # join AU
   pixel_area_dt <- merge(
     pixel_area_dt,
@@ -846,27 +851,18 @@ classifyProvince_ON <- function(sim) {
     all.x = TRUE
   )
   
+  # remove pixelGroups that were not classified
+  zeroPG <- sim$cohortData[
+    totalBiomass == 0,
+    unique(pixelGroup)
+  ]
+  
+  pixel_area_dt <- pixel_area_dt[
+    !pixelGroup %in% zeroPG
+  ]
+  
   # save
   sim$pixelAreaDT <- pixel_area_dt
-  
-  # =====================================================
-  # Add effectiveArea to standDT
-  # =====================================================
-  
-  standDT <- merge(
-    sim$standDT,
-    sim$pixelAreaDT[
-      ,
-      .(
-        pixelGroup,
-        effectiveArea
-      )
-    ],
-    by = "pixelGroup",
-    all.x = TRUE
-  )
-  
-  sim$standDT <- standDT
   
   
   # 🔥 area per AU
