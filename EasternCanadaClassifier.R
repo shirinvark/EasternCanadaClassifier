@@ -307,7 +307,9 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       cat("\nRows in fullGrid:\n")
       print(nrow(fullGrid))
       ################################
-      sim$aacInput <- merge(
+      cat("\n===== standDT columns =====\n")
+      print(names(sim$standDT))
+       sim$aacInput <- merge(
         fullGrid,
         aacInput,
         by = c(

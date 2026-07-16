@@ -783,6 +783,7 @@ classifyProvince_ON <- function(sim) {
     by = "pixelGroup",
     all.x = TRUE
   )
+  cat("\n===== standDT after merge =====\n")
   standDT <- standDT[
     !is.na(AU) &
       !is.na(curveID)
