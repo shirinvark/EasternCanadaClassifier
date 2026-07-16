@@ -850,14 +850,12 @@ classifyProvince_ON <- function(sim) {
     all.x = TRUE
   )
   
-  # remove pixelGroups that were not classified
-  zeroPG <- sim$cohortData[
-    totalBiomass == 0,
-    unique(pixelGroup)
-  ]
+  # PixelGroups with zero biomass were already removed
+  # from cohort_wide before classification.
+  # No additional filtering is required here.
   
   pixel_area_dt <- pixel_area_dt[
-    !pixelGroup %in% zeroPG
+    !is.na(analysisUnit)
   ]
   
   # save
