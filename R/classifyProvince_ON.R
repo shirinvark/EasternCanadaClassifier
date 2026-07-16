@@ -783,16 +783,12 @@ classifyProvince_ON <- function(sim) {
     by = "pixelGroup",
     all.x = TRUE
   )
-  cat("\n===== standDT after merge =====\n")
   standDT <- standDT[
     !is.na(AU) &
       !is.na(curveID)
   ]
-  sim$standDT <- standDT
+   
   
-  cat("\n===== FINAL standDT =====\n")
-  print(names(sim$standDT))
-  print(head(sim$standDT))
   # -------------------------------------------------------
   # 🔥 COMPUTE pixel-level effective area (hectares)
   # -------------------------------------------------------
@@ -882,6 +878,20 @@ classifyProvince_ON <- function(sim) {
       order(-effectiveArea)
     ][1:20]
   )
+  standDT <- merge(
+    standDT,
+    sim$pixelAreaDT[
+      ,
+      .(
+        pixelGroup,
+        effectiveArea
+      )
+    ],
+    by = "pixelGroup",
+    all.x = TRUE
+  )
+  
+  sim$standDT <- standDT 
   sim$areaByAU <- sim$pixelAreaDT[
     !is.na(analysisUnit),
     .(
