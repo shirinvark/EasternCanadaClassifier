@@ -847,8 +847,36 @@ classifyProvince_ON <- function(sim) {
   )
   
   # save
+  # save
   sim$pixelAreaDT <- pixel_area_dt
+  
+  # ----------------------------------------------------
+  # Remove pixelGroups that have no valid stand
+  # ----------------------------------------------------
+  validPG <- unique(sim$standDT$pixelGroup)
+  
+  sim$pixelAreaDT <- sim$pixelAreaDT[
+    pixelGroup %in% validPG
+  ]
+  
   # =====================================================
+  # Add effectiveArea to standDT
+  # =====================================================
+  
+  standDT <- merge(
+    sim$standDT,
+    sim$pixelAreaDT[
+      ,
+      .(
+        pixelGroup,
+        effectiveArea
+      )
+    ],
+    by = "pixelGroup",
+    all.x = TRUE
+  )
+  
+  sim$standDT <- standDT  # =====================================================
   # Add effectiveArea to standDT
   # =====================================================
   
