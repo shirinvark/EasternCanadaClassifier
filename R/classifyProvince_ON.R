@@ -892,6 +892,9 @@ classifyProvince_ON <- function(sim) {
   )
   
   sim$standDT <- standDT 
+  cat("\n===== FINAL standDT =====\n")
+  print(names(sim$standDT))
+  #############################
   sim$areaByAU <- sim$pixelAreaDT[
     !is.na(analysisUnit),
     .(
