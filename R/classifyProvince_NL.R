@@ -286,6 +286,7 @@ classifyProvince_NL <- function(sim) {
   file_cache <- list()
   
   yieldTables_NL <- list()
+  conversionFactor <- 1000 * 0.5 / 0.8
   
   for (i in seq_len(nrow(AU_table))) {
     
@@ -401,7 +402,17 @@ classifyProvince_NL <- function(sim) {
     for (sp in names(curve_data)) {
       dt_curve[[sp]] <- curve_data[[sp]]
     }
+    # Steve:
+    # Convert yield volume (m3/ha) to approximate biomass (kg/ha)
     
+    dt_curve[
+      ,
+      (names(curve_data)) := lapply(
+        .SD,
+        function(x) x * conversionFactor
+      ),
+      .SDcols = names(curve_data)
+    ]
     yieldTables_NL[[au]] <- dt_curve
   }
   
@@ -633,14 +644,14 @@ classifyProvince_NL <- function(sim) {
     stop("❌ No matching species groups between cohort and yield")
   }
   
-  cohort_wide[
-    ,
-    (prop_cols) := lapply(
-      .SD,
-      function(x) x / total
-    ),
-    .SDcols = prop_cols
-  ]
+  #cohort_wide[
+    #,
+   # (prop_cols) := lapply(
+     # .SD,
+      #function(x) x / total
+  #  ),
+   # .SDcols = prop_cols
+  #]
   
   ####pixel by region
   # shp2 <- terra::project(
@@ -753,31 +764,31 @@ classifyProvince_NL <- function(sim) {
   # =========================================================
   
   curve_cols <- prop_cols
-  
-  yield_by_region_norm <- lapply(
-    yield_by_region,
-    function(dt) {
-      
-      dt <- copy(dt)
-      
-      dt[
-        ,
-        total := rowSums(.SD),
-        .SDcols = curve_cols
-      ]
-      
-      dt[
-        ,
-        (curve_cols) := lapply(
-          .SD,
-          function(x) x / total
-        ),
-        .SDcols = curve_cols
-      ]
-      
-      dt
-    }
-  )
+  sim$yield_by_region <- yield_by_region
+  # yield_by_region_norm <- lapply(
+  #   yield_by_region,
+  #   function(dt) {
+  #     
+  #     dt <- copy(dt)
+  #     
+  #     dt[
+  #       ,
+  #       total := rowSums(.SD),
+  #       .SDcols = curve_cols
+  #     ]
+  #     
+  #     dt[
+  #       ,
+  #       (curve_cols) := lapply(
+  #         .SD,
+  #         function(x) x / total
+  #       ),
+  #       .SDcols = curve_cols
+  #     ]
+  #     
+  #     dt
+  #   }
+  # )
   cat("\n===== PIXEL REGION =====\n")
   print(head(pixel_region))
   print(nrow(pixel_region))
@@ -843,8 +854,7 @@ classifyProvince_NL <- function(sim) {
   # ======================================================
   # CLASSIFY ONE PIXEL
   # ====================================================
-  cat("\n===== YIELD REGIONS =====\n")
-  print(names(yield_by_region_norm))
+  
   results <- cohort_classifiable[, {
     if (.GRP %% 10000 == 0)
       cat("Processed:", .GRP, "\n")
@@ -864,10 +874,12 @@ classifyProvince_NL <- function(sim) {
     } else {
       
       
+      # curves <- copy(
+      #   yield_by_region_norm[[region[1]]]
+      # )
       curves <- copy(
-        yield_by_region_norm[[region[1]]]
+        yield_by_region[[region[1]]]
       )
-      
       age_val <- age[1]
       
       curves[
@@ -885,7 +897,23 @@ classifyProvince_NL <- function(sim) {
         ,
         age_diff := NULL
       ]
+      pixel_total <- sum(cohort_vec)
       
+      curve_total <- rowSums(
+        curves[, curve_cols, with = FALSE],
+        na.rm = TRUE
+      )
+      
+      ratio <- pixel_total / curve_total
+      
+      curves_filtered <- curves[
+        ratio >= 0.6 &
+          ratio <= (1 / 0.6)
+      ]
+      
+      if (nrow(curves_filtered) > 0) {
+        curves <- curves_filtered
+      }
       curves_mat <- as.matrix(
         curves[, curve_cols, with = FALSE]
       )
@@ -919,10 +947,10 @@ classifyProvince_NL <- function(sim) {
   )]
   
   
-  sim$yield_by_region_raw  <- yield_by_region
-  sim$yield_by_region      <- yield_by_region_norm
-  
-  
+  # sim$yield_by_region_raw  <- yield_by_region
+  # sim$yield_by_region      <- yield_by_region_norm
+  # 
+  sim$yield_by_region <- yield_by_region
   sim$classification <- results[
     ,
     .(
@@ -1116,7 +1144,7 @@ classifyProvince_NL <- function(sim) {
   }
   
   #sim$rawYieldTables$NL <- yield_by_regionپ
-  sim$rawYieldTables$NL <- sim$yield_by_region_raw
-  sim$yieldTables_NL <- yieldTables_NL
+  sim$rawYieldTables$NL <- yield_by_region
+    sim$yieldTables_NL <- yieldTables_NL
   return(sim)
 }
