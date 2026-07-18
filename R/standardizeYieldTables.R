@@ -165,17 +165,25 @@ standardizeYieldTables <- function(
           # -------------------------------------------------
           # store
           # -------------------------------------------------
-          #Maybe below comment ruin Ontario(I have touch it because of NL on 17 July)
-          # curveID <- paste0(
-          #   reg,
-          #   "_",
-          #   cid
-          # )
-          curveID <- cid
+          # -------------------------------------------------
+          # store standardized curve
+          # -------------------------------------------------
           
+          if ("AU" %in% names(region_tables)) {
+            
+            curveID <- cid
+            
+          } else {
+            
+            curveID <- paste0(
+              reg,
+              "_",
+              cid
+            )
+            
+          }
           
-          
-          yieldTables[[curveID]] <- reduced_dt        }
+          yieldTables[[curveID]] <- reduced_dt       }
         # ===== DEBUG ZERO CURVES =====
         totalCurve <- rowSums(
           reduced_dt[, -1, with = FALSE],
@@ -358,11 +366,19 @@ standardizeYieldTables <- function(
         # -------------------------------------------------
         
         
-        curveID <- paste0(
-          reg,
-          "_",
-          cid
-        )
+        if ("AU" %in% names(region_tables)) {
+          
+          curveID <- cid
+          
+        } else {
+          
+          curveID <- paste0(
+            reg,
+            "_",
+            cid
+          )
+          
+        }
         
         yieldTables[[curveID]] <- reduced_dt      }
     }

@@ -195,17 +195,7 @@ classifyProvince_NL <- function(sim) {
     y_lines <- y_lines[
       grepl("\\smedium\\s", y_lines)
     ]
-    cat("\nFILE:", f, "\n")
     
-    print(
-      table(
-        sub(
-          "^\\*Y\\s+\\S+\\s+(\\S+).*",
-          "\\1",
-          y_lines
-        )
-      )
-    )
     tmp <- data.table(
       file = f,
       community = sub(
@@ -318,47 +308,12 @@ classifyProvince_NL <- function(sim) {
     )
     ####For test
     raw_curve <- parse_curve(block)
-    if (au == "Aphid_bF") {
-      cat("\n====================\n")
-      cat("AU =", au, "\n")
-      cat("community =", community, "\n")
-      cat("region =", region, "\n")
-      cat("====================\n")
-      
-      cat("\n===== RAW CURVE =====\n")
-      
-      print(head(raw_curve$BFv, 30))
-      print(head(block, 30))
-    }
+    
     curve_data <- rewrite_yld_curve(
       raw_curve,
       mapSpeciesGroups
     )
     
-    if (au == "Aphid_bF") {
-      
-      cat("\n===== RAW BFv =====\n")
-      print(raw_curve$BFv)
-      
-    }
-    
-    if (au == "Aphid_bF") {
-      
-      cat("\n===== REWRITTEN balsamFir_NL =====\n")
-      print(curve_data$balsamFir_NL)
-      
-    }
-    
-    
-    
-    
-    if (au == "Aphid_bF") {
-      
-      cat("\n===== REWRITTEN CURVE =====\n")
-      
-      print(head(curve_data$balsamFir_NL, 30))
-      
-    }
     checkVolumeConservation <- FALSE
     
     if (checkVolumeConservation) {
@@ -392,13 +347,7 @@ classifyProvince_NL <- function(sim) {
     dt_curve <- data.table(
       AC10 = ages
     )
-    if (au == "Aphid_bF") {
-      
-      cat("\n===== DT CURVE =====\n")
-      
-      print(dt_curve)
-      
-    }
+    
     for (sp in names(curve_data)) {
       dt_curve[[sp]] <- curve_data[[sp]]
     }
@@ -645,12 +594,12 @@ classifyProvince_NL <- function(sim) {
   }
   
   #cohort_wide[
-    #,
-   # (prop_cols) := lapply(
-     # .SD,
-      #function(x) x / total
+  #,
+  # (prop_cols) := lapply(
+  # .SD,
+  #function(x) x / total
   #  ),
-   # .SDcols = prop_cols
+  # .SDcols = prop_cols
   #]
   
   ####pixel by region
@@ -789,13 +738,8 @@ classifyProvince_NL <- function(sim) {
   #     dt
   #   }
   # )
-  cat("\n===== PIXEL REGION =====\n")
-  print(head(pixel_region))
-  print(nrow(pixel_region))
   
-  cat("\n===== COHORT PIXELS =====\n")
   
-  cat("\n===== INTERSECTION =====\n")
   
   # =========================================================
   # KEEP ONLY PIXELS WITH REGION
@@ -831,26 +775,7 @@ classifyProvince_NL <- function(sim) {
     by = "pixelGroup",
     all.x = FALSE
   )
-  print("===== COHORT CLASSIFIABLE =====")
-  print(head(cohort_classifiable))
   
-  print(names(cohort_classifiable))
-  
-  print(
-    cohort_classifiable[
-      1:6,
-      .(
-        pixelGroup,
-        age,
-        region,
-        balsamFir_NL,
-        blackSpruce_NL,
-        broadleaf_NL,
-        otherConifer_NL,
-        total
-      )
-    ]
-  )
   # ======================================================
   # CLASSIFY ONE PIXEL
   # ====================================================
@@ -994,7 +919,7 @@ classifyProvince_NL <- function(sim) {
   ]
   
   sim$standDT <- standDT
-
+  
   ######################################
   sim$pixelGroupToAU <- results[
     ,
@@ -1014,13 +939,7 @@ classifyProvince_NL <- function(sim) {
     stopOnError = FALSE
   )) {
     
-    cat("\n===== GEOMETRY MISMATCH =====\n")
     
-    cat("pixelGroupMap:\n")
-    print(sim$pixelGroupMap)
-    
-    cat("harvestableFraction:\n")
-    print(sim$harvestableFraction)
     
     stop(
       "pixelGroupMap and harvestableFraction are not aligned. ",
@@ -1117,7 +1036,7 @@ classifyProvince_NL <- function(sim) {
   )
   
   sim$standDT <- standDT
- 
+  
   # =====================================================
   # analysisUnitMap
   # =====================================================
@@ -1145,6 +1064,6 @@ classifyProvince_NL <- function(sim) {
   
   #sim$rawYieldTables$NL <- yield_by_regionپ
   sim$rawYieldTables$NL <- yield_by_region
-    sim$yieldTables_NL <- yieldTables_NL
+  sim$yieldTables_NL <- yieldTables_NL
   return(sim)
 }
