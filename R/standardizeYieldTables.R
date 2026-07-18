@@ -27,7 +27,7 @@ standardizeYieldTables <- function(
     maxAge
 ) {
   
-  
+  #stop("standardizeYieldTables IS RUNNING")  
   # -------------------------------------------------------
   # raw processed yield tables
   # -------------------------------------------------------
@@ -99,7 +99,9 @@ standardizeYieldTables <- function(
         curve_ids <- names(region_tables)
         
         for (cid in curve_ids) {
-          
+          cat("\nREG =", reg,
+              " | CID =", cid,
+              "\n")
           curve_list <- region_tables[[cid]]
           
           # -------------------------------------------------
@@ -163,12 +165,15 @@ standardizeYieldTables <- function(
           # -------------------------------------------------
           # store
           # -------------------------------------------------
+          #Maybe below comment ruin Ontario(I have touch it because of NL on 17 July)
+          # curveID <- paste0(
+          #   reg,
+          #   "_",
+          #   cid
+          # )
+          curveID <- cid
           
-          curveID <- paste0(
-            reg,
-            "_",
-            cid
-          )
+          
           
           yieldTables[[curveID]] <- reduced_dt        }
         # ===== DEBUG ZERO CURVES =====
@@ -277,7 +282,7 @@ standardizeYieldTables <- function(
         # sort by age
         # -------------------------------------------------
         if (cid == 105 && reg == "5e") {
-         
+          
         }
         curve_dt <- curve_dt[
           order(get(age_col))
