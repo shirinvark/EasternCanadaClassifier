@@ -14,12 +14,7 @@ standardizeYieldCurve <- function(
     ages <- c(1, ages[-1])
     volumes <- c(0, volumes[-1])
   }
-  cat("AGES AFTER FIX:\n")
-  print(ages[1:5])
-  
-  cat("VOLUMES AFTER FIX:\n")
-  print(volumes[1:5])
-  
+ 
   
   
   #in barfaye ontaro javab dad vali vase Nl na.bayad avaz konim bebinim Nl dorost mishavad ya na
@@ -96,17 +91,7 @@ standardizeYieldCurve <- function(
   # return standardized annual yield table
   # ------------------------------------------------------
   
-  cat("\nAGES INPUT:\n")
-  print(ages)
-  
-  cat("\nVOLUMES INPUT:\n")
-  print(volumes)
-  
-  cat("\nAGES OUTPUT:\n")
-  print(1:20)
-  
-  cat("\nVOLUMES OUTPUT:\n")
-  print(annual[1:20])
+ 
   
   return(
     data.table(
