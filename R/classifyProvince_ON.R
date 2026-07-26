@@ -6,7 +6,7 @@ classifyProvince_ON <- function(sim) {
   # Download Ontario mapping files and yield tables.
   # Files are downloaded only if they are not already present
   # in the local input directory.
-  # =========================================================
+  # ======================================================
   
   on_dir <- file.path(getPaths()$inputPath, "ON")
   dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
@@ -391,6 +391,31 @@ classifyProvince_ON <- function(sim) {
     pixelGroup + age ~ final_group,
     value.var = "B",
     fill = 0
+  )
+  cat("\n===== PIXELGROUPS WITH MULTIPLE AGES =====\n")
+  
+  print(
+    cohort_wide[
+      ,
+      .N,
+      by = pixelGroup
+    ][
+      N > 1
+    ][1:20]
+  )
+  
+  cat(
+    "Total:",
+    nrow(
+      cohort_wide[
+        ,
+        .N,
+        by = pixelGroup
+      ][
+        N > 1
+      ]
+    ),
+    "\n"
   )
   cat("\n===== STEP 2 =====\n")
   
