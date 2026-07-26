@@ -379,8 +379,24 @@ standardizeYieldTables <- function(
           )
           
         }
-        
-        yieldTables[[curveID]] <- reduced_dt      }
+        cat(
+          "\ncurveID =", curveID,
+          "| reg =", reg,
+          "| cid =", cid,
+          "| class =", class(reduced_dt),
+          "| nrow =", nrow(reduced_dt),
+          "\n"
+        )
+        print(class(curveID))
+        print(curveID)
+        yieldTables[[as.character(curveID)]] <- reduced_dt
+        cat(
+          "Stored -> length =", length(yieldTables),
+          "| names =", length(names(yieldTables)),
+          "\n"
+        )
+      }
+      
     }
   }
   
