@@ -688,7 +688,7 @@ classifyProvince_NL <- function(sim) {
       curves <- copy(
         yield_by_region[[region[1]]]
       )
-      age_val <- age[1]
+      age_val <- mean(age)
       
       curves[
         ,
@@ -752,11 +752,7 @@ classifyProvince_NL <- function(sim) {
       
     }
     
-  }, by = .(
-    pixelGroup,
-    region,
-    age
-  )]
+  }, by = pixelGroup]
   
   
   # sim$yield_by_region_raw  <- yield_by_region

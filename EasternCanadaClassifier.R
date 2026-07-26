@@ -229,15 +229,42 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
           
           x <- aacInput[i]
           
+          # if (x$age <= 70) {
+          #   
+          #   ages <- x$age
+          #   
+          # } else if (x$age %% 10 == 0) {
+          #   
+          #   ages <- seq(
+          #     x$age - 9L,
+          #     x$age,
+          #     by = 1L
+          #   )
+          #   
+          # } else {
+          #   
+          #   ages <- x$age
+          #   
+          # }
           if (x$age <= 70) {
             
             ages <- x$age
             
           } else if (x$age %% 10 == 0) {
             
+            # Ontario-style ages: 80 -> 71:80
             ages <- seq(
               x$age - 9L,
+              min(x$age, maxAge),
+              by = 1L
+            )
+            
+          } else if ((x$age - 1L) %% 10 == 0) {
+            
+            # Newfoundland/LandR-style ages: 71 -> 71:80
+            ages <- seq(
               x$age,
+              min(x$age + 9L, maxAge),
               by = 1L
             )
             
@@ -246,7 +273,6 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
             ages <- x$age
             
           }
-          
           data.table(
             AU = x$AU,
             curveID = x$curveID,
