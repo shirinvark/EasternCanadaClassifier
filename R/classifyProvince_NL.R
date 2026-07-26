@@ -683,7 +683,7 @@ classifyProvince_NL <- function(sim) {
       
       
       # curves <- copy(
-      #   yield_by_region_norm[[region[1]]]
+      #   yield_by_region_norm[[region[1
       # )
       curves <- copy(
         yield_by_region[[region[1]]]
