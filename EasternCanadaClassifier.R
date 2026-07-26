@@ -200,7 +200,10 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         sim,
         maxAge = P(sim)$maxYieldAge
       )
-      
+      cat("\n===== AFTER standardizeYieldTables =====\n")
+      cat("length =", length(sim$yieldTables), "\n")
+      cat("names  =", length(names(sim$yieldTables)), "\n")
+      cat("NULLs  =", sum(sapply(sim$yieldTables, is.null)), "\n")
       # =====================================================
       # AAC input table
       # =====================================================
@@ -335,7 +338,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       ################################
       cat("\n===== standDT columns =====\n")
       print(names(sim$standDT))
-       sim$aacInput <- merge(
+      sim$aacInput <- merge(
         fullGrid,
         aacInput,
         by = c(

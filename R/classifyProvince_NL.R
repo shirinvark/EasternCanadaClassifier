@@ -667,9 +667,13 @@ classifyProvince_NL <- function(sim) {
   results <- cohort_classifiable[, {
     
     
-    cohort_vec <- unlist(
-      .SD[1, curve_cols, with = FALSE],
-      use.names = FALSE
+    # cohort_vec <- unlist(
+    #   .SD[1, curve_cols, with = FALSE],
+    #   use.names = FALSE
+    # )
+    cohort_vec <- colSums(
+      .SD[, ..curve_cols],
+      na.rm = TRUE
     )
     
     if (sum(cohort_vec) == 0) {
@@ -683,12 +687,23 @@ classifyProvince_NL <- function(sim) {
       
       
       # curves <- copy(
-      #   yield_by_region_norm[[region[1
+      #   yield_by_region_norm[[region[1]]]
       # )
       curves <- copy(
         yield_by_region[[region[1]]]
       )
-      age_val <- mean(age)
+      #age_val <- mean(age)
+      cohortTotals <- rowSums(
+        .SD[, ..curve_cols],
+        na.rm = TRUE
+      )
+      
+      dominantRow <- which.max(cohortTotals)
+      
+      age_val <- .SD$age[dominantRow]
+      
+      
+      
       
       curves[
         ,
