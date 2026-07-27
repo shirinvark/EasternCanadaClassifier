@@ -389,8 +389,8 @@ classifyProvince_NL <- function(sim) {
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
-    field = "YCF",
-    touches = TRUE
+    field = "YCF"#,
+    #touches = TRUE
   )
   
   
@@ -638,12 +638,27 @@ classifyProvince_NL <- function(sim) {
   # FIX DUPLICATED PIXELGROUPS IN pixel_region
   # ==========================================
   
+  
+  
   pixel_region <- pixel_region[
     ,
-    .(region = region[1]),
+    .(
+      region = names(sort(table(region), decreasing = TRUE))[1]
+    ),
     by = pixelGroup
   ]
   
+  
+  
+  dup <- pixel_region[
+    ,
+    uniqueN(region),
+    by = pixelGroup
+  ][V1 > 1]
+  
+  # if (nrow(dup) > 0) {
+  #   stop("Some pixelGroups belong to multiple regions.")
+  # }
   setkey(
     pixel_region,
     pixelGroup
@@ -689,9 +704,12 @@ classifyProvince_NL <- function(sim) {
       # curves <- copy(
       #   yield_by_region_norm[[region[1]]]
       # )
+      
+      
       curves <- copy(
         yield_by_region[[region[1]]]
       )
+      
       #age_val <- mean(age)
       cohortTotals <- rowSums(
         .SD[, ..curve_cols],
@@ -720,6 +738,11 @@ classifyProvince_NL <- function(sim) {
         ,
         age_diff := NULL
       ]
+      if (pixelGroup[1] %in% c(17612, 10498, 14407)) {
+        
+        cat("Candidate AUs AFTER age filter:\n")
+        print(unique(curves$AU))
+      }
       pixel_total <- sum(cohort_vec)
       
       curve_total <- rowSums(
@@ -759,7 +782,24 @@ classifyProvince_NL <- function(sim) {
       
       
       best_idx <- which.min(dists)
+      # if (best_dist > SOME_THRESHOLD) {
+      #   
+      #   all_curves <- rbindlist(
+      #     yield_by_region,
+      #     fill = TRUE
+      #   )
       
+      if (pixelGroup[1] %in% c(17612, 10498, 14407)) {
+        
+        tmp_debug <- data.table(
+          AU = curves$AU,
+          distance = dists
+        )
+        
+        print(tmp_debug)
+        
+        cat("Selected AU:", curves$AU[best_idx], "\n")
+      }
       list(
         bestAU = curves$AU[best_idx],
         distance = dists[best_idx]
