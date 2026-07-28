@@ -166,18 +166,6 @@ classifyProvince_ON <- function(sim) {
                      by = .(CURVENO, AC10, FU),
                      .SDcols = groups]
     
-    # Steve:
-    # Convert yield volume (m3/ha) to approximate biomass (kg/ha)
-    conversionFactor <- 1000 * 0.5 / 0.8
-    
-    dt_summary[
-      ,
-      (groups) := lapply(
-        .SD,
-        function(x) x * conversionFactor
-      ),
-      .SDcols = groups
-    ]
     
     # ---- Remove NA ----
     dt_summary <- dt_summary[
@@ -223,14 +211,48 @@ classifyProvince_ON <- function(sim) {
   yield_all <- rbindlist(results_list, fill = TRUE)
   
   yield_by_region <- split(yield_all, yield_all$zone)
+  # sim$yield_by_region <- yield_by_region
+  # ===================================================
+  # Save volume version
+  # ===================================================
   
-  sim$yield_by_region <- yield_by_region
+  sim$yield_by_region_volume <- lapply(
+    yield_by_region,
+    data.table::copy
+  )
   
-  if (is.null(sim$rawYieldTables)) {
-    sim$rawYieldTables <- list()
+  # ===================================================
+  # Create biomass version for classifier
+  # ===================================================
+  
+  sim$yield_by_region_biomass <- lapply(
+    yield_by_region,
+    data.table::copy
+  )
+  
+  conversionFactor <- 1000 * 0.5 / 0.8
+  
+  for (i in seq_along(sim$yield_by_region_biomass)) {
+    
+    dt <- sim$yield_by_region_biomass[[i]]
+    
+    dt[
+      ,
+      (groups) := lapply(
+        .SD,
+        function(x) x * conversionFactor
+      ),
+      .SDcols = groups
+    ]
   }
   
-  sim$rawYieldTables$ON <- yield_by_region
+  # Classifier continues to use biomass
+  sim$yield_by_region <- sim$yield_by_region_biomass
+  if (is.null(sim$processedYieldTables)) {
+    sim$processedYieldTables <- list()
+  }
+  
+  sim$processedYieldTables$ON <- yield_by_region
   # =========================================================
   # 2.5 BUILD pixel_region FROM SHAPEFILE
   # =========================================================
@@ -434,7 +456,7 @@ classifyProvince_ON <- function(sim) {
     "\n"
   )
   
- 
+  
   # force pixelGroup name
   pg_col <- names(cohort_wide)[grepl("pixelgroup", names(cohort_wide), ignore.case = TRUE)]
   
@@ -812,7 +834,7 @@ classifyProvince_ON <- function(sim) {
     !is.na(AU) &
       !is.na(curveID)
   ]
-   
+  
   
   # -------------------------------------------------------
   # 🔥 COMPUTE pixel-level effective area (hectares)
