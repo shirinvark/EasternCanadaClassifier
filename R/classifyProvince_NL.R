@@ -217,9 +217,32 @@ classifyProvince_NL <- function(sim) {
   
   #################3
   file_cache <- list()
+  #1زchange
   
-  yieldTables_NL <- list()
+  # cleanOriginalYieldTables_NL <- list()
+  yieldTablesVolume_NL  <- list()
+  yieldTablesBiomass_NL <- list()
+  
   cleanOriginalYieldTables_NL <- list()
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   for (i in seq_len(nrow(AU_table))) {
     
@@ -330,17 +353,22 @@ classifyProvince_NL <- function(sim) {
       
       dt_curve[[sp]] <- tmp$volume
     }
-    
+    #2change
+    # -------------------------------------------------------
+    # Keep volume version for AAC / Hanzlik
+    # -------------------------------------------------------
+    dt_curve_volume <- copy(dt_curve)
     # -------------------------------------------------------
     # Convert yield volume (m3/ha) to approximate biomass (kg/ha)
     # Steve's suggested conversion
     # -------------------------------------------------------
-    #summary(dt_curve)
+    dt_curve_biomass <- copy(dt_curve_volume)
+    
     conversionFactor <- 1000 * 0.5 / 0.8
     
-    species_cols <- setdiff(names(dt_curve), "AC10")
+    species_cols <- setdiff(names(dt_curve_biomass), "AC10")
     
-    dt_curve[
+    dt_curve_biomass[
       ,
       (species_cols) := lapply(
         .SD,
@@ -348,10 +376,12 @@ classifyProvince_NL <- function(sim) {
       ),
       .SDcols = species_cols
     ]
+    yieldTablesVolume_NL[[au]]  <- dt_curve_volume
+    yieldTablesBiomass_NL[[au]] <- dt_curve_biomass
     
-    
-    yieldTables_NL[[au]] <- dt_curve
-  }
+  }   # <-- پایان حلقه ساخت Yield Tables
+  
+  
   # =========================================================
   # BUILD pixel_region FROM NL_YCF
   # =========================================================
@@ -559,8 +589,9 @@ classifyProvince_NL <- function(sim) {
   }
   
   
-  
-  yield_by_region <- list()
+  #we need two of this
+  yield_by_region_volume  <- list()
+  yield_by_region_biomass <- list()
   
   for (reg in unique(AU_table$region)) {
     
@@ -569,36 +600,56 @@ classifyProvince_NL <- function(sim) {
       AU
     ]
     
-    region_list <- lapply(
+    # ---------- Volume ----------
+    region_list_volume <- lapply(
       region_aus,
       function(au) {
         
         dt <- copy(
-          yieldTables_NL[[au]]
+          yieldTablesVolume_NL[[au]]
         )
         
         dt[, AU := au]
-        
         dt[, zone := reg]
         
         dt
       }
     )
     
-    yield_by_region[[reg]] <- rbindlist(
-      region_list,
+    yield_by_region_volume[[reg]] <- rbindlist(
+      region_list_volume,
       fill = TRUE
     )
     
+    # ---------- Biomass ----------
+    region_list_biomass <- lapply(
+      region_aus,
+      function(au) {
+        
+        dt <- copy(
+          yieldTablesBiomass_NL[[au]]
+        )
+        
+        dt[, AU := au]
+        dt[, zone := reg]
+        
+        dt
+      }
+    )
     
-  }   ## ← این هم پایان حلقه for
+    yield_by_region_biomass[[reg]] <- rbindlist(
+      region_list_biomass,
+      fill = TRUE
+    )
+    
+  }  ## ← این هم پایان حلقه for
   
   # =========================================================
   # NORMALIZE CURVES ONCE
   # =========================================================
   
   curve_cols <- prop_cols
-  sim$yield_by_region <- yield_by_region
+  sim$yield_by_region <- yield_by_region_biomass
   # yield_by_region_norm <- lapply(
   #   yield_by_region,
   #   function(dt) {
@@ -701,13 +752,10 @@ classifyProvince_NL <- function(sim) {
     } else {
       
       
-      # curves <- copy(
-      #   yield_by_region_norm[[region[1]]]
-      # )
       
       
       curves <- copy(
-        yield_by_region[[region[1]]]
+        yield_by_region_biomass[[region[1]]]
       )
       
       #age_val <- mean(age)
@@ -813,7 +861,7 @@ classifyProvince_NL <- function(sim) {
   # sim$yield_by_region_raw  <- yield_by_region
   # sim$yield_by_region      <- yield_by_region_norm
   # 
-  sim$yield_by_region <- yield_by_region
+  sim$yield_by_region <- yield_by_region_biomass
   sim$classification <- results[
     ,
     .(
@@ -1006,13 +1054,14 @@ classifyProvince_NL <- function(sim) {
     lookup$analysisUnit[idx]
   
   sim$analysisUnitMap <- analysisUnitMap
-  if (is.null(sim$rawYieldTables)) {
-    sim$rawYieldTables <- list()
+  if (is.null(sim$processedYieldTables)) {
+    sim$processedYieldTables <- list()
   }
   
-  sim$rawYieldTables$NL <- yield_by_region
+  sim$processedYieldTables$NL <- yield_by_region_volume
   # Yield tables after species grouping and biomass conversion
-  sim$yieldTables_NL <- yieldTables_NL
+  sim$yieldTablesVolume_NL  <- yieldTablesVolume_NL
+  sim$yieldTablesBiomass_NL <- yieldTablesBiomass_NL
   
   # Clean parsed yield tables before species grouping
   sim$cleanOriginalYieldTables_NL <- cleanOriginalYieldTables_NL

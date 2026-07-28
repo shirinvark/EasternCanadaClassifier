@@ -5,7 +5,7 @@
 # annual format for AAC/Hanzlik calculations.
 #
 # Input:
-#   sim$rawYieldTables
+#   sim$processedYieldTables
 #
 # Output:
 #   sim$yieldTables
@@ -32,12 +32,12 @@ standardizeYieldTables <- function(
   # raw processed yield tables
   # -------------------------------------------------------
   
-  rawYieldTables <- sim$rawYieldTables
+  processedYieldTables <- sim$processedYieldTables
   # -------------------------------------------------------
   # jurisdiction names
   # -------------------------------------------------------
   
-  jurisdictions <- names(rawYieldTables)
+  jurisdictions <- names(processedYieldTables)
   
   # -------------------------------------------------------
   # output object
@@ -78,7 +78,7 @@ standardizeYieldTables <- function(
   
   for (jur in jurisdictions) {
     
-    jur_tables <- rawYieldTables[[jur]]
+    jur_tables <- processedYieldTables[[jur]]
     
     # -----------------------------------------------------
     # loop through regions
