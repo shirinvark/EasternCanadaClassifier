@@ -389,8 +389,8 @@ classifyProvince_NL <- function(sim) {
   region_raster <- terra::rasterize(
     shp,
     sim$pixelGroupMap,
-    field = "YCF"#,
-    #touches = TRUE
+    field = "YCF",
+    touches = TRUE
   )
   
   
