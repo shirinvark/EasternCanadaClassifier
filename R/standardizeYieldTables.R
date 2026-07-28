@@ -169,17 +169,17 @@ standardizeYieldTables <- function(
           # store standardized curve
           # -------------------------------------------------
           
-          if ("AU" %in% names(region_tables)) {
+          if ("CURVENO" %in% names(region_tables)) {
+            
+            curveID <- paste0(reg, "_", cid)
+            
+          } else if ("AU" %in% names(region_tables)) {
             
             curveID <- cid
             
           } else {
             
-            curveID <- paste0(
-              reg,
-              "_",
-              cid
-            )
+            stop("No curve identifier found")
             
           }
           
@@ -366,17 +366,17 @@ standardizeYieldTables <- function(
         # -------------------------------------------------
         
         
-        if ("AU" %in% names(region_tables)) {
+        if ("CURVENO" %in% names(region_tables)) {
+          
+          curveID <- paste0(reg, "_", cid)
+          
+        } else if ("AU" %in% names(region_tables)) {
           
           curveID <- cid
           
         } else {
           
-          curveID <- paste0(
-            reg,
-            "_",
-            cid
-          )
+          stop("No curve identifier found")
           
         }
         cat(
