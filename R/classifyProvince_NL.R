@@ -335,7 +335,7 @@ classifyProvince_NL <- function(sim) {
     # Convert yield volume (m3/ha) to approximate biomass (kg/ha)
     # Steve's suggested conversion
     # -------------------------------------------------------
-    summary(dt_curve)
+    #summary(dt_curve)
     conversionFactor <- 1000 * 0.5 / 0.8
     
     species_cols <- setdiff(names(dt_curve), "AC10")
@@ -740,8 +740,8 @@ classifyProvince_NL <- function(sim) {
       ]
       if (pixelGroup[1] %in% c(17612, 10498, 14407)) {
         
-        cat("Candidate AUs AFTER age filter:\n")
-        print(unique(curves$AU))
+        #cat("Candidate AUs AFTER age filter:\n")
+        #print(unique(curves$AU))
       }
       pixel_total <- sum(cohort_vec)
       
@@ -830,10 +830,20 @@ classifyProvince_NL <- function(sim) {
     all.x = TRUE
   )
   ###standDT
+  # standDT <- sim$cohortData[
+  #   ,
+  #   .(
+  #     age = as.numeric(names(which.max(table(age))))
+  #   ),
+  #   by = pixelGroup
+  # ]
   standDT <- sim$cohortData[
     ,
     .(
-      age = as.numeric(names(which.max(table(age))))
+      age = max(
+        1,
+        as.numeric(names(which.max(table(age))))
+      )
     ),
     by = pixelGroup
   ]
