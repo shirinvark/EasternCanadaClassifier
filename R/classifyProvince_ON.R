@@ -145,7 +145,7 @@ classifyProvince_ON <- function(sim) {
       dt[[g]] <- 0
     }
     
-    # ---- Mapping species → groups ----
+    # ---- Mapping species to groups --------
     
     for (sp in species_cols) {
       
@@ -204,10 +204,10 @@ classifyProvince_ON <- function(sim) {
     process_zone(z$path, z$submu)
   })
   
-  # فقط خروجی‌های غیر NULL نگه دار
+  # # Keep only non-NULL outputs
   results_list <- results_list[!sapply(results_list, is.null)]
   
-  # بعد combine کن
+  # Combine results
   yield_all <- rbindlist(results_list, fill = TRUE)
   
   yield_by_region <- split(yield_all, yield_all$zone)
@@ -253,118 +253,62 @@ classifyProvince_ON <- function(sim) {
   }
   
   sim$processedYieldTables$ON <- yield_by_region
+
   # =========================================================
-  # 2.5 BUILD pixel_region FROM SHAPEFILE
+  # BUILD pixel_region FROM UPSTREAM YIELD CURVE FAMILY
   # =========================================================
   
-  on_dir <- file.path(getPaths()$inputPath, "ON")
-  dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
-  
-  zip_path <- file.path(on_dir, "combined_regions.zip")
-  
-  shp_path <- file.path(
-    on_dir,
-    "combined_regions.shp"
-  )
-  
-  if (!file.exists(shp_path)) {
-    
-    zip_url <- paste0(
-      "https://raw.githubusercontent.com/",
-      "shirinvark/EasternCanadaClassifier/main/",
-      "data/ON/combined_regions.zip"
-    )
-    
-    download.file(
-      zip_url,
-      destfile = zip_path,
-      mode = "wb"
-    )
-    
-    unzip(
-      zip_path,
-      exdir = on_dir
-    )
+  if (!("yieldCurveFamily" %in% names(sim))) {
+    stop("sim$yieldCurveFamily is missing.")
   }
   
-  shp <- terra::vect(shp_path)
+  if (!("yieldCurveLookup" %in% names(sim))) {
+    stop("sim$yieldCurveLookup is missing.")
+  }
   
-  # =========================================================
-  # BUILD pixel_region (MISSING PART - FIX)
-  # =========================================================
-  
-  # ---- project ----
-  shp <- terra::project(shp, terra::crs(sim$pixelGroupMap))  
-  
-  # ---- rasterize ----
-  region_raster <- terra::rasterize(
-    shp,
+  if (!terra::compareGeom(
+    sim$yieldCurveFamily,
     sim$pixelGroupMap,
-    field = "SITEREGION",
-    touches = TRUE
-  )
-  print(unique(terra::values(region_raster)))
-  print(compareGeom(
-    sim$pixelGroupMap,
-    region_raster,
     stopOnError = FALSE
-  ))
-  # ---- extract values ----
-  pg  <- as.data.table(terra::values(sim$pixelGroupMap))
-  reg <- as.data.table(terra::values(region_raster))
+  )) {
+    stop("yieldCurveFamily and pixelGroupMap are not aligned.")
+  }
   
-  setnames(pg, names(pg), "pixelGroup")
-  setnames(reg, names(reg), "region")
-  
-  pixel_region <- cbind(pg, reg)
-  cats_dt <- as.data.table(
-    terra::cats(region_raster)[[1]]
+  pixel_region <- data.table::data.table(
+    pixelGroup = as.vector(
+      terra::values(sim$pixelGroupMap)
+    ),
+    YCF_ID = as.vector(
+      terra::values(sim$yieldCurveFamily)
+    )
   )
   
-  cats_dt[
-    ,
-    SITEREGION := tolower(SITEREGION)
+  pixel_region <- pixel_region[
+    !is.na(pixelGroup) &
+      !is.na(YCF_ID)
   ]
   
-  setnames(cats_dt, "ID", "region")
+  lookup <- data.table::as.data.table(
+    sim$yieldCurveLookup
+  )
   
   pixel_region <- merge(
     pixel_region,
-    cats_dt,
-    by = "region",
+    lookup[
+      Province == "ON",
+      .(
+        YCF_ID = ID,
+        region = tolower(as.character(YCF))
+      )
+    ],
+    by = "YCF_ID",
     all.x = TRUE
   )
   
-  pixel_region[
-    ,
-    region := SITEREGION
-  ]
-  
-  pixel_region[
-    ,
-    SITEREGION := NULL
-  ]
-  ########################################################
-  # Ensure region identifiers are stored as character values.
-  pixel_region[, region := as.character(region)]
-  
-  cat("\n===== DUPLICATE CHECK =====\n")
-  print(
-    pixel_region[
-      ,
-      .N,
-      by = pixelGroup
-    ][
-      order(-N)
-    ][1:20]
-  )  # ---- clean ----
-  #pixel_region[, region := tolower(as.character(region))]
-  ##############################################################3 
   pixel_region <- pixel_region[
-    !is.na(pixelGroup) & !is.na(region)
+    !is.na(region)
   ]
   
-  # ---- save in sim ----
   sim$pixel_region <- pixel_region
   # =========================================================
   # 3. CLASSIFIER
@@ -374,7 +318,7 @@ classifyProvince_ON <- function(sim) {
   # browser() 
   pg_col <- grep("pixelgroup", names(cohortDT), ignore.case = TRUE, value = TRUE)  
   if (length(pg_col) != 1) {
-    stop("❌ pixelGroup column not found or duplicated in cohortDT")
+    stop("pixelGroup column not found or duplicated in cohortDT")
   }
   
   setnames(cohortDT, pg_col, "pixelGroup")
@@ -383,26 +327,6 @@ classifyProvince_ON <- function(sim) {
   #cohortDT[, final_group := speciesGroups[[speciesCode]]]
   cohortDT[, final_group := speciesGroups[[speciesCode]], by = speciesCode]  # remove unmapped
   cohortDT <- cohortDT[!is.na(final_group)]
-  cat("\n===== STEP 1 =====\n")
-  
-  cat(
-    "Unique pixelGroups in cohortDT:",
-    uniqueN(cohortDT$pixelGroup),
-    "\n"
-  )
-  cat("\n========== AFTER final_group FILTER ==========\n")
-  
-  cat(
-    "PixelGroup 85 exists:",
-    85 %in% cohortDT$pixelGroup,
-    "\n"
-  )
-  
-  print(
-    cohortDT[
-      pixelGroup == 85
-    ]
-  )
   # aggregate biomass
   cohort_group <- cohortDT[, .(
     B = sum(B, na.rm = TRUE)
@@ -414,59 +338,17 @@ classifyProvince_ON <- function(sim) {
     value.var = "B",
     fill = 0
   )
-  cat("\n===== PIXELGROUPS WITH MULTIPLE AGES =====\n")
-  
-  print(
-    cohort_wide[
-      ,
-      .N,
-      by = pixelGroup
-    ][
-      N > 1
-    ][1:20]
-  )
-  
-  cat(
-    "Total:",
-    nrow(
-      cohort_wide[
-        ,
-        .N,
-        by = pixelGroup
-      ][
-        N > 1
-      ]
-    ),
-    "\n"
-  )
-  cat("\n===== STEP 2 =====\n")
-  
-  cat(
-    "Unique pixelGroups in cohort_wide:",
-    uniqueN(cohort_wide$pixelGroup),
-    "\n"
-  )
-  cat(
-    "\n===== COHORT_WIDE =====\n"
-  )
-  
-  cat(
-    "Unique pixelGroups:",
-    uniqueN(cohort_wide$pixelGroup),
-    "\n"
-  )
-  
-  
+ 
   # force pixelGroup name
   pg_col <- names(cohort_wide)[grepl("pixelgroup", names(cohort_wide), ignore.case = TRUE)]
   
   if (length(pg_col) != 1) {
-    stop("❌ Could not uniquely identify pixelGroup column")
+    stop("Could not uniquely identify pixelGroup column")
   }
   
   setnames(cohort_wide, pg_col, "pixelGroup")
   if (!"pixelGroup" %in% names(cohort_wide)) {
-    stop("❌ pixelGroup column still missing in cohort_wide")
+    stop("pixelGroup column still missing in cohort_wide")
   }
   
   # Identify the species-group columns used for
@@ -475,28 +357,16 @@ classifyProvince_ON <- function(sim) {
   prop_cols <- intersect(groups, group_cols)
   prop_cols <- prop_cols[!is.na(prop_cols)]
   if (length(prop_cols) == 0) {
-    stop("❌ No matching species groups between cohort and yield")
+    stop("No matching species groups between cohort and yield")
   }
-  #######Steve is talking about this part
+  # Calculate total biomass across species groups
   cohort_wide[, total := rowSums(.SD), .SDcols = group_cols]
-  #this line commented for steve suggestion
-  #cohort_wide[, (group_cols) := lapply(.SD, function(x) x / total),
-  #            .SDcols = group_cols]
+  
+  # Biomass proportions are not used for classification
+  # cohort_wide[, (group_cols) := lapply(.SD, function(x) x / total),
+  #             .SDcols = group_cols]
   
   cohort_wide <- cohort_wide[total > 0]
-  
-  cat("\n===== STEP 3 =====\n")
-  
-  cat(
-    "Unique pixelGroups after total > 0:",
-    uniqueN(cohort_wide$pixelGroup),
-    "\n"
-  )
-  
-  
-  
-  
-  
   pixel_region <- sim$pixel_region
   
   
@@ -559,8 +429,8 @@ classifyProvince_ON <- function(sim) {
           
           
           
-          ####PROPORTIONS
-          ##and also this part: WE HAD TO DO SOMETHING FOR AGE O ROES.FOR NOW THEY DOES NOT ENTER
+          # Previous proportion-based approach
+        
           #curves[
           #  ,
           # total_prop := rowSums(
@@ -607,7 +477,7 @@ classifyProvince_ON <- function(sim) {
             
           } else {
             
-            # ادامه کد فعلی
+            # 
           }
           curve_total <- rowSums(
             curves[, prop_cols, with = FALSE],
@@ -621,30 +491,13 @@ classifyProvince_ON <- function(sim) {
               ratio <= (1 / 0.6)
           ]
           
-          cat(
-            "Before filter:", nrow(curves),
-            " After filter:", nrow(curves_filtered),
-            "\n"
-          )
-          
+         
           if (nrow(curves_filtered) > 0) {
             curves <- curves_filtered
           } else {
             
-            cat(
-              "\nNO CURVES PASSED BIOMASS FILTER - USING ALL CURVES:",
-              .BY$pixelGroup,
-              "\n"
-            )
-            
-            ## عمداً curves را تغییر نمی‌دهیم
-            ## یعنی از همه AUها برای Euclidean distance استفاده می‌کنیم.
+            # Keep all candidate curves when none pass the biomass filter.
           }
-          cat(
-            "Before filter:", length(ratio),
-            " After filter:", nrow(curves),
-            "\n"
-          )
           curves_mat <- as.matrix(
             curves[, prop_cols, with = FALSE]
           )
@@ -669,28 +522,7 @@ classifyProvince_ON <- function(sim) {
     }
     
   }, by = pixelGroup]
-  cat("\n===== STEP 4 =====\n")
   
-  cat(
-    "Unique pixelGroups in results:",
-    uniqueN(results$pixelGroup),
-    "\n"
-  )
-  cat("\n=========================\n")
-  
-  cat(
-    "PixelGroups with NA AU:",
-    sum(is.na(results$bestAU)),
-    "\n"
-  )
-  
-  cat(
-    "Unique missing PixelGroups:",
-    uniqueN(results[is.na(bestAU), pixelGroup]),
-    "\n"
-  )
-  
-  cat("=========================\n")
   # =========================================================
   # 4. SAVE OUTPUT
   # =========================================================
@@ -732,34 +564,19 @@ classifyProvince_ON <- function(sim) {
     by = "AU",
     all.x = TRUE
   )
-  names(sim$classification)
-  
-  head(sim$classification)
-  # 🔥 pixelGroup → AU mapping
-  
-  
-  
+  # pixelGroup to AU mapping
   pg <- terra::values(sim$pixelGroupMap)[,1]
   
   missingPG <- setdiff(
     unique(pg[!is.na(pg)]),
     results$pixelGroup
   )
-  
-  
-  
-  
-  
-  
   sim$pixelGroupToAU <- results[, .(
     pixelGroup,
     analysisUnit = bestAU
   )]
-  
-  
-  ######################################3
-  #######################################3
-  #################################3
+ ###
+
   
   #  sim$AUtoCurve <- unique(
   # results[, .(
@@ -837,11 +654,11 @@ classifyProvince_ON <- function(sim) {
   
   
   # -------------------------------------------------------
-  # 🔥 COMPUTE pixel-level effective area (hectares)
+  # COMPUTE pixel-level effective area (hectares)
   # -------------------------------------------------------
   # cell area (ha)
   # -------------------------------------------------------
-  # 🔥 COMPUTE pixel-level effective area (hectares)
+  # COMPUTE pixel-level effective area (hectares)
   # -------------------------------------------------------
   
   # Make sure both rasters are perfectly aligned
@@ -909,20 +726,8 @@ classifyProvince_ON <- function(sim) {
   sim$pixelAreaDT <- pixel_area_dt
   
   
-  # 🔥 area per AU
-  
-  print(
-    pixel_area_dt[
-      ,
-      .(
-        nPixelGroups = .N,
-        effectiveArea = sum(effectiveArea)
-      ),
-      by = analysisUnit
-    ][
-      order(-effectiveArea)
-    ][1:20]
-  )
+  # area per AU
+ 
   standDT <- merge(
     standDT,
     sim$pixelAreaDT[
@@ -937,8 +742,7 @@ classifyProvince_ON <- function(sim) {
   )
   
   sim$standDT <- standDT 
-  cat("\n===== FINAL standDT =====\n")
-  print(names(sim$standDT))
+  
   #############################
   sim$areaByAU <- sim$pixelAreaDT[
     !is.na(analysisUnit),

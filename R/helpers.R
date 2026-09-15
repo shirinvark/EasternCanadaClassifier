@@ -177,7 +177,7 @@ rewrite_yld_curve <- function(curve_data, mapGroups) {
     is.list(curve_data),
     is.list(mapGroups)
   )
-  # invert mapping (group → YLD members)
+  # invert mapping (group to YLD members)
   group_map <- list()
   
   for (k in names(mapGroups)) {
@@ -236,12 +236,12 @@ read_species_groups <- function(file) {  # Read species groups mapping file
     res[[grp]] <- spp                   # Store mapping
   }
   
-  return(res)   # Return group → species mapping
+  return(res)   # Return group to species mapping
 }
 
 # -----------------------------
 
-read_curve_mapping <- function(file) {   # Read curve species → group mapping
+read_curve_mapping <- function(file) {   # Read curve species to group mapping
   lines <- readLines(file)               # Read file
   lines <- trimws(lines)                 # Trim whitespace
   lines <- lines[lines != ""]            # Remove empty lines
@@ -258,7 +258,7 @@ read_curve_mapping <- function(file) {   # Read curve species → group mapping
     mapping[[key]] <- vals               # Store mapping
   }
   
-  return(mapping)   # Return species → group mapping
+  return(mapping)   # Return species to group mapping
 }
 
 # -----------------------------

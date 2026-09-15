@@ -491,17 +491,12 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     shp_path <- reproducible::prepInputs(
       url = zip_url,
-      destinationPath = "data",
+      destinationPath = getPaths()$inputPath,
       targetFile = "lpr_000b21a_e.shp"
     )
     
     sim$canadaJurisdiction <- shp_path
   }
-  
-  # ========================================================
-  # YIELD FILES (CORE FIX 🔥)
-  # ========================================================
-  
   # ======================================================
   # YIELD FILES (UPDATED FOR NL + ON)
   # ========================================================
@@ -510,7 +505,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading NL yield (.yld) files")
     
-    yld_dir <- "modules/EasternCanadaClassifier/data/NL"
+    yld_dir <- file.path(
+      getPaths()$inputPath,
+      "NL",
+      "YTF"
+    )
     
     if (!dir.exists(yld_dir)) {
       stop("Directory not found: ", yld_dir)
@@ -534,7 +533,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     message("Loading ON yield (YTF) files")
     
-    ytf_dir <- "modules/EasternCanadaClassifier/data/ON/YTF"
+    ytf_dir <- file.path(
+      getPaths()$inputPath,
+      "ON",
+      "YTF"
+    )
     
     if (!dir.exists(ytf_dir)) {
       stop("Directory not found: ", ytf_dir)

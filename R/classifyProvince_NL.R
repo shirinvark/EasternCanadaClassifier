@@ -3,7 +3,7 @@ classifyProvince_NL <- function(sim) {
   message("Running Newfoundland classifier")
   
   # ===================================================
-  # === DOWNLOAD DATA FROM GITHUB ===
+  # SET UP NEWFOUNDLAND DATA PATHS
   # ===================================================
   
   nl_dir <- file.path(
@@ -86,9 +86,9 @@ classifyProvince_NL <- function(sim) {
       
     }
   }
-  
-  
-  
+  # =========================================================
+  # LOAD CLASSIFIER HELPER FUNCTIONS
+  # =========================================================
   source(
     file.path(
       getPaths()$modulePath,
@@ -118,7 +118,10 @@ classifyProvince_NL <- function(sim) {
   
   groups <- groups[!is.na(groups)]
   groups <- groups[groups != ""]
-  
+  # ===================================================
+  # BUILD YIELD CURVE INVENTORY
+  # ===================================================
+ 
   inventory <- data.table()
   for (f in ytf_files) {
     
@@ -158,9 +161,10 @@ classifyProvince_NL <- function(sim) {
       tmp
     )
   }
-  
-  
-  #######AU
+  # ===================================================
+  # BUILD ANALYSIS UNIT (AU) TABLE
+  # ===================================================
+  # Define each unique community-region combination as an AU
   AU_table <- unique(
     inventory[
       ,
@@ -176,9 +180,10 @@ classifyProvince_NL <- function(sim) {
     ]
   )
   
-  
-  ####AUTOcurve####
-  
+  # ===================================================
+  # BUILD AU-TO-CURVE LOOKUP
+  # ===================================================
+  # Assign each AU to its corresponding yield curve
   AUtoCurve <- copy(AU_table)[
     ,
     .(
@@ -192,9 +197,7 @@ classifyProvince_NL <- function(sim) {
   if (nrow(dupAU) > 0) {
     stop("More than one curve assigned to the same AU.")
   }
-  
-  
-  
+  # Link each AU region to its source YLD file
   region_file <- unique(
     inventory[
       ,
@@ -212,45 +215,23 @@ classifyProvince_NL <- function(sim) {
     by = "region",
     all.x = TRUE
   )
-  
-  
-  
-  #################3
+  # ===================================================
+  # BUILD NEWFOUNDLAND YIELD TABLES
+  # ===================================================
+  # Initialize storage for source files and processed yield tables
   file_cache <- list()
-  #1زchange
-  
-  # cleanOriginalYieldTables_NL <- list()
   yieldTablesVolume_NL  <- list()
   yieldTablesBiomass_NL <- list()
-  
   cleanOriginalYieldTables_NL <- list()
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   for (i in seq_len(nrow(AU_table))) {
+    # Get the AU, region, community, and source YLD file
     
     au <- AU_table$AU[i]
     region <- AU_table$region[i]
     community <- AU_table$community[i]
     file <- AU_table$file[i]
-    
+    # Read each YLD file once and store it in the file cache
     if (!file %in% names(file_cache)) {
       
       path <- file.path(
@@ -266,15 +247,7 @@ classifyProvince_NL <- function(sim) {
     }
     
     lines <- file_cache[[file]]
-    
-    
-    
-    
-    
-    
-    
-    ####################new
-    
+    # Select the matching medium-density (d2) yield curve for this AU
     headers <- parseYLDHeaders(lines)
     comm <- community
     reg  <- region
@@ -284,53 +257,24 @@ classifyProvince_NL <- function(sim) {
         density == "d2" &
         region == reg
     ]
-    
-    
+    # Confirm that exactly one yield curve matches the current AU
     stopifnot(nrow(header) == 1)
+    # Parse species information and volume data from the selected curve
     speciesInfo <- parseSpecies(
       lines,
       startLine = header$lineNumber
     )
-    
     raw_curve <- parseVolumes(
       lines,
       speciesInfo
     )
     cleanOriginalYieldTables_NL[[au]] <- raw_curve    
-    ######################new
-    
+    # Aggregate original species into classifier species groups
     curve_data <- rewrite_yld_curve(
       raw_curve,
       mapSpeciesGroups
     )
-    
-    
-    
-    
-    
-    checkVolumeConservation <- FALSE
-    
-    if (checkVolumeConservation) {
-      
-      raw_total <- rowSums(as.data.frame(raw_curve))
-      
-      group_total <- rowSums(as.data.frame(curve_data))
-      
-      tmp_check <- data.frame(
-        age = seq(0, by = 10, length.out = length(raw_total)),
-        raw_total = raw_total,
-        group_total = group_total,
-        difference = raw_total - group_total
-      )
-      
-      
-      cat(
-        "\nMAX DIFFERENCE:",
-        max(abs(tmp_check$difference)),
-        "\n"
-      )
-    }
-    ######
+    # Standardize yield curves to annual age classes up to age 255
     ages <- seq(
       0,
       by = 5,
@@ -353,15 +297,11 @@ classifyProvince_NL <- function(sim) {
       
       dt_curve[[sp]] <- tmp$volume
     }
-    #2change
-    # -------------------------------------------------------
+  
     # Keep volume version for AAC / Hanzlik
-    # -------------------------------------------------------
     dt_curve_volume <- copy(dt_curve)
-    # -------------------------------------------------------
     # Convert yield volume (m3/ha) to approximate biomass (kg/ha)
-    # Steve's suggested conversion
-    # -------------------------------------------------------
+    # for comparison with cohort biomass
     dt_curve_biomass <- copy(dt_curve_volume)
     
     conversionFactor <- 1000 * 0.5 / 0.8
@@ -379,141 +319,88 @@ classifyProvince_NL <- function(sim) {
     yieldTablesVolume_NL[[au]]  <- dt_curve_volume
     yieldTablesBiomass_NL[[au]] <- dt_curve_biomass
     
-  }   # <-- پایان حلقه ساخت Yield Tables
+  }   
   
-  
+ 
   # =========================================================
-  # BUILD pixel_region FROM NL_YCF
+  # BUILD PIXEL-TO-REGION LOOKUP
   # =========================================================
   
-  shp_path <- file.path(
-    getPaths()$modulePath,
-    "EasternCanadaClassifier",
-    "data",
-    "NL",
-    "NL_YCF.shp"
-  )
-  
-  shp <- terra::vect(shp_path)
-  
-  
-  
-  # ---- project ----
-  shp <- terra::project(
-    shp,
-    terra::crs(sim$pixelGroupMap)
-  )
-  NL_YCF <- terra::vect(shp_path)
-  
-  NL_YCF <- terra::project(
-    NL_YCF,
-    terra::crs(sim$pixelGroupMap)
-  )
-  # ---- rasterize ----
-  stopifnot(
-    terra::same.crs(
-      NL_YCF,
-      sim$pixelGroupMap
-    )
-  )
-  region_raster <- terra::rasterize(
-    shp,
-    sim$pixelGroupMap,
-    field = "YCF",
-    touches = TRUE
-  )
-  
-  
-  
-  
-  if (!terra::same.crs(
-    NL_YCF,
-    sim$pixelGroupMap
-  )) {
-    
-    NL_YCF <- terra::project(
-      NL_YCF,
-      terra::crs(sim$pixelGroupMap)
-    )
-    
+  if (!("yieldCurveFamily" %in% names(sim))) {
+    stop("sim$yieldCurveFamily is missing.")
   }
-  # ---- extract values ----
-  pg  <- data.table::as.data.table(
-    terra::values(sim$pixelGroupMap)
-  )
   
-  reg <- data.table::as.data.table(
-    terra::values(region_raster)
-  )
+  if (!("yieldCurveLookup" %in% names(sim))) {
+    stop("sim$yieldCurveLookup is missing.")
+  }
   
-  data.table::setnames(
-    pg,
-    names(pg),
-    "pixelGroup"
+  if (!terra::compareGeom(
+    sim$yieldCurveFamily,
+    sim$pixelGroupMap,
+    stopOnError = FALSE
+  )) {
+    stop("yieldCurveFamily and pixelGroupMap are not aligned.")
+  }
+  # Extract pixel group and Yield Curve Family ID for each raster cell
+  pixel_region <- data.table::data.table(
+    pixelGroup = as.vector(
+      terra::values(sim$pixelGroupMap)
+    ),
+    YCF_ID = as.vector(
+      terra::values(sim$yieldCurveFamily)
+    )
   )
-  
-  data.table::setnames(
-    reg,
-    names(reg),
-    "region"
-  )
-  
-  pixel_region <- cbind(
-    pg,
-    reg
-  )
-  
-  # ---- clean ----
+  # Keep only cells with both pixel group and YCF information
   pixel_region <- pixel_region[
     !is.na(pixelGroup) &
-      !is.na(region)
+      !is.na(YCF_ID)
   ]
-  lut <- terra::cats(region_raster)[[1]]
+  # Match YCF IDs to Newfoundland Yield Curve Family names
+  lookup <- data.table::as.data.table(
+    sim$yieldCurveLookup
+  )
   
+  pixel_region <- merge(
+    pixel_region,
+    lookup[
+      Province == "NL",
+      .(
+        YCF_ID = ID,
+        YCF
+      )
+    ],
+    by = "YCF_ID",
+    all.x = TRUE
+  )
+  # Keep only cells successfully matched to a Newfoundland YCF
+  pixel_region <- pixel_region[
+    !is.na(YCF)
+  ]
+  # Convert YCF names to Newfoundland region names
+  # Example: "NL_Aphid" -> "Aphid"
   pixel_region[
     ,
-    region := lut$YCF[
-      match(region, lut$ID)
-    ]
-  ]
-  
-  pixel_region[
-    ,
-    region := gsub(
+    region := sub(
       "^NL_",
       "",
-      region
+      as.character(YCF)
     )
   ]
-  
-  
-  lut <- levels(region_raster)[[1]]
-  
-  
-  
+  # Remove intermediate YCF fields
   pixel_region[
     ,
-    region := gsub(
-      "^NL_",
-      "",
-      as.character(region)
-    )
+    c("YCF_ID", "YCF") := NULL
   ]
   
-  # ---- save ----
   sim$pixel_region <- pixel_region
-  
-  
-  # =========================================================
-  # CLASSIFIER - LOAD COHORT DATA
-  # =========================================================
-  #
-  
+  # ===================================================
+  # LOAD AND GROUP COHORT DATA
+  # ===================================================
   
   cohortDT <- data.table::as.data.table(
     sim$cohortData
   )
-  
+  # Map cohort species codes to Newfoundland classifier species groups
   cohortDT[
     ,
     speciesCode := as.character(speciesCode)
@@ -524,7 +411,7 @@ classifyProvince_NL <- function(sim) {
     final_group := speciesGroups[[speciesCode]],
     by = speciesCode
   ]
-  
+  # Remove species that are not included in the species-group mapping
   cohortDT <- cohortDT[
     !is.na(final_group)
   ]
@@ -543,18 +430,14 @@ classifyProvince_NL <- function(sim) {
       final_group
     )
   ]
-  
-  
-  ########
-  
+  # Reshape species-group biomass into separate columns
   cohort_wide <- dcast(
     cohort_group,
     pixelGroup + age ~ final_group,
     value.var = "B",
     fill = 0
   )
-  
-  
+  # Calculate total biomass across species groups
   group_cols <- setdiff(
     names(cohort_wide),
     c("pixelGroup", "age", "total")
@@ -565,42 +448,41 @@ classifyProvince_NL <- function(sim) {
     total := rowSums(.SD),
     .SDcols = group_cols
   ]
-  
-  
+  # Remove cohort rows with no biomass
   cohort_wide <- cohort_wide[
     total > 0
   ]
-  
-  ####normalization
+  # Identify species groups shared by cohort data and yield curves
   group_cols <- setdiff(
     names(cohort_wide),
     c("pixelGroup", "age")
   )
-  
   prop_cols <- intersect(
     groups,
     group_cols
   )
-  
   prop_cols <- prop_cols[!is.na(prop_cols)]
-  
+  # Stop if cohort data and yield curves have no species groups in common
   if (length(prop_cols) == 0) {
-    stop("❌ No matching species groups between cohort and yield")
+    stop("No matching species groups between cohort and yield curves.")
   }
+  # ===================================================
+  # ORGANIZE YIELD TABLES BY REGION
+  # ===================================================
   
+  # Keep separate regional tables for volume and biomass
   
-  #we need two of this
   yield_by_region_volume  <- list()
   yield_by_region_biomass <- list()
   
   for (reg in unique(AU_table$region)) {
-    
+    # Get all analysis units belonging to the current region
     region_aus <- AU_table[
       region == reg,
       AU
     ]
     
-    # ---------- Volume ----------
+    # Combine volume yield tables for all AUs in the region
     region_list_volume <- lapply(
       region_aus,
       function(au) {
@@ -620,8 +502,7 @@ classifyProvince_NL <- function(sim) {
       region_list_volume,
       fill = TRUE
     )
-    
-    # ---------- Biomass ----------
+    # Combine biomass yield tables for all AUs in the region
     region_list_biomass <- lapply(
       region_aus,
       function(au) {
@@ -642,7 +523,7 @@ classifyProvince_NL <- function(sim) {
       fill = TRUE
     )
     
-  }  ## ← این هم پایان حلقه for
+  } 
   
   # =========================================================
   # NORMALIZE CURVES ONCE
@@ -650,32 +531,6 @@ classifyProvince_NL <- function(sim) {
   
   curve_cols <- prop_cols
   sim$yield_by_region <- yield_by_region_biomass
-  # yield_by_region_norm <- lapply(
-  #   yield_by_region,
-  #   function(dt) {
-  #     
-  #     dt <- copy(dt)
-  #     
-  #     dt[
-  #       ,
-  #       total := rowSums(.SD),
-  #       .SDcols = curve_cols
-  #     ]
-  #     
-  #     dt[
-  #       ,
-  #       (curve_cols) := lapply(
-  #         .SD,
-  #         function(x) x / total
-  #       ),
-  #       .SDcols = curve_cols
-  #     ]
-  #     
-  #     dt
-  #   }
-  # )
-  
-  
   
   # =========================================================
   # KEEP ONLY PIXELS WITH REGION
