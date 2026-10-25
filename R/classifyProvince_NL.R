@@ -8,27 +8,31 @@ classifyProvince_NL <- function(sim) {
   
   nl_dir <- file.path(
     getPaths()$inputPath,
+    "Provincial",
     "NL"
   )
   
-  dir.create(
-    nl_dir,
-    recursive = TRUE,
-    showWarnings = FALSE
-  )
-  
-  ytf_dir <- file.path(
+  # Provincial yield tables
+  provincial_dir <- file.path(
     nl_dir,
     "YTF"
   )
   
   dir.create(
-    ytf_dir,
+    provincial_dir,
     recursive = TRUE,
     showWarnings = FALSE
   )
   
-  base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/NL/"
+  # Use provincial yield tables
+  ytf_dir <- provincial_dir
+  
+  # GitHub source
+  base_url <- paste0(
+    "https://raw.githubusercontent.com/",
+    "shirinvark/EasternCanadaClassifier/",
+    "main/data/Provincial/NL/"
+  )
   
   # ===================================================
   # === DOWNLOAD MAPPING FILES ===
@@ -75,7 +79,7 @@ classifyProvince_NL <- function(sim) {
       url <- paste0(
         base_url,
         "YTF/",
-        URLencode(f)
+        URLencode(f, reserved = TRUE)
       )
       
       download.file(

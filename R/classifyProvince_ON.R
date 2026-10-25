@@ -8,28 +8,70 @@ classifyProvince_ON <- function(sim) {
   # in the local input directory.
   # ======================================================
   
-  on_dir <- file.path(getPaths()$inputPath, "ON")
-  dir.create(on_dir, recursive = TRUE, showWarnings = FALSE)
   
-  ytf_dir <- file.path(on_dir, "YTF")
-  dir.create(ytf_dir, recursive = TRUE, showWarnings = FALSE)
+  # ===================================================
+  # SET UP ONTARIO PROVINCIAL DATA PATHS
+  # ===================================================
   
-  base_url <- "https://raw.githubusercontent.com/shirinvark/EasternCanadaClassifier/main/data/ON/"
+  on_dir <- file.path(
+    getPaths()$inputPath,
+    "Provincial",
+    "ON"
+  )
   
-  # ---- mapping files ----
+  # Provincial yield tables
+  provincial_dir <- file.path(
+    on_dir,
+    "YTF"
+  )
+  
+  dir.create(
+    provincial_dir,
+    recursive = TRUE,
+    showWarnings = FALSE
+  )
+  
+  # Use provincial yield tables.
+  # National RSYC data will be handled separately.
+  ytf_dir <- provincial_dir
+  
+  # GitHub source
+  base_url <- paste0(
+    "https://raw.githubusercontent.com/",
+    "shirinvark/EasternCanadaClassifier/",
+    "main/data/Provincial/ON/"
+  )
+  
+  # ===================================================
+  # DOWNLOAD MAPPING FILES
+  # ===================================================
+  
   mapping_files <- c(
     "speciesGroups_ON.txt",
     "mapSpeciesGroups.txt"
   )
   
   for (f in mapping_files) {
+    
     dest <- file.path(on_dir, f)
+    
     if (!file.exists(dest)) {
-      download.file(paste0(base_url, f), destfile = dest, mode = "wb")
+      
+      download.file(
+        paste0(
+          base_url,
+          URLencode(f, reserved = TRUE)
+        ),
+        destfile = dest,
+        mode = "wb"
+      )
     }
   }
   
-  # ---- yield tables ----
+  # ===================================================
+  # DOWNLOAD PROVINCIAL YIELD TABLES
+  # ===================================================
+  
   ytf_files <- c(
     "3e_tbl_yield_final.csv",
     "3w_tbl_yield_final.txt",
@@ -40,11 +82,25 @@ classifyProvince_ON <- function(sim) {
   )
   
   for (f in ytf_files) {
+    
     dest <- file.path(ytf_dir, f)
+    
     if (!file.exists(dest)) {
-      download.file(paste0(base_url, "YTF/", f), destfile = dest, mode = "wb")
+      
+      url <- paste0(
+        base_url,
+        "YTF/",
+        URLencode(f, reserved = TRUE)
+      )
+      
+      download.file(
+        url,
+        destfile = dest,
+        mode = "wb"
+      )
     }
   }
+  
   speciesGroups <- read_curve_mapping(file.path(on_dir, "speciesGroups_ON.txt"))
   mapSpeciesGroups <- read_curve_mapping(file.path(on_dir, "mapSpeciesGroups.txt"))
   sim$mapSpeciesGroups <- mapSpeciesGroups

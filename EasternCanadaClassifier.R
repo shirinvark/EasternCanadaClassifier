@@ -76,12 +76,6 @@ defineModule(sim, list(
   outputObjects = bindrows(
     
     createsOutput(
-      "analysisUnitMap",
-      "SpatRaster",
-      "Raster assigning harvestable pixels to analysis units."
-    ),
-    
-    createsOutput(
       "yieldTables",
       "matrix",
       "Yield tables used for classifier."
@@ -195,15 +189,11 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       # build standardized annual yield tables
       # ===================================================
       
-      #sim$yieldTables <- standardizeYieldTables(sim)
       sim$yieldTables <- standardizeYieldTables(
         sim,
         maxAge = P(sim)$maxYieldAge
       )
-      cat("\n===== AFTER standardizeYieldTables =====\n")
-      cat("length =", length(sim$yieldTables), "\n")
-      cat("names  =", length(names(sim$yieldTables)), "\n")
-      cat("NULLs  =", sum(sapply(sim$yieldTables, is.null)), "\n")
+     
       # =====================================================
       # AAC input table
       # =====================================================
@@ -232,23 +222,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
           
           x <- aacInput[i]
           
-          # if (x$age <= 70) {
-          #   
-          #   ages <- x$age
-          #   
-          # } else if (x$age %% 10 == 0) {
-          #   
-          #   ages <- seq(
-          #     x$age - 9L,
-          #     x$age,
-          #     by = 1L
-          #   )
-          #   
-          # } else {
-          #   
-          #   ages <- x$age
-          #   
-          # }
+         
           if (x$age <= 70) {
             
             ages <- x$age
@@ -312,32 +286,6 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
         by = .(AU, curveID)
       ]
       ##################################
-      cat("\nDuplicates in expanded:\n")
-      print(
-        expanded[
-          ,
-          .N,
-          by = .(AU, curveID, age)
-        ][N > 1]
-      )
-      
-      cat("\nDuplicates in fullGrid:\n")
-      print(
-        fullGrid[
-          ,
-          .N,
-          by = .(AU, curveID, age)
-        ][N > 1]
-      )
-      
-      cat("\nRows in expanded:\n")
-      print(nrow(expanded))
-      
-      cat("\nRows in fullGrid:\n")
-      print(nrow(fullGrid))
-      ################################
-      cat("\n===== standDT columns =====\n")
-      print(names(sim$standDT))
       sim$aacInput <- merge(
         fullGrid,
         aacInput,
@@ -412,14 +360,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   if (!("cohortData" %in% names(sim))) {
     
     message("Creating fake cohortData")
-    
-    # pg <- unique(
-    #  terra::values(sim$pixelGroupMap)
-    # )
-    
-    # pg <- pg[!is.na(pg)]
-    
-    #pg <- pg[1:6]
+  
     pg <- c(70,79,80)
     sim$cohortData <- data.table::data.table(
       
@@ -498,36 +439,20 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     sim$canadaJurisdiction <- shp_path
   }
   # ======================================================
-  # YIELD FILES (UPDATED FOR NL + ON)
+  # YIELD FILES (NL + ON)
   # ========================================================
+  
+  
+  # ======================================================
+  # YIELD FILES
+  # ======================================================
   
   if (jur == "NL") {
     
-    message("Loading NL yield (.yld) files")
+    # Newfoundland yield files are downloaded and loaded
+    # inside classifyProvince_NL().
     
-    yld_dir <- file.path(
-      getPaths()$inputPath,
-      "NL",
-      "YTF"
-    )
-    
-    if (!dir.exists(yld_dir)) {
-      stop("Directory not found: ", yld_dir)
-    }
-    
-    yld_files <- list.files(
-      yld_dir,
-      pattern = "\\.yld$",
-      full.names = TRUE
-    )
-    
-    if (length(yld_files) == 0) {
-      stop("No .yld files found in: ", yld_dir)
-    }
-    
-    sim$yieldFiles <- yld_files
-    
-    message("Found ", length(yld_files), " NL yield files")
+    message("NL yield files will be prepared by classifyProvince_NL")
     
   } else if (jur == "ON") {
     
@@ -535,6 +460,7 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
     
     ytf_dir <- file.path(
       getPaths()$inputPath,
+      "Provincial",
       "ON",
       "YTF"
     )

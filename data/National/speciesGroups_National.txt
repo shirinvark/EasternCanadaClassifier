@@ -1,0 +1,26 @@
+
+Pice_mar: blackSpruce_NAT
+
+Pice_gla: spruce_NAT
+Pice_rub: spruce_NAT
+
+Abie_bal: balsamFir_NAT
+
+Pinu_ban: pine_boreal_NAT
+
+Pinu_res: pine_temperate_NAT
+Pinu_str: pine_temperate_NAT
+
+Lari_lar: otherConifer_NAT
+Thuj_occ: otherConifer_NAT
+Tsug_can: otherConifer_NAT
+
+Popu_tre: broadleaf_boreal_NAT
+Popu_bal: broadleaf_boreal_NAT
+Betu_pap: broadleaf_boreal_NAT
+
+Betu_all: broadleaf_temperate_NAT
+Acer_sah: broadleaf_temperate_NAT
+Acer_rub: broadleaf_temperate_NAT
+Quer_rub: broadleaf_temperate_NAT
+Fagu_gra: broadleaf_temperate_NAT

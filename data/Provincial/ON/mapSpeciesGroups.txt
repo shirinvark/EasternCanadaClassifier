@@ -1,0 +1,24 @@
+
+SB: blackSpruce_ON
+
+SW: spruce_ON
+
+BF: balsamFir_ON
+
+PJ: pine_boreal_ON
+
+PR: pine_temperate_ON
+PW: pine_temperate_ON
+
+CE: otherConifer_ON
+HE: otherConifer_ON
+OC: otherConifer_ON
+
+PO: broadleaf_boreal_ON
+PB: broadleaf_boreal_ON
+BW: broadleaf_boreal_ON
+
+YB: broadleaf_temperate_ON
+MH: broadleaf_temperate_ON
+QR: broadleaf_temperate_ON
+OH: broadleaf_temperate_ON

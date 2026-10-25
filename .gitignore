@@ -23,18 +23,41 @@ maps/
 *.grd
 
 # =========================================================
-# Data (ignore heavy, keep mappings)
+# Data - Ignore datasets, keep species mapping files
 # =========================================================
+
+# Ignore all data files and folders
 data/*
 
-# ✅ keep mapping files
-!data/ON/
-!data/ON/speciesGroups_ON.txt
-!data/ON/mapSpeciesGroups.txt
-!data/ON/YTF/
-!data/ON/YTF/*
-!data/ON/YTF/
-!data/ON/combined_regions.zip
+# Allow National and Provincial directories
+!data/National/
+!data/Provincial/
+
+# Ignore their contents by default
+data/National/*
+data/Provincial/*
+
+# National species mapping files
+!data/National/speciesGroups_National.txt
+!data/National/mapSpeciesGroups_National.txt
+
+# Allow provincial subdirectories
+!data/Provincial/ON/
+!data/Provincial/NL/
+
+# Ignore provincial contents by default
+data/Provincial/ON/*
+data/Provincial/NL/*
+
+# Ontario species mapping files
+!data/Provincial/ON/speciesGroups_ON.txt
+!data/Provincial/ON/mapSpeciesGroups.txt
+
+# Newfoundland species mapping files
+!data/Provincial/NL/speciesGroups.txt
+!data/Provincial/NL/mapSpeciesGroups.txt
+
+
 # =========================================================
 # Modules (downloaded)
 # =========================================================

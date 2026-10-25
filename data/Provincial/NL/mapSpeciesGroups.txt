@@ -1,0 +1,9 @@
+BSv: blackSpruce_NL
+BFv: balsamFir_NL
+TLv: tamarack_NL
+WSv: otherConifer_NL
+WPv: otherConifer_NL
+TAv: broadleaf_NL
+YBv: broadleaf_NL
+WBv: broadleaf_NL
+RMv: broadleaf_NL
