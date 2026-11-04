@@ -1,278 +1,174 @@
-
 # =============================================================================
-# NATIONAL RSYC - YIELD CURVE TRANSLATION
+# NATIONAL RSYC - PIXEL GROUP CLASSIFICATION
 #
 # EasternCanadaClassifier
 #
 # Purpose:
-#   Read national RSYC volume yield curves and translate them
-#   into the annual yield-table structure used by the classifier.
+#   Classify LandR pixel groups using National RSYC yield curves.
 #
-# Input:
-#   RSYC national volume yield curves (ages 0-255)
+# Inputs:
+#   - sim$cohortData
+#   - sim$pixelGroupMap
+#   - National RSYC yield curves
+#   - National species mapping
+#   - National ecodistricts
 #
-# Output:
-#   $yieldTables : named list of annual yield tables
-#   $curveLookup : curve metadata and ecodistrict IDs
-#
-# Notes:
-#   - National curves are NOT separated by province.
-#   - Original volume values are preserved.
-#   - No species mapping is performed.
-#   - No spatial matching or pixel classification is performed.
-#   - The volume column is temporary until species mapping
-#     and classifier integration are finalized.
 # =============================================================================
 
-
-translateNationalRSYC <- function(
-    nationalFile = paste0(
-      "E:/EasternCanadaClassifier/data/National/",
-      "RSYC_national_volume_yield_curves_v20260923_age255.csv"
-    ),
-    maxAge = 255
-) {
+classifyNationalRSYC <- function(sim) {
   
   # ---------------------------------------------------------------------------
-  # 1. Read national RSYC curves
+  # 1. Validate upstream inputs
   # ---------------------------------------------------------------------------
   
-  message("Reading National RSYC yield curves...")
+  message("Starting National RSYC classification...")
   
-  if (!file.exists(nationalFile)) {
-    stop("National RSYC file not found: ", nationalFile)
+  if (is.null(sim$cohortData)) {
+    stop("Missing sim$cohortData.")
   }
   
-  nationalCurves <- data.table::fread(nationalFile)
+  if (is.null(sim$pixelGroupMap)) {
+    stop("Missing sim$pixelGroupMap.")
+  }
   
-  requiredCols <- c(
-    "curveID",
-    "model_id",
-    "ecodistrict_id",
-    "species",
-    "model_group",
-    "age",
-    "volume_m3_ha",
-    "model_version"
+  # ---------------------------------------------------------------------------
+  # 2. Load National RSYC reference data
+  # ---------------------------------------------------------------------------
+  
+  nationalResult <- translateNationalRSYC()
+  
+  nationalMapping <- readNationalSpeciesMapping()
+  
+  nationalEco <- readNationalEcodistricts()
+  
+  message("National RSYC reference data loaded.")
+  
+  # ---------------------------------------------------------------------------
+  # 3. Match pixel groups to National RSYC ecodistricts
+  # ---------------------------------------------------------------------------
+  
+  ecodistrictMap <- buildNationalEcodistrictMap(
+    pixelGroupMap = sim$pixelGroupMap,
+    nationalEco = nationalEco
   )
   
-  missingCols <- setdiff(requiredCols, names(nationalCurves))
-  
-  if (length(missingCols) > 0) {
-    stop(
-      "Missing required columns: ",
-      paste(missingCols, collapse = ", ")
-    )
-  }
-  
-  if (!identical(as.integer(maxAge), 255L) ||
-      length(maxAge) != 1L ||
-      is.na(maxAge)) {
-    stop("This RSYC dataset is prepared for maxAge = 255.")
-  }
-  
-  message("Input rows: ", nrow(nationalCurves))
-  
-  
-  # ---------------------------------------------------------------------------
-  # 2. Validate original curve structure
-  # ---------------------------------------------------------------------------
-  
-  message("Validating National RSYC curves...")
-  
-  curveCheck <- nationalCurves[
-    ,
-    .(
-      nAges = .N,
-      nUniqueAges = data.table::uniqueN(age),
-      minAge = min(age),
-      maxAge = max(age),
-      nEco = data.table::uniqueN(ecodistrict_id),
-      nSpecies = data.table::uniqueN(species),
-      nGroups = data.table::uniqueN(model_group),
-      nModels = data.table::uniqueN(model_id),
-      nVersions = data.table::uniqueN(model_version)
-    ),
-    by = curveID
-  ]
-  
-  invalidCurves <- curveCheck[
-    nAges != 256 |
-      nUniqueAges != 256 |
-      minAge != 0 |
-      maxAge != 255 |
-      nEco != 1 |
-      nSpecies != 1 |
-      nGroups != 1 |
-      nModels != 1 |
-      nVersions != 1
-  ]
-  
-  if (nrow(invalidCurves) > 0) {
-    stop(
-      "Invalid National RSYC curves found: ",
-      nrow(invalidCurves)
-    )
-  }
-  
-  if (
-    anyNA(nationalCurves[, ..requiredCols]) ||
-    any(!is.finite(nationalCurves$volume_m3_ha)) ||
-    any(nationalCurves$volume_m3_ha < 0)
-  ) {
-    stop("Missing, non-finite, or negative values in RSYC data.")
-  }
-  
-  message("Validated curves: ", nrow(curveCheck))
-  
-  
-  # ---------------------------------------------------------------------------
-  # 3. Prepare annual curves (ages 1-255)
-  #
-  # RSYC curves are already annual.
-  # No spline interpolation or extrapolation is needed.
-  # ---------------------------------------------------------------------------
-  
-  nationalAnnual <- nationalCurves[
-    age >= 1 & age <= maxAge,
-    .(
-      curveID = paste0("NAT_", curveID),
-      age,
-      volume = volume_m3_ha
-    )
-  ]
-  
-  data.table::setorder(nationalAnnual, curveID, age)
-  
-  
-  # ---------------------------------------------------------------------------
-  # 4. Translate to classifier yieldTables structure
-  #
-  # Each curve is stored as:
-  #
-  #   yieldTables[["NAT_1"]]
-  #
-  #   age   volume
-  #     1   ...
-  #     2   ...
-  #   ...
-  #   255   ...
-  # ---------------------------------------------------------------------------
-  
-  message("Building National yield tables...")
-  
-  nationalYieldTables <- split(
-    nationalAnnual[, .(age, volume)],
-    nationalAnnual$curveID
+  pixelGroupEco <- matchNationalEcodistricts(
+    pixelGroupMap = sim$pixelGroupMap,
+    ecodistrictMap = ecodistrictMap
   )
   
-  
+  message(
+    "Pixel groups matched to ecodistricts: ",
+    sum(!is.na(pixelGroupEco$ecodistrict_id)),
+    " / ",
+    nrow(pixelGroupEco)
+  )
   # ---------------------------------------------------------------------------
-  # 5. Build curve lookup
-  #
-  # Preserve the original species and model group information.
-  # Species mapping will be implemented separately.
+  # 4. Map LandR cohort species to National RSYC species
   # ---------------------------------------------------------------------------
   
-  nationalLookup <- unique(
-    nationalCurves[
-      ,
-      .(
-        curveID = paste0("NAT_", curveID),
-        model_id,
-        ecodistrict_id,
-        species,
-        model_group,
-        model_version
-      )
+  cohortDT <- data.table::as.data.table(
+    data.table::copy(sim$cohortData)
+  )
+  
+  # Standardize pixelGroup column name
+  pg_col <- grep(
+    "^pixelgroup$",
+    names(cohortDT),
+    ignore.case = TRUE,
+    value = TRUE
+  )
+  
+  if (length(pg_col) != 1L) {
+    stop("Could not uniquely identify pixelGroup column.")
+  }
+  
+  data.table::setnames(cohortDT, pg_col, "pixelGroup")
+  
+  # Validate required cohort columns
+  requiredCols <- c("pixelGroup", "speciesCode", "age", "B")
+  
+  if (!all(requiredCols %in% names(cohortDT))) {
+    stop("Missing required columns in cohortData.")
+  }
+  
+  # Match LandR species codes to National RSYC species
+  cohortDT[, speciesCode := as.character(speciesCode)]
+  
+  cohortDT <- merge(
+    cohortDT,
+    nationalMapping,
+    by.x = "speciesCode",
+    by.y = "LandR",
+    all.x = TRUE,
+    sort = FALSE
+  )
+  
+  # Check species mapping
+  message(
+    "Mapped cohort records: ",
+    sum(!is.na(cohortDT$species)),
+    " / ",
+    nrow(cohortDT)
+  )
+  
+  unmappedSpecies <- unique(
+    cohortDT[is.na(species), speciesCode]
+  )
+  
+  if (length(unmappedSpecies) > 0L) {
+    warning(
+      "Unmapped LandR species: ",
+      paste(unmappedSpecies, collapse = ", ")
+    )
+  }
+    # ---------------------------------------------------------------------------
+    # 5. Attach National RSYC ecodistricts to cohort records
+    # ---------------------------------------------------------------------------
+    
+    cohortEco <- merge(
+      cohortDT,
+      pixelGroupEco[, .(pixelGroup, ecodistrict_id)],
+      by = "pixelGroup",
+      all.x = TRUE,
+      sort = FALSE
+    )
+    
+    message(
+      "Cohort records matched to ecodistricts: ",
+      sum(!is.na(cohortEco$ecodistrict_id)),
+      " / ",
+      nrow(cohortEco)
+    )
+    # ---------------------------------------------------------------------------
+    # 6. Match cohorts to species-specific National RSYC curves
+    # ---------------------------------------------------------------------------
+    
+    speciesCurves <- nationalResult$curveLookup[
+      model_group == "species",
+      .(ecodistrict_id, species, curveID)
     ]
-  )
-  
-  data.table::setorder(nationalLookup, curveID)
-  
-  
-  # ---------------------------------------------------------------------------
-  # 6. Validate translated yield tables
-  # ---------------------------------------------------------------------------
-  
-  message("Validating translated yield tables...")
-  
-  curveLengths <- vapply(
-    nationalYieldTables,
-    nrow,
-    integer(1)
-  )
-  
-  if (!all(curveLengths == maxAge)) {
-    stop("Some National yield tables do not contain 255 ages.")
-  }
-  
-  if (anyDuplicated(nationalLookup$curveID)) {
-    stop("Duplicate curve IDs found in National lookup.")
-  }
-  
-  if (!setequal(
-    names(nationalYieldTables),
-    nationalLookup$curveID
-  )) {
-    stop("Yield table IDs do not match National lookup IDs.")
-  }
-  
-  if (nrow(nationalAnnual) !=
-      nrow(curveCheck) * maxAge) {
-    stop("Unexpected number of translated yield rows.")
-  }
-  
-  # Verify original volume values were preserved
-  
-  originalAnnual <- nationalCurves[
-    age >= 1 & age <= maxAge,
-    .(
-      curveID = paste0("NAT_", curveID),
-      age,
-      originalVolume = volume_m3_ha
+    
+    cohortCurves <- merge(
+      cohortEco,
+      speciesCurves,
+      by = c("ecodistrict_id", "species"),
+      all.x = TRUE,
+      sort = FALSE
     )
-  ]
-  
-  volumeCheck <- merge(
-    nationalAnnual,
-    originalAnnual,
-    by = c("curveID", "age")
-  )
-  
-  if (
-    nrow(volumeCheck) != nrow(nationalAnnual) ||
-    any(volumeCheck$volume != volumeCheck$originalVolume)
-  ) {
-    stop("Volume values changed during translation.")
-  }
-  
-  
-  # ---------------------------------------------------------------------------
-  # 7. Summary
-  # ---------------------------------------------------------------------------
-  
-  message("----------------------------------------")
-  message("NATIONAL RSYC TRANSLATION COMPLETE")
-  message("----------------------------------------")
-  message("Yield tables: ", length(nationalYieldTables))
-  message("Lookup records: ", nrow(nationalLookup))
-  message("Ecodistricts: ",
-          data.table::uniqueN(nationalLookup$ecodistrict_id))
-  message("Age range: 1-", maxAge)
-  message("Species mapping: NOT APPLIED")
-  message("----------------------------------------")
-  
-  
-  # ---------------------------------------------------------------------------
-  # 8. Return
-  # ---------------------------------------------------------------------------
-  
-  return(
-    list(
-      yieldTables = nationalYieldTables,
-      curveLookup = nationalLookup
+    
+    message(
+      "Cohort records with species-specific curves: ",
+      sum(!is.na(cohortCurves$curveID)),
+      " / ",
+      nrow(cohortCurves)
     )
-  )
-  
+    # Validate cohort record counts
+    message(
+      "Record count validation: ",
+      "cohortDT = ", nrow(cohortDT),
+      ", cohortEco = ", nrow(cohortEco),
+      ", cohortCurves = ", nrow(cohortCurves)
+    )
+ 
 }
