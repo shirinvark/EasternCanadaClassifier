@@ -1,0 +1,54 @@
+---
+title: "Standardized Yield Tables Used by the Newfoundland Classifier"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(data.table)
+library(knitr)
+
+
+sim <- readRDS("E:/EasternCanadaClassifier/finalOut_NL.rds")
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+```{r tables, results='asis'}
+
+for (nm in names(sim$yieldTables_NL)) {
+
+  cat("#", nm, "\n\n")
+
+  dt <- copy(sim$yieldTables_NL[[nm]])
+
+  dt[
+    ,
+    total := rowSums(
+      .SD
+    ),
+    .SDcols = c(
+      "blackSpruce_NL",
+      "balsamFir_NL",
+      "tamarack_NL",
+      "otherConifer_NL",
+      "broadleaf_NL"
+    )
+  ]
+
+  setnames(dt, "AC10", "Age")
+
+  print(
+    kable(
+      dt,
+      digits = 2,
+      booktabs = TRUE,
+      align = "r"
+    )
+  )
+
+  cat("\n\n\\newpage\n\n")
+}
+```
