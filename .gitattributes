@@ -1,0 +1,6 @@
+data/National/RSYC_national_volume_yield_curves_v20260923_age200.csv filter=lfs diff=lfs merge=lfs -text
+data/National/RSYC_national_volume_yield_curves_v20260923_age255.csv filter=lfs diff=lfs merge=lfs -text
+data/Provincial/lpr_000b21a_e.shp filter=lfs diff=lfs merge=lfs -text
+data/Provincial/lpr_000b21a_e.zip filter=lfs diff=lfs merge=lfs -text
+lfs filter=lfs diff=lfs merge=lfs -text
+track filter=lfs diff=lfs merge=lfs -text
