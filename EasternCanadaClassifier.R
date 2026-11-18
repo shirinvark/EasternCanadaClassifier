@@ -424,20 +424,59 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
   # CANADA JURISDICTION SHAPEFILE
   # ========================================================
   
-  if (!("canadaJurisdiction" %in% names(sim))) {
+  
+  # ========================================================
+  # CANADA JURISDICTION SHAPEFILE
+  # ========================================================
+  
+  if (!inherits(sim$canadaJurisdiction, "SpatVector")) {
     
-    message("Downloading Canada jurisdiction shapefile")
+    message("Preparing Canada jurisdiction shapefile")
     
-    zip_url <- "https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/boundary-limites/files-fichiers/lpr_000b21a_e.zip"
+    input_dir <- getPaths()$inputPath
+    zip_path <- file.path(input_dir, "lpr_000b21a_e.zip")
+    extract_dir <- file.path(input_dir, "CanadaJurisdiction")
     
-    shp_path <- reproducible::prepInputs(
-      url = zip_url,
-      destinationPath = getPaths()$inputPath,
-      targetFile = "lpr_000b21a_e.shp"
-    )
+    dir.create(extract_dir, recursive = TRUE, showWarnings = FALSE)
     
-    sim$canadaJurisdiction <- shp_path
+    shp_path <- file.path(extract_dir, "lpr_000b21a_e.shp")
+    
+    if (!file.exists(shp_path)) {
+      
+      if (!file.exists(zip_path)) {
+        
+        file_id <- "1XzwDRGzSwiP3yVB04tHFEISLQZcTb-fC"
+        
+        zip_url <- paste0(
+          "https://drive.google.com/uc?export=download&id=",
+          file_id
+        )
+        
+        download.file(
+          zip_url,
+          destfile = zip_path,
+          mode = "wb"
+        )
+      }
+      
+      # Check that the downloaded file is a valid ZIP
+      zip_contents <- tryCatch(
+        utils::unzip(zip_path, list = TRUE),
+        error = function(e) {
+          stop("Invalid ZIP download: ", conditionMessage(e))
+        }
+      )
+      
+      if (!any(grepl("lpr_000b21a_e.shp$", zip_contents$Name))) {
+        stop("Expected shapefile not found inside ZIP.")
+      }
+      
+      utils::unzip(zip_path, exdir = extract_dir)
+    }
+    
+    sim$canadaJurisdiction <- terra::vect(shp_path)
   }
+  
   # ======================================================
   # YIELD FILES (NL + ON)
   # ========================================================
@@ -465,9 +504,31 @@ doEvent.EasternCanadaClassifier <- function(sim, eventTime, eventType) {
       "YTF"
     )
     
-    if (!dir.exists(ytf_dir)) {
-      stop("Directory not found: ", ytf_dir)
-    }
+      # Prepare Ontario YTF files from repository data
+      if (!dir.exists(ytf_dir) ||
+          length(list.files(ytf_dir, pattern = "\\.(csv|txt)$")) == 0) {
+        
+        source_dir <- "E:/EasternCanadaClassifier/data/Provincial/ON/YTF"
+        
+        if (!dir.exists(source_dir)) {
+          stop("Ontario YTF source not found: ", source_dir)
+        }
+        
+        dir.create(ytf_dir, recursive = TRUE, showWarnings = FALSE)
+        
+        files <- list.files(
+          source_dir,
+          pattern = "\\.(csv|txt)$",
+          full.names = TRUE
+        )
+        
+        copied <- file.copy(files, ytf_dir, overwrite = TRUE)
+        
+        if (!length(files) || !all(copied)) {
+          stop("Failed to prepare Ontario YTF files.")
+        }
+      }
+     
     
     ytf_files <- list.files(
       ytf_dir,
