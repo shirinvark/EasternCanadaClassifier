@@ -431,9 +431,9 @@ planningGridCode <- readLines(
 
 cat(planningGridCode, sep = "\n")
 
-sim$PlanningGrid <- sim$rasterToMatch
+#sim$PlanningGrid <- sim$rasterToMatch
 
-terra::values(sim$PlanningGrid) <- 1
+#terra::values(sim$PlanningGrid) <- 1
 # ---------------------------------------------------------
 # 15. Inspect Classifier module files
 # ---------------------------------------------------------
