@@ -70,6 +70,17 @@ defineModule(sim, list(
       "harvestableFraction",
       objectClass = "SpatRaster",
       desc = "Fraction of each pixel that is harvestable (from Landbase module)"
+    ),
+    ,
+    expectsInput(
+      "yieldCurveFamily",
+      objectClass = "SpatRaster",
+      desc = "Yield Curve Family raster from EasternCanadaDataPrep"
+    ),
+    expectsInput(
+      "yieldCurveLookup",
+      objectClass = c("data.frame", "data.table"),
+      desc = "Lookup linking YCF IDs to province and yield curve region"
     )
   ),
   
